@@ -50,7 +50,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({ children }) => {
             {/* Overlay for Gradient Effect */}
             <div
                 ref={overlayRef}
-                className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 opacity-70 rounded-3xl pointer-events-none transition-transform duration-300"
+                className="absolute inset-0 bg-black rounded-3xl pointer-events-none transition-transform duration-300"
             ></div>
 
             {/* Optional Expansion Button (uncomment if needed) */}

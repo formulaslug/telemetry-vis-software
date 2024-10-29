@@ -19,6 +19,9 @@ services:
       - caddy_config:/config
   python-test:
     image: python-test:latest
+    build:
+      context: python-test/
+      dockerfile: Dockerfile
     ports:
       - 8000:8000
 

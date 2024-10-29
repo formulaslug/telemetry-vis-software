@@ -1,9 +1,12 @@
 "use client"
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import ModalContainer from "@/app/components/ModalContainer";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
+
+import io from 'socket.io-client';
+const sock = new WebSocket("wss://localhost");
 
 
 const subsystems = [
@@ -13,10 +16,27 @@ const subsystems = [
 ]
 
 import initWebSockets from "./websocket"
-initWebSockets()
+
+interface Message {
+    timestamp: number;
+    x: number;
+    y: number;
+}
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
+    const [messages, setMessages] = useState<Message[]>([]);
+
+    useEffect(() => {
+        initWebSockets(sock)
+    }, []);
+
+    // on message received
+    sock.onmessage = function (event) {
+        console.log(event.data);
+        const split = event.data.split('\n');
+        setMessages([...messages, split])
+    };
 
     return (
     <div className="pt-6">
@@ -24,6 +44,18 @@ export default function Home() {
             <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem} onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
         </header>
         <main>
+            <div>
+                {messages.length}
+                {/*{messages.map((message, index) => (*/}
+                {/*    <div key={index}>*/}
+                {/*        <p>{message}</p>*/}
+                {/*        <p>{message.timestamp}</p>*/}
+                {/*        <p>{message.x}</p>*/}
+                {/*        <p>{message.y}</p>*/}
+                {/*    </div>*/}
+                {/*))}*/}
+            </div>
+
             {selectedSubsystem === 0 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
@@ -37,20 +69,20 @@ export default function Home() {
             {selectedSubsystem === 1 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
-                        <CardLineChart title={"Voltage"} color={"red"} range={15} speed={800} dataPoints={10} />
+                        <CardLineChart title={"Voltage"} color={"red"} range={15} speed={800} dataPoints={10}/>
                     </ModalContainer>
                     <ModalContainer>
-                        <CardLineChart title={"Current"} color={"#00FF00"} range={250} speed={400} dataPoints={100} />
+                        <CardLineChart title={"Current"} color={"#00FF00"} range={250} speed={400} dataPoints={100}/>
                     </ModalContainer>
                 </div>
             ) : null}
             {selectedSubsystem === 2 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
-                        <CardLineChart title={"Speed (MPH)"} color={"blue"} range={110} speed={800} dataPoints={10} />
+                        <CardLineChart title={"Speed (MPH)"} color={"blue"} range={110} speed={800} dataPoints={10}/>
                     </ModalContainer>
                     <ModalContainer>
-                        <CardLineChart title={"Voltage"} color={"#00FF00"} range={15} speed={400} dataPoints={100} />
+                        <CardLineChart title={"Voltage"} color={"#00FF00"} range={15} speed={400} dataPoints={100}/>
                     </ModalContainer>
                 </div>
             ) : null}
@@ -71,8 +103,9 @@ export default function Home() {
             {/*    </ModalContainer>*/}
             {/*</div>*/}
         </main>
-        <footer className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-            <p className={"text-center"}>FS Live Visualization Demo</p>
+        <footer
+            className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
+        <p className={"text-center"}>FS Live Visualization Demo</p>
         </footer>
     </div>
   );

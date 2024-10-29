@@ -1,5 +1,5 @@
-function initWebSockets() {
-  const sock = new WebSocket("wss://localhost");
+function initWebSockets(sock) {
+  // const sock = new WebSocket("wss://localhost");
 
   // Connection opened
   sock.addEventListener("open", (event) => {

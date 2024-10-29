@@ -22,7 +22,7 @@ export default function Home() {
             <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem} onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
         </header>
         <main>
-            {selectedSubsystem === "Accumulator" || selectedSubsystem === 0 ? (
+            {selectedSubsystem === 0 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
                         <CardLineChart title={"Avg Tire Pressure"} color={"cornflowerblue"} range={40} speed={800} dataPoints={50} />
@@ -32,7 +32,7 @@ export default function Home() {
                     </ModalContainer>
                 </div>
             ) : null}
-            {selectedSubsystem === "Electrical" || selectedSubsystem === 1 ? (
+            {selectedSubsystem === 1 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
                         <CardLineChart title={"Voltage"} color={"red"} range={15} speed={800} dataPoints={10} />
@@ -42,7 +42,7 @@ export default function Home() {
                     </ModalContainer>
                 </div>
             ) : null}
-            {selectedSubsystem === "Dynamics" || selectedSubsystem === 2 ? (
+            {selectedSubsystem === 2 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
                         <CardLineChart title={"Speed (MPH)"} color={"blue"} range={110} speed={800} dataPoints={10} />

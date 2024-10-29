@@ -100,6 +100,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
                 },
             };
 
+            // @ts-ignore
             chartInstanceRef.current = new Chart(chartRef.current, config);
         }
     }, []);
@@ -107,7 +108,9 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
     // Update chart data on dataMockup change
     useEffect(() => {
         if (chartInstanceRef.current) {
+            // @ts-ignore
             chartInstanceRef.current.data.datasets[0].data = dataMockup;
+            // @ts-ignore
             chartInstanceRef.current.update();
         }
     }, [dataMockup]);

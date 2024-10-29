@@ -1,5 +1,12 @@
 
-const SubsystemPicker = ({ subsystems, selectedSubsystem, onSelectSubsystem }) => {
+import React from 'react';
+
+interface SubsystemPickerProps {
+    subsystems: string[];
+    selectedSubsystem: number;
+    onSelectSubsystem: (index: number) => void;
+}
+const SubsystemPicker = ({ subsystems, selectedSubsystem, onSelectSubsystem }: SubsystemPickerProps) => {
     return (
         <div className={"flex flex-row"}>
             {subsystems.map((subsystem, index) => {

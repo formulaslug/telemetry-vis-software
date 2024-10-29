@@ -3,7 +3,15 @@ import { Chart, LineController, LineElement, PointElement, LinearScale, Title, C
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale);
 
-export default function CardLineChart({ title, color, range, speed, dataPoints }) {
+interface CardLineChartProps {
+    title: string;
+    color: string;
+    range: number;
+    speed: number;
+    dataPoints: number;
+}
+
+export default function CardLineChart({ title, color, range, speed, dataPoints }: CardLineChartProps) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [dataMockup, setDataMockup] = useState([]);

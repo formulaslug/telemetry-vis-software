@@ -12,6 +12,8 @@ const subsystems = [
     'Dynamics',
 ]
 
+import initWebSockets from "./websocket"
+initWebSockets()
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)

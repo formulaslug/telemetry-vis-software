@@ -73,7 +73,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({ children }) => {
             </div> */}
 
             {/* Content */}
-            <div className="relative z-10">
+            <div className="flex-1 z-10">
                 {children}
             </div>
         </div>

@@ -1,108 +1,121 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale } from "chart.js";
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale);
 
-export default function CardLineChart({title}: {title: string}) {
+export default function CardLineChart({ title, color, range, speed, dataPoints }) {
     const chartRef = useRef(null);
+    const chartInstanceRef = useRef(null);
+    const [dataMockup, setDataMockup] = useState([]);
 
     useEffect(() => {
-        const config = {
-            type: "line",
-            data: {
-                labels: ["January", "February", "March", "April", "May", "June", "July"],
-                datasets: [
-                    {
-                        label: new Date().getFullYear(),
-                        backgroundColor: "#3182ce",
-                        borderColor: "#3182ce",
-                        data: [65, 78, 66, 44, 56, 67, 75],
-                        fill: false,
-                    },
-                    {
-                        label: new Date().getFullYear() - 1,
-                        backgroundColor: "#edf2f7",
-                        borderColor: "#edf2f7",
-                        data: [40, 68, 86, 74, 56, 60, 87],
-                        fill: false,
-                    },
-                ],
-            },
-            options: {
-                maintainAspectRatio: false,
-                responsive: true,
-                animations: {
-                    tension: {
-                        duration: 1000,
-                        easing: 'linear',
-                        from: 1,
-                        to: 0,
-                        loop: true
-                    }
-                },
+        setDataMockup(Array.from({ length: dataPoints }, () => Math.floor(Math.random() * range)));
+    }, []);
 
-                plugins: {
-                    title: {
-                        display: false,
-                        text: "Sales Charts",
-                        color: "white",
+    // Update dataMockup every second
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDataMockup((prev) => {
+                const next = [...prev];
+                next.push(Math.floor(Math.random() * range));
+                next.shift();
+                return next;
+            });
+        }, speed);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Initialize chart
+    useEffect(() => {
+        if (!chartInstanceRef.current) {
+            const config = {
+                type: "line",
+                data: {
+                    labels: Array.from({ length: dataPoints }, (_, i) => (i + 1).toString()),
+                    datasets: [
+                        {
+                            label: new Date().getFullYear(),
+                            backgroundColor: "#0bb600",
+                            borderColor: color,
+                            data: dataMockup,
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0,
+                        },
+                    ],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    animation: {
+                        duration: speed,
+                        easing: 'easeInOutQuad', // Smoother easing
                     },
-                    legend: {
-                        labels: {
+                    plugins: {
+                        title: {
+                            display: false,
+                            text: "",
                             color: "white",
                         },
-                        align: "end",
-                        position: "bottom",
+                        legend: {
+                            labels: {
+                                color: "white",
+                            },
+                            align: "end",
+                            position: "bottom",
+                        },
+                        tooltip: {
+                            mode: "index",
+                            intersect: false,
+                        },
                     },
-                    tooltip: {
-                        mode: "index",
-                        intersect: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: "rgba(255,255,255,.7)",
+                            },
+                            grid: {
+                                display: false,
+                                color: "rgba(33, 37, 41, 0.3)",
+                            },
+                        },
+                        y: {
+                            ticks: {
+                                color: "rgba(255,255,255,.7)",
+                            },
+                            grid: {
+                                color: "rgba(255, 255, 255, 0.15)",
+                            },
+                        },
                     },
                 },
-                scales: {
-                    x: {
-                        ticks: {
-                            color: "rgba(255,255,255,.7)",
-                        },
-                        grid: {
-                            display: false,
-                            color: "rgba(33, 37, 41, 0.3)",
-                        },
-                    },
-                    y: {
-                        ticks: {
-                            color: "rgba(255,255,255,.7)",
-                        },
-                        grid: {
-                            color: "rgba(255, 255, 255, 0.15)",
-                        },
-                    },
-                },
-            },
-        };
+            };
 
-        const chartInstance = new Chart(chartRef.current, config);
-
-        return () => chartInstance.destroy();
+            chartInstanceRef.current = new Chart(chartRef.current, config);
+        }
     }, []);
+
+    // Update chart data on dataMockup change
+    useEffect(() => {
+        if (chartInstanceRef.current) {
+            chartInstanceRef.current.data.datasets[0].data = dataMockup;
+            chartInstanceRef.current.update();
+        }
+    }, [dataMockup]);
 
     return (
         <>
-            <div className="flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded">
-                <div className="rounded-t mb-0 px-4 py-3 bg-blue-600">
-                    <div className="flex flex-wrap items-center">
-                        <div className="relative w-full max-w-full flex-grow flex-1">
-                            <h6 className="uppercase text-blueGray-100 mb-1 text-xs font-semibold">
-                                {title}
-                            </h6>
-                        </div>
-                    </div>
-                </div>
-                <div className="p-4 flex-auto">
+            <div className="flex flex-col break-words shadow-lg rounded mx-auto">
+                <h6 className="uppercase text-blueGray-100 text-lg font-semibold">
+                    {title}
+                </h6>
+                <div className="flex-auto">
                     {/* Chart */}
                     <div className="relative h-350-px">
                         <canvas ref={chartRef}></canvas>
                     </div>
+                    <p className={"transition-transform duration-500 font-mono"}> Current Value: {dataMockup[dataMockup.length-1]}</p>
                 </div>
             </div>
         </>

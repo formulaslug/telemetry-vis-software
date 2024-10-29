@@ -1,19 +1,46 @@
+"use client"
+
 import Image from "next/image";
+import React, {useState} from "react";
+import ModalContainer from "@/app/components/ModalContainer";
+import SubsystemPicker from "@/app/components/SubsystemPicker";
+
+const subsystems = [
+    'Accumulator',
+    'Electrical',
+    'Dynamics',
+]
+
 
 export default function Home() {
-  return (
-    <div className="py-20 px-10">
-        <main>
-          <div className={"w-screen bg-white"}>
-              <div className={"bg-slate-800 w-1/2 h-1/2"}>
-                  <p>Example Graph</p>
-              </div>
+    const [selectedSubsystem, setSelectedSubsystem] = useState(0)
 
-          </div>
-      </main>
-        <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <p>FS Live Visualization Demo</p>
-      </footer>
+  return (
+    <div className="pt-6">
+        <header>
+            <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem} onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
+        </header>
+        <main>
+            <div className={"flex flex-row justify-evenly"}>
+                <ModalContainer>
+                    <p>Example</p>
+                </ModalContainer>
+                <ModalContainer>
+                    <p>Example 2</p>
+                </ModalContainer>
+            </div>
+            <div className={"flex flex-row justify-evenly"}>
+                <ModalContainer>
+                    <p>Example 3</p>
+                </ModalContainer>
+                <ModalContainer>
+                    <p>Example 4</p>
+                </ModalContainer>
+            </div>
+        </main>
+        <footer className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
+            <p className={"text-center"}>FS Live Visualization Demo</p>
+        </footer>
     </div>
   );
 }

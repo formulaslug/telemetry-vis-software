@@ -1,0 +1,4 @@
+site/
+caddy_data/
+caddy_config/
+python-test/.venv/

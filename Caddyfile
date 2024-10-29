@@ -1,0 +1,4 @@
+https:// {
+    root * /srv
+    reverse_proxy /* localhost:3000
+}

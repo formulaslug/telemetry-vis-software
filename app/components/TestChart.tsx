@@ -106,7 +106,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
 
     return (
         <>
-            <div className="flex flex-col break-words shadow-lg rounded mx-auto">
+            <div className="flex flex-col break-words shadow-lg rounded">
                 <h6 className="uppercase text-blueGray-100 text-lg font-semibold">
                     {title}
                 </h6>

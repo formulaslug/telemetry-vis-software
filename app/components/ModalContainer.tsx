@@ -24,7 +24,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({ children }) => {
                 const xPercent = (x / width) * 100;
                 const yPercent = (y / height) * 100;
 
-                overlay.style.background = `radial-gradient(circle at ${xPercent}% ${yPercent}%, rgba(255, 255, 255, 0.25), transparent)`;
+                overlay.style.background = `radial-gradient(circle at ${xPercent}% ${yPercent}%, rgba(255, 255, 255, 0.10), transparent)`;
             };
 
             const handleMouseLeave = () => {
@@ -45,7 +45,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({ children }) => {
     return (
         <div
             ref={containerRef}
-            className="relative flex modal-container bg-slate-700 rounded-3xl flex-1 m-4 p-6 min-h-40 border-4 border-slate-600 hover:bg-slate-800 duration-200 justify-center items-center"
+            className="flex relative modal-container bg-slate-700 rounded-3xl flex-1 m-4 p-6 min-h-40 border-4 border-slate-600 hover:bg-slate-800 duration-200 justify-center items-center"
         >
             {/* Overlay for Gradient Effect */}
             <div

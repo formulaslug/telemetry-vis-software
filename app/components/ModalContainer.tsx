@@ -45,7 +45,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({ children }) => {
     return (
         <div
             ref={containerRef}
-            className="relative flex modal-container bg-slate-700 rounded-3xl flex-1 m-4 h-40 border-4 border-slate-600 hover:bg-slate-800 duration-200 justify-center items-center"
+            className="relative flex modal-container bg-slate-700 rounded-3xl flex-1 m-4 p-6 min-h-40 border-4 border-slate-600 hover:bg-slate-800 duration-200 justify-center items-center"
         >
             {/* Overlay for Gradient Effect */}
             <div

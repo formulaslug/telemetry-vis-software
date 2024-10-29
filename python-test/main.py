@@ -1,6 +1,6 @@
 import asyncio
 import io
-from asyncio.runners import signal
+import signal
 import websockets as ws
 import polars as pl
 import pyarrow as pa

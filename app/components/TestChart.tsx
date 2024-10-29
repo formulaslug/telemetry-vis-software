@@ -14,7 +14,7 @@ interface CardLineChartProps {
 export default function CardLineChart({ title, color, range, speed, dataPoints }: CardLineChartProps) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
-    const [dataMockup, setDataMockup] = useState([]);
+    const [dataMockup, setDataMockup] = useState<number[]>([]);
 
     useEffect(() => {
         setDataMockup(Array.from({ length: dataPoints }, () => Math.floor(Math.random() * range)));

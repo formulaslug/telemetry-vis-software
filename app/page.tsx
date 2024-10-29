@@ -14,7 +14,7 @@ const subsystems = [
 
 
 export default function Home() {
-    const [selectedSubsystem, setSelectedSubsystem] = useState(0)
+    const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
 
     return (
     <div className="pt-6">

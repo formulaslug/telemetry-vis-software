@@ -15,17 +15,16 @@ def get_rows(total_rows: int = 10_000):
     for _ in range(total_rows):
         yield (
             math.floor((datetime.datetime.now() - t0).total_seconds() * 1000),
-            math.sin(x / 100),
-            math.cos(x / 100),
-            math.sin(x / 100),
-            math.cos(x / 100),
+            math.sin(x),
+            math.cos(x),
+            math.sin(x),
+            math.cos(x),
         )
         x += 1
 
 
 async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
     for rows in get_rows():
-        print(rows)
         a, b, c, d, e = zip(rows)
         data = {
             "timestamp": a,

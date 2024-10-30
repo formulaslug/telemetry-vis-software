@@ -26,17 +26,35 @@ interface Message {
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
     const [messages, setMessages] = useState<Message[]>([]);
+    const [connected, setConnected] = useState<boolean>(false);
 
     useEffect(() => {
         initWebSockets(sock)
     }, []);
 
+    sock.onopen = function (event) {
+        setConnected(true)
+    }
+
+    sock.onclose = function (event) {
+        setConnected(false)
+    }
+
     // on message received
     sock.onmessage = function (event) {
-        console.log(event.data);
-        const split = event.data.split('\n');
-        setMessages([...messages, split])
+        // console.log(event.data);
+        const split_data = event.data.split('\n');
+        let copy = [...messages];
+        if (messages.length > 20) {
+            copy.shift()
+        }
+        setMessages([...copy, split_data])
     };
+
+    /**
+     *
+     *
+     */
 
     return (
     <div className="pt-6">
@@ -44,6 +62,15 @@ export default function Home() {
             <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem} onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
         </header>
         <main>
+            <div className={"flex absolute bottom-0 right-0 m-2"}>
+                <div className={`rounded-full p-2 ${connected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
+                    {connected ? (
+                        <p>Connected</p>
+                    ) : (
+                        <p>Not Connected</p>
+                    )}
+                </div>
+            </div>
             <div>
                 {messages.length}
                 {/*{messages.map((message, index) => (*/}

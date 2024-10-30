@@ -16,11 +16,14 @@ const subsystems = [
 ]
 
 import initWebSockets from "./websocket"
+import {tableFromIPC} from "apache-arrow";
 
 interface Message {
     timestamp: number;
-    x: number;
-    y: number;
+    voltage: number;
+    temperature: number
+    speed: number;
+    blibblog: number;
 }
 
 export default function Home() {
@@ -29,7 +32,7 @@ export default function Home() {
     const [connected, setConnected] = useState<boolean>(false);
 
     useEffect(() => {
-        initWebSockets(sock)
+        initWebSockets(sock);
     }, []);
 
     sock.onopen = function (event) {
@@ -43,7 +46,9 @@ export default function Home() {
     // on message received
     sock.onmessage = function (event) {
         // console.log(event.data);
-        const split_data = event.data.split('\n');
+
+        const split_data = tableFromIPC(new Uint8Array(event.data)).toArray()[0]
+        // console.log(split_data)
         let copy = [...messages];
         if (messages.length > 20) {
             copy.shift()

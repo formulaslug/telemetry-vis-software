@@ -56,10 +56,11 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
                 options: {
                     maintainAspectRatio: false,
                     responsive: true,
-                    animation: {
-                        duration: speed,
-                        easing: 'easeInOutQuad', // Smoother easing
-                    },
+                    animation: false,
+                    // animation: {
+                    //     duration: speed,
+                    //     easing: 'cubic', // Smoother easing
+                    // },
                     plugins: {
                         title: {
                             display: false,
@@ -117,7 +118,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
 
     return (
         <>
-            <div className="flex flex-col break-words shadow-lg rounded">
+            <div className="flex flex-col break-words rounded">
                 <h6 className="uppercase text-blueGray-100 text-lg font-semibold">
                     {title}
                 </h6>
@@ -126,7 +127,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
                     <div className="relative h-350-px">
                         <canvas ref={chartRef}></canvas>
                     </div>
-                    <p className={"transition-transform duration-500 font-mono"}> Current Value: {dataMockup[dataMockup.length-1]}</p>
+                    <p className={"transition-transform duration-500 font-mono select-none"}> Current Value: {dataMockup[dataMockup.length-1]}</p>
                 </div>
             </div>
         </>

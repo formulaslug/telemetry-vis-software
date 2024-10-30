@@ -1,7 +1,7 @@
 import { tableFromIPC } from "apache-arrow";
 
-function initWebSockets() {
-  const sock = new WebSocket("wss://localhost");
+function initWebSockets(sock: WebSocket) {
+  // const sock = new WebSocket("wss://localhost");
   sock.binaryType = "arraybuffer";
 
   // Connection opened

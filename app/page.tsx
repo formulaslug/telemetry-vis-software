@@ -47,8 +47,8 @@ export default function Home() {
     sock.onmessage = function (event) {
         // console.log(event.data);
 
-        const split_data = tableFromIPC(new Uint8Array(event.data)).toArray()[0]
-        // console.log(split_data)
+        const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message
+        console.log(split_data)
         let copy = [...messages];
         if (messages.length > 20) {
             copy.shift()
@@ -78,14 +78,14 @@ export default function Home() {
             </div>
             <div>
                 {messages.length}
-                {/*{messages.map((message, index) => (*/}
-                {/*    <div key={index}>*/}
-                {/*        <p>{message}</p>*/}
-                {/*        <p>{message.timestamp}</p>*/}
-                {/*        <p>{message.x}</p>*/}
-                {/*        <p>{message.y}</p>*/}
-                {/*    </div>*/}
-                {/*))}*/}
+                {messages.map((message, index) => (
+                    <div key={index}>
+                        {/*<p>{message}</p>*/}
+                        <p>{message.timestamp}</p>
+                        {/*<p>{message.x}</p>*/}
+                        {/*<p>{message.y}</p>*/}
+                    </div>
+                ))}
             </div>
 
             {selectedSubsystem === 0 ? (

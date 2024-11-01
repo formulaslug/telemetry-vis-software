@@ -49,17 +49,12 @@ export default function Home() {
 
         const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message
         console.log(split_data)
-        let copy = [...messages];
-        if (messages.length > 20) {
-            copy.shift()
-        }
-        setMessages([...copy, split_data])
+        // let copy = [...messages];
+        // if (messages.length > 20) {
+        //     copy.shift()
+        // }
+        setMessages([...messages, split_data])
     };
-
-    /**
-     *
-     *
-     */
 
     return (
     <div className="pt-6">
@@ -78,43 +73,49 @@ export default function Home() {
             </div>
             <div>
                 {messages.length}
-                {messages.map((message, index) => (
-                    <div key={index}>
-                        {/*<p>{message}</p>*/}
-                        <p>{message.timestamp}</p>
-                        {/*<p>{message.x}</p>*/}
-                        {/*<p>{message.y}</p>*/}
-                    </div>
-                ))}
+                {/*{messages.map((message, index) => (*/}
+                {/*    <div key={index}>*/}
+                {/*        /!*<p>{message}</p>*!/*/}
+                {/*        /!*<p>{message.timestamp}</p>*!/*/}
+                {/*        /!*<p>{message.x}</p>*!/*/}
+                {/*        /!*<p>{message.y}</p>*!/*/}
+                {/*    </div>*/}
+                {/*))}*/}
             </div>
 
             {selectedSubsystem === 0 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
-                        <CardLineChart title={"Avg Tire Pressure"} color={"cornflowerblue"} range={40} speed={800} dataPoints={50} />
+                        <CardLineChart title={"Voltage"} color={"cornflowerblue"} range={40} speed={800} dataPoints={50} data={
+                            messages.map((message) => message.voltage)
+                        }/>
                     </ModalContainer>
                     <ModalContainer>
-                        <CardLineChart title={"Temperature"} color={"red"} range={120} speed={400} dataPoints={100} />
+                        <CardLineChart title={"Temperature"} color={"red"} range={120} speed={400} dataPoints={100} data={
+                            messages.map((message) => message.temperature)
+                        }/>
                     </ModalContainer>
                 </div>
             ) : null}
             {selectedSubsystem === 1 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
-                        <CardLineChart title={"Voltage"} color={"red"} range={15} speed={800} dataPoints={10}/>
+                        <CardLineChart title={"Voltage"} color={"red"} range={15} speed={800} dataPoints={10} data={
+                            messages.map((message) => message.voltage)
+                        }/>
                     </ModalContainer>
                     <ModalContainer>
-                        <CardLineChart title={"Current"} color={"#00FF00"} range={250} speed={400} dataPoints={100}/>
+                        <CardLineChart title={"Current"} color={"#00FF00"} range={250} speed={400} dataPoints={100} data={[]}/>
                     </ModalContainer>
                 </div>
             ) : null}
             {selectedSubsystem === 2 ? (
                 <div className={"flex flex-row justify-evenly"}>
                     <ModalContainer>
-                        <CardLineChart title={"Speed (MPH)"} color={"blue"} range={110} speed={800} dataPoints={10}/>
+                        <CardLineChart title={"Speed (MPH)"} color={"blue"} range={110} speed={800} dataPoints={10} data={[]}/>
                     </ModalContainer>
                     <ModalContainer>
-                        <CardLineChart title={"Voltage"} color={"#00FF00"} range={15} speed={400} dataPoints={100}/>
+                        <CardLineChart title={"Voltage"} color={"#00FF00"} range={15} speed={400} dataPoints={100} data={[]}/>
                     </ModalContainer>
                 </div>
             ) : null}

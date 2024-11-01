@@ -9,30 +9,48 @@ interface CardLineChartProps {
     range: number;
     speed: number;
     dataPoints: number;
+    data?: number[];
 }
 
-export default function CardLineChart({ title, color, range, speed, dataPoints }: CardLineChartProps) {
+const MAX_LENGTH = 10
+
+export default function CardLineChart({ title, color, range, speed, dataPoints, data}: CardLineChartProps) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [dataMockup, setDataMockup] = useState<number[]>([]);
+    const [generateRandom, setGenerateRandom] = useState<boolean>(true);
 
-    useEffect(() => {
-        setDataMockup(Array.from({ length: dataPoints }, () => Math.floor(Math.random() * range)));
-    }, []);
+    // useEffect(() => {
+    //     if (data && data.length > 0) {
+    //         setGenerateRandom(false);
+    //         setDataMockup(data);
+    //     } else {
+    //         setDataMockup(Array.from({ length: dataPoints }, () => Math.floor(Math.random() * range)));
+    //     }
+    // }, []);
 
     // Update dataMockup every second
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setDataMockup((prev) => {
-                const next = [...prev];
-                next.push(Math.floor(Math.random() * range));
-                next.shift();
-                return next;
-            });
-        }, speed);
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         if (generateRandom) {
+    //             setDataMockup(Array.from({length: dataPoints}, () => Math.floor(Math.random() * range)));
+    //         }
+    //     }, speed);
+    //
+    //     return () => clearInterval(interval);
+    // }, []);
 
-        return () => clearInterval(interval);
-    }, []);
+    useEffect(() => {
+        if (data) {
+            let copy = [...dataMockup]
+            if (copy.length > MAX_LENGTH) {
+                copy.shift()
+            }
+            copy.push(data[data!.length - 1])
+
+            setDataMockup(copy);
+        }
+    }, [data]);
 
     // Initialize chart
     useEffect(() => {
@@ -40,7 +58,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
             const config = {
                 type: "line",
                 data: {
-                    labels: Array.from({ length: dataPoints }, (_, i) => (i + 1).toString()),
+                    labels: Array.from({ length: MAX_LENGTH }, (_, i) => (i + 1).toString()),
                     datasets: [
                         {
                             label: new Date().getFullYear(),
@@ -48,7 +66,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
                             borderColor: color,
                             data: dataMockup,
                             fill: false,
-                            tension: 0.4,
+                            tension: 0.0,
                             pointRadius: 0,
                         },
                     ],
@@ -96,6 +114,8 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
                             grid: {
                                 color: "rgba(255, 255, 255, 0.15)",
                             },
+                            max: 1,
+                            min: 0,
                         },
                     },
                 },
@@ -127,7 +147,10 @@ export default function CardLineChart({ title, color, range, speed, dataPoints }
                     <div className="relative h-350-px">
                         <canvas ref={chartRef}></canvas>
                     </div>
-                    <p className={"transition-transform duration-500 font-mono select-none"}> Current Value: {dataMockup[dataMockup.length-1]}</p>
+                    <p className={"transition-transform duration-500 font-mono select-none"}> Current
+                        Value: {dataMockup[dataMockup.length - 1]}</p>
+                    {/*<p>{data}</p>*/}
+                    <p>{dataMockup.length}</p>
                 </div>
             </div>
         </>

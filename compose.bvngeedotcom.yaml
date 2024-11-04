@@ -1,6 +1,9 @@
 services:
   caddy:
-    ports: !override []
+    ports: !override
+      - "8080:80"
+      - "8081:443"
+      - "8081:443/udp"
     expose:
       - "80"
       - "443"

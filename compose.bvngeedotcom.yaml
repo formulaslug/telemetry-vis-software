@@ -1,0 +1,14 @@
+services:
+  caddy:
+    ports: !override []
+    expose:
+      - "80"
+      - "443"
+      - "443/udp"
+    networks:
+      - default
+      - external
+
+networks:
+  external:
+    external: true

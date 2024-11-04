@@ -2,16 +2,16 @@ name: vis-backend
 
 services:
   nodejs:
-    image: "${REGISTRY_URL:-}live-vis-example:latest" # "${live-vis-example:latest}" 
-    ports:
-      - 3000:3000
+    image: "${REGISTRY_URL:-}live-vis-example:latest"
+    expose:
+      - "3000"
   caddy:
     image: caddy:2.8.4
     restart: unless-stopped
     ports:
-      - 80:80
-      - 443:443
-      - 443:443/udp
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       # - ./site:/srv # reverse proxied to nodejs server instead of static files
@@ -22,8 +22,8 @@ services:
     build:
       context: python-test/
       dockerfile: Dockerfile
-    ports:
-      - 8000:8000
+    expose:
+      - "8000"
 
 volumes:
   caddy_data:

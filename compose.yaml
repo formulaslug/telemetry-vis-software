@@ -2,7 +2,7 @@ name: vis-backend
 
 services:
   nodejs:
-    image: live-vis-example:latest
+    image: "${REGISTRY_URL:-}live-vis-example:latest" # "${live-vis-example:latest}" 
     ports:
       - 3000:3000
   caddy:
@@ -18,7 +18,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
   python-test:
-    image: python-test:latest
+    image: "${REGISTRY_URL:-}python-test:latest"
     build:
       context: python-test/
       dockerfile: Dockerfile

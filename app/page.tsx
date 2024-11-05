@@ -37,6 +37,14 @@ export default function Home() {
         initWebSockets(sock);
     }, []);
 
+    useEffect(() => {
+        if (!isRecording) {
+            // code here to save to CSV
+
+        }
+
+    }, [isRecording]);
+
     sock.onopen = function (event) {
         setConnected(true)
     }

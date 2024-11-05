@@ -71,17 +71,17 @@ export default function Home() {
                     )}
                 </div>
             </div>
-            <div>
-                {messages.length}
-                {/*{messages.map((message, index) => (*/}
-                {/*    <div key={index}>*/}
-                {/*        /!*<p>{message}</p>*!/*/}
-                {/*        /!*<p>{message.timestamp}</p>*!/*/}
-                {/*        /!*<p>{message.x}</p>*!/*/}
-                {/*        /!*<p>{message.y}</p>*!/*/}
-                {/*    </div>*/}
-                {/*))}*/}
-            </div>
+            {/*<div>*/}
+            {/*    {messages.length}*/}
+            {/*    /!*{messages.map((message, index) => (*!/*/}
+            {/*    /!*    <div key={index}>*!/*/}
+            {/*    /!*        /!*<p>{message}</p>*!/*!/*/}
+            {/*    /!*        /!*<p>{message.timestamp}</p>*!/*!/*/}
+            {/*    /!*        /!*<p>{message.x}</p>*!/*!/*/}
+            {/*    /!*        /!*<p>{message.y}</p>*!/*!/*/}
+            {/*    /!*    </div>*!/*/}
+            {/*    /!*))}*!/*/}
+            {/*</div>*/}
 
             {selectedSubsystem === 0 ? (
                 <div className={"flex flex-row justify-evenly"}>

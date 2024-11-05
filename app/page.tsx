@@ -31,9 +31,19 @@ export default function Home() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [connected, setConnected] = useState<boolean>(false);
 
+    const [isRecording, setIsRecording] = useState<boolean>(false);
+
     useEffect(() => {
         initWebSockets(sock);
     }, []);
+
+    useEffect(() => {
+        if (!isRecording) {
+            // code here to save to CSV
+
+        }
+
+    }, [isRecording]);
 
     sock.onopen = function (event) {
         setConnected(true)
@@ -58,8 +68,23 @@ export default function Home() {
 
     return (
     <div className="pt-6">
-        <header>
+        <header className={"flex items-center justify-between"}>
             <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem} onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
+            <button onClick={() => setIsRecording(prevState => !prevState)} className={`m-4 p-2 px-4 rounded-full ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
+                {isRecording ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                             className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
+                        </svg>
+                    ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         className="bi bi-record" viewBox="0 0 16 16">
+                        <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
+                    </svg>
+                )
+                }
+                <p className={"ml-1"}>Record</p>
+            </button>
         </header>
         <main>
             <div className={"flex absolute bottom-0 right-0 m-2"}>

@@ -8,6 +8,7 @@ import CardLineChart from "@/app/components/TestChart";
 import io from 'socket.io-client';
 const sock = new WebSocket("wss://localhost");
 
+import Papa from 'papaparse';
 
 const subsystems = [
     'Accumulator',
@@ -19,27 +20,180 @@ import initWebSockets from "./websocket"
 import {tableFromIPC} from "apache-arrow";
 
 interface Message {
-    timestamp: number;
-    voltage: number;
-    temperature: number
-    speed: number;
-    blibblog: number;
+    "Acc Temp 1(Cel)": number;
+    "Acc Temp 2(Cel)": number;
+    "Acc Temp 3(Cel)": number;
+    "Acc Temp 4(Cel)": number;
+    "Acc Temp 5(Cel)": number;
+    "Acc Temp 6(Cel)": number;
+    "Acc Temp 7(Cel)": number;
+    "Acc Temp 8(Cel)": number;
+    "Acc Temp 9(Cel)": number;
+    "Acc Temp 10(Cel)": number;
+    "Acc Temp 11(Cel)": number;
+    "Acc Temp 12(Cel)": number;
+    "Acc Temp 13(Cel)": number;
+    "Acc Temp 14(Cel)": number;
+    "Acc Temp 15(Cel)": number;
+    "Acc Temp 16(Cel)": number;
+    "Acc Temp 17(Cel)": number;
+    "Acc Temp 18(Cel)": number;
+    "Acc Temp 19(Cel)": number;
+    "Acc Temp 20(Cel)": number;
+    "Acc Temp 21(Cel)": number;
+    "Acc Temp 22(Cel)": number;
+    "Acc Temp 23(Cel)": number;
+    "Acc Temp 24(Cel)": number;
+    "Acc Temp 25(Cel)": number;
+    "Acc Temp 26(Cel)": number;
+    "Acc Temp 27(Cel)": number;
+    "Acc Temp 28(Cel)": number;
+
+    "Acc Voltage 1(V)": number;
+    "Acc Voltage 2(V)": number;
+    "Acc Voltage 3(V)": number;
+    "Acc Voltage 4(V)": number;
+    "Acc Voltage 5(V)": number;
+    "Acc Voltage 6(V)": number;
+    "Acc Voltage 7(V)": number;
+    "Acc Voltage 8(V)": number;
+    "Acc Voltage 9(V)": number;
+    "Acc Voltage 10(V)": number;
+    "Acc Voltage 11(V)": number;
+    "Acc Voltage 12(V)": number;
+    "Acc Voltage 13(V)": number;
+    "Acc Voltage 14(V)": number;
+    "Acc Voltage 15(V)": number;
+    "Acc Voltage 16(V)": number;
+    "Acc Voltage 17(V)": number;
+    "Acc Voltage 18(V)": number;
+    "Acc Voltage 19(V)": number;
+    "Acc Voltage 20(V)": number;
+    "Acc Voltage 21(V)": number;
+    "Acc Voltage 22(V)": number;
+    "Acc Voltage 23(V)": number;
+    "Acc Voltage 24(V)": number;
+    "Acc Voltage 25(V)": number;
+    "Acc Voltage 26(V)": number;
+    "Acc Voltage 27(V)": number;
+    "Acc Voltage 28(V)": number;
+
+    "Break Pressure Front(PSI)": number;
+    "Break Pressure Rear(PSI)": number;
+    "Current to Acc(A)": number;
+
+    
+    "Hall Effect Sensor - FL(Hz)": number;
+    "Hall Effect Sensor - FR(Hz)": number;
+    "Hall Effect Sensor - RL(Hz)": number;
+    "Hall Effect Sensor - RR(Hz)": number;
+
+    "Altitude(ft)": number;
+    "Latitude(ft)": number;
+    "Longitude(ft)": number;
+    "Speed(mph)": number;
+
+    "x acceleration(m/s^2)": number;
+    "y acceleration(m/s^2)": number;
+    "z acceleration(m/s^2)": number;
+
+    "x gyro(deg)": number;
+    "y gyro(deg)": number;
+    "z gyro(deg)": number;
+
+    "Suspension Travel - FL(V)": number;
+    "Suspension Travel - FR(V)": number;
+    "Suspension Travel - RL(V)": number;
+    "Suspension Travel - RR(V)": number;
+    "Suspension Force - FL(Oh)": number;
+    "Suspension Force - FR(Oh)": number;
+    "Suspension Force - RL(Oh)": number;
+    "Suspension Force - RR(Oh)": number;
+
+    "Acc Air Intake Temp(C)": number;
+    "Acc Air Exhaust Temp(C)": number;
+
+    "Steering(Deg)": number;
+
+    "Acc Air Intake Pressure(PSI)": number;
+    "Acc Intake Air Flow Rate(m^3/sec)": number;
 }
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
     const [messages, setMessages] = useState<Message[]>([]);
     const [connected, setConnected] = useState<boolean>(false);
-
     const [isRecording, setIsRecording] = useState<boolean>(false);
+    const [originalMessages, setOriginalMessages] = useState<Message[]>([]); // To store original messages
+    const [startTime, setStartTime] = useState<number | string>(""); 
+    const [endTime, setEndTime] = useState<number | string>(""); 
 
     useEffect(() => {
         initWebSockets(sock);
     }, []);
 
     useEffect(() => {
-        if (!isRecording) {
-            // code here to save to CSV
+        if (!isRecording && messages.length > 0) {
+            setOriginalMessages(messages);
+            const csv = Papa.unparse(messages); 
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'messages.csv'; 
+            link.click();
+            
+            const handleFilterData = () => {
+                if (startTime && endTime) {
+                  // Filter messages within the specified range
+                  const filtered = originalMessages.filter((message) => {
+                    return (
+                      message.timestamp >= Number(startTime) && message.timestamp <= Number(endTime)
+                    );
+                  });
+        
+                  // Convert the filtered messages to CSV and trigger download
+                  const csv = Papa.unparse(filtered);
+                  const blob = new Blob([csv], { type: "text/csv" });
+                  const link = document.createElement("a");
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `filtered_messages_${startTime}_${endTime}.csv`;
+                  link.click();
+                } else {
+                  alert("Please enter a valid start and end time.");
+                }
+              };
+            
+              const timeRangeInterface = (
+                <div className="m-4">
+                  <h2>Filter Data by Time Range</h2>
+                  <div className="flex flex-col">
+                    <label htmlFor="start-time">Start Time</label>
+                    <input
+                      id="start-time"
+                      type="number"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      placeholder="Enter start time"
+                      className="p-2 border"
+                    />
+                    <label htmlFor="end-time" className="mt-2">End Time</label>
+                    <input
+                      id="end-time"
+                      type="number"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      placeholder="Enter end time"
+                      className="p-2 border"
+                    />
+                  </div>
+                  <button
+                    onClick={handleFilterData}
+                    className="mt-4 bg-blue-600 text-white p-2 rounded"
+                  >
+                    Download Filtered CSV
+                  </button>
+                </div>
+              );
 
         }
 

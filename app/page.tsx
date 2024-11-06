@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ModalContainer from "@/app/components/ModalContainer";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
+import Image from "next/image";
 
 import io from 'socket.io-client';
 const sock = new WebSocket("wss://localhost");
@@ -215,36 +216,42 @@ export default function Home() {
 
 
     return (
-    <div className="pt-6">
-        <header className={"flex items-center justify-between"}>
-            <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem} onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
-            <button onClick={() => {
-                if (isRecording) {
-                    setIsRecording(false)
-                    // setEndTime(messages[messages.length - 1].timestamp);
-                } else {
-                    setIsRecording(true)
-                    // setStartTime(messages[messages.length - 1].timestamp);
-                }
-            }} className={`m-4 p-2 px-4 rounded-full ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
-                {isRecording ? (
+        <div className="pt-4">
+            <div className={"pl-6 flex justify-between flex-row"}>
+                <Image src="/fs_logo.png" alt="logo" width={200} height={50}/>
+                <button onClick={() => {
+                    if (isRecording) {
+                        setIsRecording(false)
+                        // setEndTime(messages[messages.length - 1].timestamp);
+                    } else {
+                        setIsRecording(true)
+                        // setStartTime(messages[messages.length - 1].timestamp);
+                    }
+                }}
+                        className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
+                    {isRecording ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
+                             className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
                         </svg>
                     ) : (
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record" viewBox="0 0 16 16">
-                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
+                             className="bi bi-record" viewBox="0 0 16 16">
+                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
                         </svg>
                     )
                     }
                     <p className={"ml-1"}>Record</p>
                 </button>
+            </div>
+            <header className={"flex items-center justify-between"}>
+                <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem}
+                                 onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
             </header>
             <main>
                 <div className={"flex absolute bottom-0 right-0 m-2"}>
-                    <div className={`rounded-full p-2 ${connected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
+                    <div
+                        className={`rounded-full p-2 ${connected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
                         {connected ? (
                             <p>Connected</p>
                         ) : (
@@ -264,114 +271,126 @@ export default function Home() {
                 {/*    /!*))}*!/*/}
                 {/*</div>*/}
 
-            {selectedSubsystem === 0 ? (
-                <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
-                    {/* Accumulator Subsystem */}
-                    <ModalContainer>
-                        <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} range={120} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.temperature)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} range={40} speed={800} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.voltage)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} range={100} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.temperature)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} range={100} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.temperature)
-                        }/>
-                    </ModalContainer>
-                </div>
-            ) : null}
+                {selectedSubsystem === 0 ? (
+                    <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
+                        {/* Accumulator Subsystem */}
+                        <ModalContainer>
+                            <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} range={120} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.temperature)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} range={40} speed={800}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.voltage)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} range={100} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.temperature)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} range={100} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.temperature)
+                            }/>
+                        </ModalContainer>
+                    </div>
+                ) : null}
 
-            {selectedSubsystem === 1 ? (
-                <div className={"grid grid-cols-2 gap-6 p-6"}>
-                    {/* Electrical Subsystem */}
-                    <ModalContainer>
-                        <CardLineChart title={"Break Pressure Front (PSI)"} color={"#8b4513"} range={100} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Break Pressure Rear (PSI)"} color={"#a52a2a"} range={100} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} range={300} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} range={180} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                </div>
-            ) : null}
+                {selectedSubsystem === 1 ? (
+                    <div className={"grid grid-cols-2 gap-6 p-6"}>
+                        {/* Electrical Subsystem */}
+                        <ModalContainer>
+                            <CardLineChart title={"Break Pressure Front (PSI)"} color={"#8b4513"} range={100}
+                                           speed={400} dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Break Pressure Rear (PSI)"} color={"#a52a2a"} range={100} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} range={300} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} range={180} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                    </div>
+                ) : null}
 
-            {selectedSubsystem === 2 ? (
-                <div className={"flex flex-col md:flex-row md:flex-wrap gap-4 p-4"}>
-                    {/* Dynamics Subsystem */}
-                    <ModalContainer>
-                        <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} range={120} speed={800} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.speed)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"Altitude (ft)"} color={"#696969"} range={1000} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} range={15} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                    <ModalContainer>
-                        <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} range={15} speed={400} dataPoints={50} data={
-                            //@ts-ignore
-                            messages.map((message) => message.blibblog)
-                        }/>
-                    </ModalContainer>
-                </div>
-            ) : null}            {/*    <ModalContainer>*/}
-            {/*        <CardLineChart title={"Speed"} color={"cornflowerblue"} range={10} speed={800} dataPoints={10} />*/}
-            {/*    </ModalContainer>*/}
-            {/*    <ModalContainer>*/}
-            {/*        <CardLineChart title={"Voltage"} color={"red"} range={10} speed={400} dataPoints={100} />*/}
-            {/*    </ModalContainer>*/}
-            {/*</div>*/}
-            {/*<div className={"flex flex-row justify-evenly"}>*/}
-            {/*    <ModalContainer>*/}
-            {/*        <CardLineChart title={"Power Used"} color={"#00FF00"} range={10} speed={1000} dataPoints={20} />*/}
-            {/*    </ModalContainer>*/}
-            {/*    <ModalContainer>*/}
-            {/*        <CardLineChart title={"Air Resistance"} color={"#ff7700"} range={10} speed={1000} dataPoints={20} />*/}
-            {/*    </ModalContainer>*/}
-            {/*</div>*/}
-        </main>
-        <footer
-            className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-        <p className={"text-center"}>FS Live Visualization Demo {messages.length}</p>
-        </footer>
-    </div>
-  );
+                {selectedSubsystem === 2 ? (
+                    <div className={"flex flex-col md:flex-row md:flex-wrap gap-4 p-4"}>
+                        {/* Dynamics Subsystem */}
+                        <ModalContainer>
+                            <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} range={120} speed={800}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.speed)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"Altitude (ft)"} color={"#696969"} range={1000} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} range={15} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                        <ModalContainer>
+                            <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} range={15} speed={400}
+                                           dataPoints={50} data={
+                                //@ts-ignore
+                                messages.map((message) => message.blibblog)
+                            }/>
+                        </ModalContainer>
+                    </div>
+                ) : null} {/*    <ModalContainer>*/}
+                {/*        <CardLineChart title={"Speed"} color={"cornflowerblue"} range={10} speed={800} dataPoints={10} />*/}
+                {/*    </ModalContainer>*/}
+                {/*    <ModalContainer>*/}
+                {/*        <CardLineChart title={"Voltage"} color={"red"} range={10} speed={400} dataPoints={100} />*/}
+                {/*    </ModalContainer>*/}
+                {/*</div>*/}
+                {/*<div className={"flex flex-row justify-evenly"}>*/}
+                {/*    <ModalContainer>*/}
+                {/*        <CardLineChart title={"Power Used"} color={"#00FF00"} range={10} speed={1000} dataPoints={20} />*/}
+                {/*    </ModalContainer>*/}
+                {/*    <ModalContainer>*/}
+                {/*        <CardLineChart title={"Air Resistance"} color={"#ff7700"} range={10} speed={1000} dataPoints={20} />*/}
+                {/*    </ModalContainer>*/}
+                {/*</div>*/}
+            </main>
+            <footer
+                className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
+                <p className={"text-center"}>FS Live Visualization Demo {messages.length}</p>
+            </footer>
+        </div>
+    );
 }

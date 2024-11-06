@@ -17,6 +17,10 @@ function initWebSockets(sock: WebSocket) {
       console.log(JSON.parse(arr));
     });
   });
+
+  sock.addEventListener("error", (event) => {
+    console.log("WebSocket error: ", event);
+  });
 }
 
 export default initWebSockets;

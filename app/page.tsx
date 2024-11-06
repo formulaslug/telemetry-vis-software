@@ -6,9 +6,6 @@ import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 
 import io from 'socket.io-client';
-// const url = process.env['HOST'] ?? "http://localhost";
-const url = window.location.hostname ?? "localhost";
-const sock = new WebSocket("wss://" + url);
 
 const subsystems = [
     'Accumulator',
@@ -34,8 +31,14 @@ export default function Home() {
 
     const [isRecording, setIsRecording] = useState<boolean>(false);
 
+    // const [socketURL, setSocketURL] = useState<string>("localhost");
+    const [socket, setSocket] = useState<WebSocket>(new WebSocket("wss://localhost"));
+
     useEffect(() => {
-        initWebSockets(sock);
+        // const url = process.env['HOST'] ?? "http://localhost";
+        // setSocketURL(window.location.hostname);
+        setSocket(new WebSocket("wss://" + window.location.hostname));
+        initWebSockets(socket);
     }, []);
 
     useEffect(() => {
@@ -46,16 +49,16 @@ export default function Home() {
 
     }, [isRecording]);
 
-    sock.onopen = function (event) {
+    socket.onopen = function (event) {
         setConnected(true)
     }
 
-    sock.onclose = function (event) {
+    socket.onclose = function (event) {
         setConnected(false)
     }
 
     // on message received
-    sock.onmessage = function (event) {
+    socket.onmessage = function (event) {
         // console.log(event.data);
 
         const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message

@@ -5,8 +5,6 @@ import ModalContainer from "@/app/components/ModalContainer";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 
-import io from 'socket.io-client';
-
 const subsystems = [
     'Accumulator',
     'Electrical',

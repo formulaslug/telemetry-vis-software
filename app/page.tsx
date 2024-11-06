@@ -221,10 +221,10 @@ export default function Home() {
             <button onClick={() => {
                 if (isRecording) {
                     setIsRecording(false)
-                    setEndTime(messages[messages.length - 1].timestamp);
+                    // setEndTime(messages[messages.length - 1].timestamp);
                 } else {
                     setIsRecording(true)
-                    setStartTime(messages[messages.length - 1].timestamp);
+                    // setStartTime(messages[messages.length - 1].timestamp);
                 }
             }} className={`m-4 p-2 px-4 rounded-full ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
                 {isRecording ? (

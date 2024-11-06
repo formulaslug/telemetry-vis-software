@@ -12,7 +12,7 @@ interface CardLineChartProps {
     data?: number[];
 }
 
-const MAX_LENGTH = 10
+const MAX_LENGTH = 100
 
 export default function CardLineChart({ title, color, range, speed, dataPoints, data}: CardLineChartProps) {
     const chartRef = useRef(null);
@@ -114,8 +114,8 @@ export default function CardLineChart({ title, color, range, speed, dataPoints, 
                             grid: {
                                 color: "rgba(255, 255, 255, 0.15)",
                             },
-                            max: 1,
-                            min: -1,
+                            // max: 1,
+                            // min: -1,
                         },
                     },
                 },
@@ -148,7 +148,7 @@ export default function CardLineChart({ title, color, range, speed, dataPoints, 
                         <canvas ref={chartRef}></canvas>
                     </div>
                     <p className={"transition-transform duration-500 font-mono select-none"}> Current
-                        Value: {dataMockup.length > 2 ? dataMockup[dataMockup.length - 1].toFixed(3) : 0.000}</p>
+                        Value: {dataMockup && dataMockup.length > 2 ? dataMockup[dataMockup.length - 1].toFixed(3) : 0.000}</p>
                     {/*<p>{data}</p>*/}
                     {/*<p>{dataMockup.length}</p>*/}
                 </div>

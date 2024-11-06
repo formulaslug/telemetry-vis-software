@@ -6,9 +6,6 @@ import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
 
-import io from 'socket.io-client';
-const sock = new WebSocket("wss://localhost");
-
 import Papa from 'papaparse';
 
 const subsystems = [
@@ -17,7 +14,6 @@ const subsystems = [
     'Dynamics',
 ]
 
-import initWebSockets from "./websocket"
 import { tableFromIPC } from "apache-arrow";
 
 interface Message {
@@ -83,7 +79,7 @@ interface Message {
     "Brake Pressure Rear(PSI)": number;
     "Current to Acc(A)": number;
 
-    
+
     "Hall Effect Sensor - FL(Hz)": number;
     "Hall Effect Sensor - FR(Hz)": number;
     "Hall Effect Sensor - RL(Hz)": number;
@@ -128,22 +124,53 @@ export default function Home() {
     const [connected, setConnected] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(false);
     const [originalMessages, setOriginalMessages] = useState<Message[]>([]); // To store original messages
-    const [startTime, setStartTime] = useState<number | string>(""); 
-    const [endTime, setEndTime] = useState<number | string>(""); 
+    const [startTime, setStartTime] = useState<number | string>("");
+    const [endTime, setEndTime] = useState<number | string>("");
 
     const socketRef = useRef<WebSocket | null>(null);
 
     useEffect(() => {
-        socketRef.current = new WebSocket("wss://" + window.location.hostname);
-        socketRef.current.onopen = (event) => setConnected(true);
-        socketRef.current.onclose = (event) => setConnected(false);
-        socketRef.current.onmessage = (event) => {
-            // console.log(event.data);
-            const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message;
-            console.log(split_data);
-            setMessages((prevState) => [...prevState, split_data]);
-        };
-        initWebSockets(socketRef.current);
+        const hostname = window.location.hostname;
+        const urls: string[] = hostname == "localhost"
+            ? ["ws://localhost", "ws://localhost:8000"]
+            : [`wss://${hostname}`];
+
+        const tryUrl = () => {
+            console.log("tryUrl: " + urls.toString());
+            const url = urls.pop();
+            if (!url) {
+                console.log("All attempts failed to connect to WebSocket!");
+                return;
+            }
+            socketRef.current = new WebSocket(url);
+            socketRef.current.binaryType = "arraybuffer";
+            socketRef.current.onopen = (_) => {
+                setConnected(true);
+                console.log(`Successfully connected to WebSocket at ${url}!`)
+            }
+            socketRef.current.onclose = (event) => {
+                setConnected(false);
+                if (!event.wasClean) {
+                    console.log(`WebSocket at ${url} closed unexpectedly: ${event.reason}`)
+                } else {
+                    console.log(`WebSocket at ${url} closed.`)
+                }
+            }
+            socketRef.current.onerror = (_) => {
+                setConnected(false);
+                console.log(`Error occured with WebSocket at ${url}!`)
+                tryUrl();
+            }
+            socketRef.current.onmessage = (event) => {
+                const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message;
+                // console.log(`WebSocket message received: ${split_data}`);
+                console.log(split_data);
+                setMessages([...messages, split_data]);
+            };
+            // initWebSockets(socketRef.current);
+        }
+        tryUrl()
+
         return () => { socketRef.current?.close() }
     }, []);
 
@@ -156,7 +183,7 @@ export default function Home() {
             link.href = URL.createObjectURL(blob);
             link.download = 'FS-Data.csv';
             link.click();
-            
+            //
             // const handleFilterData = () => {
             //     if (startTime && endTime) {
             //       // Filter messages within the specified range
@@ -177,39 +204,38 @@ export default function Home() {
             //       alert("Please enter a valid start and end time.");
             //     }
             //   };
-
-              // const timeRangeInterface = (
-              //   <div className="m-4">
-              //     <h2>Filter Data by Time Range</h2>
-              //     <div className="flex flex-col">
-              //       <label htmlFor="start-time">Start Time</label>
-              //       <input
-              //         id="start-time"
-              //         type="number"
-              //         value={startTime}
-              //         onChange={(e) => setStartTime(e.target.value)}
-              //         placeholder="Enter start time"
-              //         className="p-2 border"
-              //       />
-              //       <label htmlFor="end-time" className="mt-2">End Time</label>
-              //       <input
-              //         id="end-time"
-              //         type="number"
-              //         value={endTime}
-              //         onChange={(e) => setEndTime(e.target.value)}
-              //         placeholder="Enter end time"
-              //         className="p-2 border"
-              //       />
-              //     </div>
-              //     <button
-              //       onClick={handleFilterData}
-              //       className="mt-4 bg-blue-600 text-white p-2 rounded"
-              //     >
-              //       Download Filtered CSV
-              //     </button>
-              //   </div>
-              // );
-
+            //
+            //   const timeRangeInterface = (
+            //     <div className="m-4">
+            //       <h2>Filter Data by Time Range</h2>
+            //       <div className="flex flex-col">
+            //         <label htmlFor="start-time">Start Time</label>
+            //         <input
+            //           id="start-time"
+            //           type="number"
+            //           value={startTime}
+            //           onChange={(e) => setStartTime(e.target.value)}
+            //           placeholder="Enter start time"
+            //           className="p-2 border"
+            //         />
+            //         <label htmlFor="end-time" className="mt-2">End Time</label>
+            //         <input
+            //           id="end-time"
+            //           type="number"
+            //           value={endTime}
+            //           onChange={(e) => setEndTime(e.target.value)}
+            //           placeholder="Enter end time"
+            //           className="p-2 border"
+            //         />
+            //       </div>
+            //       <button
+            //         onClick={handleFilterData}
+            //         className="mt-4 bg-blue-600 text-white p-2 rounded"
+            //       >
+            //         Download Filtered CSV
+            //       </button>
+            //     </div>
+            //   );
         }
 
     }, [isRecording]);
@@ -278,28 +304,28 @@ export default function Home() {
                             <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} range={120} speed={400}
                                            dataPoints={50} data={
                                 //@ts-ignore
-                                messages.map((message) => message.temperature)
+                                messages.map((message) => message["Acc Temp 1(Cel)"])
                             }/>
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} range={40} speed={800}
                                            dataPoints={50} data={
                                 //@ts-ignore
-                                messages.map((message) => message.voltage)
+                                messages.map((message) => message["Acc Voltage 1(V)"])
                             }/>
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} range={100} speed={400}
                                            dataPoints={50} data={
                                 //@ts-ignore
-                                messages.map((message) => message.temperature)
+                                messages.map((message) => message["Acc Temp 2(Cel)"])
                             }/>
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} range={100} speed={400}
                                            dataPoints={50} data={
                                 //@ts-ignore
-                                messages.map((message) => message.temperature)
+                                messages.map((message) => message["Acc Temp 16(Cel)"])
                             }/>
                         </ModalContainer>
                     </div>

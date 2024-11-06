@@ -128,8 +128,14 @@ export default function Home() {
     const [startTime, setStartTime] = useState<number | string>(""); 
     const [endTime, setEndTime] = useState<number | string>(""); 
 
+    // const [socketURL, setSocketURL] = useState<string>("localhost");
+    const [socket, setSocket] = useState<WebSocket>(new WebSocket("wss://localhost"));
+
     useEffect(() => {
-        initWebSockets(sock);
+        // const url = process.env['HOST'] ?? "http://localhost";
+        // setSocketURL(window.location.hostname);
+        setSocket(new WebSocket("wss://" + window.location.hostname));
+        initWebSockets(socket);
     }, []);
 
     useEffect(() => {
@@ -199,16 +205,16 @@ export default function Home() {
 
     }, [isRecording]);
 
-    sock.onopen = function (event) {
+    socket.onopen = function (event) {
         setConnected(true)
     }
 
-    sock.onclose = function (event) {
+    socket.onclose = function (event) {
         setConnected(false)
     }
 
     // on message received
-    sock.onmessage = function (event) {
+    socket.onmessage = function (event) {
         // console.log(event.data);
 
         const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message

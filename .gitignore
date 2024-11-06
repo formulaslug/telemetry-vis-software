@@ -5,3 +5,4 @@ caddy_config/
 python-test/.venv/
 
 .env*
+python-test/__pycache__

@@ -7,8 +7,9 @@ import pyarrow as pa
 import math
 import datetime
 import random
+import sim
 
-
+'''
 def get_rows(total_rows: int = 10_000):
     t0 = datetime.datetime.now()
     x = 0
@@ -21,19 +22,19 @@ def get_rows(total_rows: int = 10_000):
             math.cos(x),
         )
         x += 1
-
+'''
 
 async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
-    for rows in get_rows():
-        a, b, c, d, e = zip(rows)
-        data = {
-            "timestamp": a,
-            "voltage": b,
-            "temperature": c,
-            "speed": d,
-            "blibblog": e,
-        }
-        df = pl.DataFrame(data)
+    # for rows in get_rows():
+    #     a, b, c, d, e = zip(rows)
+    #     data = {
+    #         "timestamp": a,
+    #         "voltage": b,
+    #         "temperature": c,
+    #         "speed": d,
+    #         "blibblog": e,
+    #     }
+        df = pl.sim.createdf()
         arrow_data = df.to_arrow()
         byte_stream = io.BytesIO()
         with pa.ipc.new_stream(byte_stream, arrow_data.schema) as writer:

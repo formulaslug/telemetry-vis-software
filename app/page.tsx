@@ -79,8 +79,8 @@ interface Message {
     "Acc Voltage 27(V)": number;
     "Acc Voltage 28(V)": number;
 
-    "Break Pressure Front(PSI)": number;
-    "Break Pressure Rear(PSI)": number;
+    "Brake Pressure Front(PSI)": number;
+    "Brake Pressure Rear(PSI)": number;
     "Current to Acc(A)": number;
 
     
@@ -309,14 +309,14 @@ export default function Home() {
                     <div className={"grid grid-cols-2 gap-6 p-6"}>
                         {/* Electrical Subsystem */}
                         <ModalContainer>
-                            <CardLineChart title={"Break Pressure Front (PSI)"} color={"#8b4513"} range={100}
+                            <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} range={100}
                                            speed={400} dataPoints={50} data={
                                 //@ts-ignore
                                 messages.map((message) => message.blibblog)
                             }/>
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Break Pressure Rear (PSI)"} color={"#a52a2a"} range={100} speed={400}
+                            <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} range={100} speed={400}
                                            dataPoints={50} data={
                                 //@ts-ignore
                                 messages.map((message) => message.blibblog)

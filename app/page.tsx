@@ -165,7 +165,7 @@ export default function Home() {
                 const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message;
                 // console.log(`WebSocket message received: ${split_data}`);
                 console.log(split_data);
-                setMessages([...messages, split_data]);
+                setMessages((prevState) => [...prevState, split_data]);
             };
             // initWebSockets(socketRef.current);
         }

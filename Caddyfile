@@ -1,6 +1,6 @@
 # When running locally on localhost, Caddy will automatically use self-signed
 # certs for https. Otherwise it will use the Let's Encrypt CA.
-https://, localhost {
+https://, http://, localhost {
     # root * /srv # not used - website comes from nodejs process
 
     # Defines a named matcher for any request where "Upgrade" is _contained_ in

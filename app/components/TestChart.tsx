@@ -148,9 +148,9 @@ export default function CardLineChart({ title, color, range, speed, dataPoints, 
                         <canvas ref={chartRef}></canvas>
                     </div>
                     <p className={"transition-transform duration-500 font-mono select-none"}> Current
-                        Value: {dataMockup[dataMockup.length - 1]}</p>
+                        Value: {dataMockup.length > 2 ? dataMockup[dataMockup.length - 1].toFixed(3) : 0.000}</p>
                     {/*<p>{data}</p>*/}
-                    <p>{dataMockup.length}</p>
+                    {/*<p>{dataMockup.length}</p>*/}
                 </div>
             </div>
         </>

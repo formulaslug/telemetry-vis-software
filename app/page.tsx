@@ -6,8 +6,9 @@ import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 
 import io from 'socket.io-client';
-const sock = new WebSocket("wss://localhost");
-
+// const url = process.env['HOST'] ?? "http://localhost";
+const url = window.location.hostname ?? "localhost";
+const sock = new WebSocket("wss://" + url);
 
 const subsystems = [
     'Accumulator',

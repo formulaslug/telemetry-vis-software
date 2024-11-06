@@ -28,7 +28,7 @@ import datetime
 # Col 84: Acc Air Intake Pressure(PSI)
 # Col 85: Acc Intake Air Flow Rate(m^3/sec)
 
-t0 = datetime.datetime.now()
+t0 = datetime.datetime.now();
 def createdf():
     simLength:float = 5.0       # how many seconds to run the simulation for
     simStepsPerSec:int = 100    # how many simulation steps per second
@@ -133,9 +133,12 @@ def createdf():
 
     # Generate Acc Temp Data
     for col in range(0, 28):
-        horiz_shift = random.uniform(-0.5, 0.5)
-        time = np.arange(rowcount) / simStepsPerSec
-        data[:, col] = 1 + np.sin(time - horiz_shift) * 0.5
+        # horiz_shift = random.uniform(-0.5, 0.5)
+        # time = np.arange(rowcount) / simStepsPerSec
+        # data[:, col] = 1 + np.sin(time - horiz_shift) * 0.5
+        t = (datetime.datetime.now() - t0).total_seconds();
+        data[:, col] = math.sin(t);
+
 
     # Generate Acc Voltage Data
     for col in range(28, 56):

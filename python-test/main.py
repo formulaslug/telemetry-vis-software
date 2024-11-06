@@ -9,7 +9,6 @@ import datetime
 import random
 import sim
 
-'''
 def get_rows(total_rows: int = 10_000):
     t0 = datetime.datetime.now()
     x = 0
@@ -22,7 +21,6 @@ def get_rows(total_rows: int = 10_000):
             math.cos(x),
         )
         x += 1
-'''
 
 async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
     # for rows in get_rows():
@@ -34,7 +32,11 @@ async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
     #         "speed": d,
     #         "blibblog": e,
     #     }
-        df = pl.sim.createdf()
+    #     df = pl.DataFrame(data)
+
+    while True:
+        df = sim.createdf()
+        # print(str(df))
         arrow_data = df.to_arrow()
         byte_stream = io.BytesIO()
         with pa.ipc.new_stream(byte_stream, arrow_data.schema) as writer:
@@ -44,7 +46,7 @@ async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
 
         await websocket.send(ipc_data)
         # await websocket.send(df.write_ndjson())
-        await asyncio.sleep(1 + random.uniform(-0.5, 0.5))
+        await asyncio.sleep((1 + random.uniform(-0.5, 0.5)) / 100)
 
 
 # Start the WebSocket server

@@ -2,6 +2,7 @@ import polars as pl
 import numpy as np
 import math
 import random
+import datetime
 
 #Creating Fake Simulation Data To Then Pretend It's Live Telemetry Data
 
@@ -27,11 +28,12 @@ import random
 # Col 84: Acc Air Intake Pressure(PSI)
 # Col 85: Acc Intake Air Flow Rate(m^3/sec)
 
+t0 = datetime.datetime.now()
 def createdf():
-
     simLength:float = 5.0       # how many seconds to run the simulation for
     simStepsPerSec:int = 100    # how many simulation steps per second
-    rowcount = simLength * simStepsPerSec
+    # rowcount = int(simLength * simStepsPerSec)
+    rowcount = 1
 
     data_columns = (
         "Acc Temp 1(Cel);"
@@ -124,7 +126,7 @@ def createdf():
 
     column_names = data_columns.split(";")
     total_cols = len(column_names)
-    table = [rowcount][total_cols]
+    #table = [rowcount][total_cols]
 
     # Initialize the data array
     data = np.zeros((rowcount, total_cols))

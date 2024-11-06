@@ -12,6 +12,7 @@
     "apache-arrow": "^17.0.0",
     "chart.js": "^4.4.6",
     "next": "15.0.1",
+    "papaparse": "^5.4.1",
     "react": "19.0.0-rc-69d4b800-20241021",
     "react-dom": "19.0.0-rc-69d4b800-20241021",
     "socket.io": "^4.8.1",

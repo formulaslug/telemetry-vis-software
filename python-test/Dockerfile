@@ -6,6 +6,7 @@ COPY ./requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./main.py /app
+COPY ./sim.py /app
 
 EXPOSE 8000
 CMD ["python", "main.py"]

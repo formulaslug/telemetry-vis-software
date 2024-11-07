@@ -12,7 +12,7 @@ interface CardLineChartProps {
     data?: number[];
 }
 
-const MAX_LENGTH = 100
+const MAX_LENGTH = 1000
 
 export default function CardLineChart({ title, color, range, speed, dataPoints, data}: CardLineChartProps) {
     const chartRef = useRef(null);

@@ -5,6 +5,8 @@ import ModalContainer from "@/app/components/ModalContainer";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
+import initWebSocket from "./websocket";
+import DataFrame from "./message";
 
 import Papa from 'papaparse';
 
@@ -14,170 +16,22 @@ const subsystems = [
     'Dynamics',
 ]
 
-import { tableFromIPC } from "apache-arrow";
-
-interface Message {
-    "Acc Temp 1(Cel)": number;
-    "Acc Temp 2(Cel)": number;
-    "Acc Temp 3(Cel)": number;
-    "Acc Temp 4(Cel)": number;
-    "Acc Temp 5(Cel)": number;
-    "Acc Temp 6(Cel)": number;
-    "Acc Temp 7(Cel)": number;
-    "Acc Temp 8(Cel)": number;
-    "Acc Temp 9(Cel)": number;
-    "Acc Temp 10(Cel)": number;
-    "Acc Temp 11(Cel)": number;
-    "Acc Temp 12(Cel)": number;
-    "Acc Temp 13(Cel)": number;
-    "Acc Temp 14(Cel)": number;
-    "Acc Temp 15(Cel)": number;
-    "Acc Temp 16(Cel)": number;
-    "Acc Temp 17(Cel)": number;
-    "Acc Temp 18(Cel)": number;
-    "Acc Temp 19(Cel)": number;
-    "Acc Temp 20(Cel)": number;
-    "Acc Temp 21(Cel)": number;
-    "Acc Temp 22(Cel)": number;
-    "Acc Temp 23(Cel)": number;
-    "Acc Temp 24(Cel)": number;
-    "Acc Temp 25(Cel)": number;
-    "Acc Temp 26(Cel)": number;
-    "Acc Temp 27(Cel)": number;
-    "Acc Temp 28(Cel)": number;
-
-    "Acc Voltage 1(V)": number;
-    "Acc Voltage 2(V)": number;
-    "Acc Voltage 3(V)": number;
-    "Acc Voltage 4(V)": number;
-    "Acc Voltage 5(V)": number;
-    "Acc Voltage 6(V)": number;
-    "Acc Voltage 7(V)": number;
-    "Acc Voltage 8(V)": number;
-    "Acc Voltage 9(V)": number;
-    "Acc Voltage 10(V)": number;
-    "Acc Voltage 11(V)": number;
-    "Acc Voltage 12(V)": number;
-    "Acc Voltage 13(V)": number;
-    "Acc Voltage 14(V)": number;
-    "Acc Voltage 15(V)": number;
-    "Acc Voltage 16(V)": number;
-    "Acc Voltage 17(V)": number;
-    "Acc Voltage 18(V)": number;
-    "Acc Voltage 19(V)": number;
-    "Acc Voltage 20(V)": number;
-    "Acc Voltage 21(V)": number;
-    "Acc Voltage 22(V)": number;
-    "Acc Voltage 23(V)": number;
-    "Acc Voltage 24(V)": number;
-    "Acc Voltage 25(V)": number;
-    "Acc Voltage 26(V)": number;
-    "Acc Voltage 27(V)": number;
-    "Acc Voltage 28(V)": number;
-
-    "Brake Pressure Front(PSI)": number;
-    "Brake Pressure Rear(PSI)": number;
-    "Current to Acc(A)": number;
-
-
-    "Hall Effect Sensor - FL(Hz)": number;
-    "Hall Effect Sensor - FR(Hz)": number;
-    "Hall Effect Sensor - RL(Hz)": number;
-    "Hall Effect Sensor - RR(Hz)": number;
-
-    "Altitude(ft)": number;
-    "Latitude(ft)": number;
-    "Longitude(ft)": number;
-    "Speed(mph)": number;
-
-    "x acceleration(m/s^2)": number;
-    "y acceleration(m/s^2)": number;
-    "z acceleration(m/s^2)": number;
-
-    "x gyro(deg)": number;
-    "y gyro(deg)": number;
-    "z gyro(deg)": number;
-
-    "Suspension Travel - FL(V)": number;
-    "Suspension Travel - FR(V)": number;
-    "Suspension Travel - RL(V)": number;
-    "Suspension Travel - RR(V)": number;
-    "Suspension Force - FL(Oh)": number;
-    "Suspension Force - FR(Oh)": number;
-    "Suspension Force - RL(Oh)": number;
-    "Suspension Force - RR(Oh)": number;
-
-    "Acc Air Intake Temp(C)": number;
-    "Acc Air Exhaust Temp(C)": number;
-
-    "Steering(Deg)": number;
-
-    "Acc Air Intake Pressure(PSI)": number;
-    "Acc Intake Air Flow Rate(m^3/sec)": number;
-
-    timestamp: number;
-}
-
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [connected, setConnected] = useState<boolean>(false);
+    const [dataFrames, setDataFrames] = useState<DataFrame[]>([]);
+    const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(false);
-    const [originalMessages, setOriginalMessages] = useState<Message[]>([]); // To store original messages
+    const [originalDataFrames, setOriginalDataFrames] = useState<DataFrame[]>([]); // To store original dataframes
     const [startTime, setStartTime] = useState<number | string>("");
     const [endTime, setEndTime] = useState<number | string>("");
-
-    const socketRef = useRef<WebSocket | null>(null);
-
-    useEffect(() => {
-        const hostname = window.location.hostname;
-        const urls: string[] = hostname == "localhost"
-            ? ["ws://localhost", "ws://localhost:8000"]
-            : [`wss://${hostname}`];
-
-        const tryUrl = () => {
-            console.log("tryUrl: " + urls.toString());
-            const url = urls.pop();
-            if (!url) {
-                console.log("All attempts failed to connect to WebSocket!");
-                return;
-            }
-            socketRef.current = new WebSocket(url);
-            socketRef.current.binaryType = "arraybuffer";
-            socketRef.current.onopen = (_) => {
-                setConnected(true);
-                console.log(`Successfully connected to WebSocket at ${url}!`)
-            }
-            socketRef.current.onclose = (event) => {
-                setConnected(false);
-                if (!event.wasClean) {
-                    console.log(`WebSocket at ${url} closed unexpectedly: ${event.reason}`)
-                } else {
-                    console.log(`WebSocket at ${url} closed.`)
-                }
-            }
-            socketRef.current.onerror = (_) => {
-                setConnected(false);
-                console.log(`Error occured with WebSocket at ${url}!`)
-                tryUrl();
-            }
-            socketRef.current.onmessage = (event) => {
-                const split_data = tableFromIPC(new Uint8Array(event.data)).get(0)!.toJSON() as Message;
-                // console.log(`WebSocket message received: ${split_data}`);
-                console.log(split_data);
-                setMessages((prevState) => [...prevState, split_data]);
-            };
-            // initWebSockets(socketRef.current);
-        }
-        tryUrl()
-
-        return () => { socketRef.current?.close() }
-    }, []);
+        
+    // Initializes WebSocket with proper hooks to update dataFrames and isConnected
+    useEffect(() => initWebSocket(setIsConnected, setDataFrames), []);
 
     useEffect(() => {
-        if (!isRecording && messages.length > 0) {
-            setOriginalMessages(messages);
-            const csv = Papa.unparse(messages);
+        if (!isRecording && dataFrames.length > 0) {
+            setOriginalDataFrames(dataFrames);
+            const csv = Papa.unparse(dataFrames);
             const blob = new Blob([csv], { type: 'text/csv' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -244,7 +98,7 @@ export default function Home() {
     return (
         <div className="pt-4">
             <div className={"pl-6 flex justify-between flex-row"}>
-                <Image src="/fs_logo.png" alt="logo" width={200} height={50}/>
+                <Image src="/fs_logo.png" alt="logo" width={200} height={50} />
                 <button onClick={() => {
                     if (isRecording) {
                         setIsRecording(false)
@@ -254,16 +108,16 @@ export default function Home() {
                         // setStartTime(messages[messages.length - 1].timestamp);
                     }
                 }}
-                        className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
+                    className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
                     {isRecording ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                             className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
+                            className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
                         </svg>
                     ) : (
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                             className="bi bi-record" viewBox="0 0 16 16">
-                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
+                            className="bi bi-record" viewBox="0 0 16 16">
+                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
                         </svg>
                     )
                     }
@@ -272,13 +126,13 @@ export default function Home() {
             </div>
             <header className={"flex items-center justify-between"}>
                 <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem}
-                                 onSelectSubsystem={(a) => setSelectedSubsystem(a)}/>
+                    onSelectSubsystem={(a) => setSelectedSubsystem(a)} />
             </header>
             <main>
                 <div className={"flex absolute bottom-0 right-0 m-2"}>
                     <div
-                        className={`rounded-full p-2 ${connected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
-                        {connected ? (
+                        className={`rounded-full p-2 ${isConnected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
+                        {isConnected ? (
                             <p>Connected</p>
                         ) : (
                             <p>Not Connected</p>
@@ -302,31 +156,31 @@ export default function Home() {
                         {/* Accumulator Subsystem */}
                         <ModalContainer>
                             <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} range={120} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message["Acc Temp 1(Cel)"])
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message["Acc Temp 1(Cel)"])
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} range={40} speed={800}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message["Acc Voltage 1(V)"])
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message["Acc Voltage 1(V)"])
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} range={100} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message["Acc Temp 2(Cel)"])
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message["Acc Temp 2(Cel)"])
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} range={100} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message["Acc Temp 16(Cel)"])
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message["Acc Temp 16(Cel)"])
+                                } />
                         </ModalContainer>
                     </div>
                 ) : null}
@@ -336,31 +190,31 @@ export default function Home() {
                         {/* Electrical Subsystem */}
                         <ModalContainer>
                             <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} range={100}
-                                           speed={400} dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                speed={400} dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} range={100} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} range={300} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} range={180} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                     </div>
                 ) : null}
@@ -370,31 +224,31 @@ export default function Home() {
                         {/* Dynamics Subsystem */}
                         <ModalContainer>
                             <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} range={120} speed={800}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.speed)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.speed)
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Altitude (ft)"} color={"#696969"} range={1000} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} range={15} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} range={15} speed={400}
-                                           dataPoints={50} data={
-                                //@ts-ignore
-                                messages.map((message) => message.blibblog)
-                            }/>
+                                dataPoints={50} data={
+                                    //@ts-ignore
+                                    dataFrames.map((message) => message.blibblog)
+                                } />
                         </ModalContainer>
                     </div>
                 ) : null} {/*    <ModalContainer>*/}
@@ -415,7 +269,7 @@ export default function Home() {
             </main>
             <footer
                 className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-                <p className={"text-center"}>FS Live Visualization Demo {messages.length}</p>
+                <p className={"text-center"}>FS Live Visualization Demo {dataFrames.length}</p>
             </footer>
         </div>
     );

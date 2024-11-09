@@ -13,10 +13,9 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      # - ./site:/srv # reverse proxied to nodejs server instead of static files
       - caddy_data:/data
       - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
   python-test:
     image: "${REGISTRY_URL:-}python-test:latest"
     build:

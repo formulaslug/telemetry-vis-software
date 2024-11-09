@@ -3,6 +3,17 @@
 https://, http://, localhost {
     # root * /srv # not used - website comes from nodejs process
 
+	# Logs all HTTP request headers
+	# log {
+	#        output stderr
+	#        level info
+	#        format json {
+	#            time_key timestamp
+	#            message_key message
+	#            level_key level
+	#        }
+	#    }
+
     # Defines a named matcher for any request where "Upgrade" is _contained_ in
     # the Connection header and the Upgrade header is equal to "websocket".
     # Reverse proxy all matching requests to the websocket server

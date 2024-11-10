@@ -9,17 +9,19 @@ function initWebSocket(
 ) {
   const hostname = window.location.hostname;
   const urls: string[] =
+    // TODO: In the future user's should be shown a list of sources and which
+    // ones are active, and should be able to switch between them
     hostname == "localhost"
       ? ["ws://localhost", "ws://localhost:8000"]
-      : [`wss://${hostname}`];
+      : [`wss://${hostname}`, "wss://live-vis.bvngee.com"];
 
   const tryUrl = () => {
-    console.log("tryUrl: " + urls.toString());
     const url = urls.pop();
     if (!url) {
       console.log("All attempts failed to connect to WebSocket!");
       return;
     }
+    console.log("Trying URL: " + urls.toString());
     socket = new WebSocket(url);
     socket.binaryType = "arraybuffer";
     socket.onopen = (_) => {

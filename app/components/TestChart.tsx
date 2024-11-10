@@ -14,7 +14,7 @@ interface CardLineChartProps {
 
 const MAX_LENGTH = 1000
 
-export default function CardLineChart({ title, color, range, speed, dataPoints, data}: CardLineChartProps) {
+export default function CardLineChart({ title, color, range, speed, dataPoints, data }: CardLineChartProps) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [dataMockup, setDataMockup] = useState<number[]>([]);

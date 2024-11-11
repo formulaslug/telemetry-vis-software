@@ -6,9 +6,10 @@ import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
 import initWebSocket from "./websocket";
-import DataFrame from "./message";
+import DataFrame from "./dataframe";
 
 import Papa from 'papaparse';
+import { tableFromArrays } from "apache-arrow";
 
 const subsystems = [
     'Accumulator',
@@ -18,15 +19,18 @@ const subsystems = [
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
+    // TODO: consider, instead of DataFrame[], use an actual Arrow Table and
+    // use table.concat(other) and table.select(colname). Probably much more efficient
     const [dataFrames, setDataFrames] = useState<DataFrame[]>([]);
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(false);
     const [originalDataFrames, setOriginalDataFrames] = useState<DataFrame[]>([]); // To store original dataframes
     const [startTime, setStartTime] = useState<number | string>("");
     const [endTime, setEndTime] = useState<number | string>("");
-        
+
     // Initializes WebSocket with proper hooks to update dataFrames and isConnected
     useEffect(() => initWebSocket(setIsConnected, setDataFrames), []);
+
 
     useEffect(() => {
         if (!isRecording && dataFrames.length > 0) {
@@ -156,30 +160,26 @@ export default function Home() {
                         {/* Accumulator Subsystem */}
                         <ModalContainer>
                             <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} range={120} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message["Acc Temp 1(Cel)"])
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Acc Temp 1(Cel)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} range={40} speed={800}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message["Acc Voltage 1(V)"])
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Acc Temp 2(Cel)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} range={100} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message["Acc Temp 2(Cel)"])
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Acc Voltage 1(V)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} range={100} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message["Acc Temp 16(Cel)"])
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Acc Voltage 2(V)"]])
                                 } />
                         </ModalContainer>
                     </div>
@@ -189,31 +189,27 @@ export default function Home() {
                     <div className={"grid grid-cols-2 gap-6 p-6"}>
                         {/* Electrical Subsystem */}
                         <ModalContainer>
-                            <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} range={100}
-                                speed={400} dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                            <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} range={100} speed={400}
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Speed(mph)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} range={100} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Altitude(ft)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} range={300} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Longitude(ft)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} range={180} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["Latitude(ft)"]])
                                 } />
                         </ModalContainer>
                     </div>
@@ -224,30 +220,26 @@ export default function Home() {
                         {/* Dynamics Subsystem */}
                         <ModalContainer>
                             <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} range={120} speed={800}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.speed)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["x gyro(deg)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"Altitude (ft)"} color={"#696969"} range={1000} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["y gyro(deg)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} range={15} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["x acceleration(m/s^2)"]])
                                 } />
                         </ModalContainer>
                         <ModalContainer>
                             <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} range={15} speed={400}
-                                dataPoints={50} data={
-                                    //@ts-ignore
-                                    dataFrames.map((message) => message.blibblog)
+                                data={
+                                    dataFrames.map((df) => [df["Timestamp(s)"], df["y acceleration(m/s^2)"]])
                                 } />
                         </ModalContainer>
                     </div>
@@ -269,7 +261,7 @@ export default function Home() {
             </main>
             <footer
                 className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-                <p className={"text-center"}>FS Live Visualization Demo {dataFrames.length}</p>
+                <p className={"text-center"}>FS Live Visualization Demo ({dataFrames.length} rows)</p>
             </footer>
         </div>
     );

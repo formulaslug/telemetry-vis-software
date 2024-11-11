@@ -177,4 +177,6 @@ def createdf():
     #I do not have enough physics knowledge to do these
     data[:, 73:] = 0
 
-    return pl.DataFrame(data, schema = column_names)
+    df = pl.DataFrame(data, schema = column_names)
+    timestamps = pl.Series("Timestamp(s)", [(datetime.datetime.now() - t0).total_seconds()])
+    return df.insert_column(0, timestamps)

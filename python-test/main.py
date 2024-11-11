@@ -1,7 +1,7 @@
 import asyncio
 import io
 import signal
-import websockets as ws
+import websockets.asyncio.server as ws
 import polars as pl
 import pyarrow as pa
 import math
@@ -22,7 +22,7 @@ import sim
 #         )
 #         x += 1
 
-async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
+async def websocket_serve(websocket: ws.ServerConnection):
     # for rows in get_rows():
     #     a, b, c, d, e = zip(rows)
     #     data = {
@@ -51,8 +51,8 @@ async def websocket_serve(websocket: ws.WebSocketServerProtocol, path):
 
 # Start the WebSocket server
 async def main():
-    stop = asyncio.Event()
     # Add signal handler for SIGTERM
+    stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     loop.add_signal_handler(signal.SIGTERM, lambda: stop.set())
 

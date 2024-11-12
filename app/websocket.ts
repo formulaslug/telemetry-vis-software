@@ -46,14 +46,12 @@ function initWebSocket(
     socket.onmessage = (event) => {
       const tbl = tableFromIPC(new Uint8Array(event.data));
       // console.log(tbl);
-      const newFrames: DataFrame[] = [];
-      for (let i = 0; i < tbl.numRows; i++) {
+      const newFrames = Array.from({ length: tbl.numRows }, (_, i) => {
         const row = tbl.get(i)!.toArray() as number[];
-        // This is probably wildly inefficient, but we can investigate that later
-        newFrames.push(new DataFrame(row));
-      }
+        return new DataFrame(row);
+    });
+    
       setDataFrames((prevDataFrames) => [...prevDataFrames, ...newFrames]);
-      // const row = tbl.get(0)!.toArray() as number[];
     };
   };
   tryUrl();

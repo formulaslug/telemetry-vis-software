@@ -12,7 +12,7 @@ function initWebSocket(
   // ones are active, and should be able to switch between them
   const urls: string[] =
     hostname == "localhost"
-      ? ["ws://localhost", "ws://localhost:8000"]
+      ? ["ws://localhost", "ws://localhost:8000", "wss://live-vis.bvngee.com"]
       : [`wss://${hostname}`, "wss://live-vis.bvngee.com"];
 
   const tryUrl = () => {

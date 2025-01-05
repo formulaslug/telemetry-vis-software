@@ -14,8 +14,7 @@ $ docker compose up -d # this will build python-test and start everything
 Now it should be up at https://localhost!
 warning: you will have to click through the security warning. Caddy uses self-signed certificates, that's just how it works.
 
-## To run locally - using prebuilt images
-
+You can also instead try using prebuilt images.
 There are semi-regularly updated copies of the built docker images for Arm and
 x64 in a private container registry (registry.bvngee.com), which allows people
 to skip the slow build process.
@@ -26,7 +25,10 @@ $ # in vis-backend; this pulls all deps from the registry
 $ REGISTRY_URL="registry.bvngee.com/" docker compose up -d
 ```
 
-### Note to self: How to create multi-arch images from separate images
+---
+
+## Notes to self: 
+### How to create multi-arch images from separate images
 
 build :latest-arm64, :latest-amd64 tags and push separately. eg. for amd64:
 
@@ -54,3 +56,10 @@ Done! ([ref](https://andrewlock.net/combining-multiple-docker-images-into-a-mult
 
 ### How to reload Caddy after making changes to Caddyfile:
 `docker compose exec -w /etc/caddy caddy caddy reload`
+
+
+---
+
+Notes about Arrow IPC:
+- streaming format: https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format
+- the problem I had when trying to read multiple record batches with one reader in the frontend: https://github.com/apache/arrow/issues/32593#issuecomment-1378117262

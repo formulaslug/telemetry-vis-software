@@ -1,45 +1,59 @@
 import React, { RefObject, useEffect, useRef } from "react";
-import { Chart, ChartItem, ChartConfiguration, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, ScatterController, ChartData, ChartDataset, ChartType } from "chart.js";
-Chart.register(LineController, ScatterController, LineElement, PointElement, LinearScale, Title, CategoryScale);
+import { Chart, ChartItem, ChartConfiguration, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, ScatterController, ChartData, ChartDataset, ChartType, BarController, BarElement } from "chart.js";
+Chart.register(LineController, BarController, BarElement, ScatterController, LineElement, PointElement, LinearScale, Title, CategoryScale);
 
+// ArrayLike<any> is used for data because chartjs supports TypedArrays and we
+// might use those too down the line
 interface CardLineChartProps {
     title: string;
     color: string;
+    datasetNames?: string[]; // optional list of names to give each y-value set
+    numRows: number; // total number of rows of data. Used to rerender the chart on updates
     dataX: ArrayLike<any>; // eg. timestamps
     dataY: ArrayLike<any>[]; // 1 or more y-value sets
 }
 
-const CHART_TYPE: ChartType = 'scatter'
+const CHART_TYPE: ChartType = 'line'
 
-function initChart(chartRef: RefObject<ChartItem>, props: CardLineChartProps) {
-    const config: ChartConfiguration<ChartType, typeof props.dataY[0], typeof props.dataX> = {
+function initChart(chartRef: RefObject<ChartItem>, { title, color, dataY, datasetNames: names }: CardLineChartProps) {
+
+    const config: ChartConfiguration<ChartType, typeof dataY[0], string> = {
         type: CHART_TYPE,
         data: {
-            // labels: Array.from({ length: MAX_LENGTH }, (_, i) => (i + 1).toString()),
-            datasets: [],
+            datasets: dataY.map((_, i) => ({
+                data: [],
+                label: names ? names[i] : (dataY.length > 1 ? `Dataset ${i}` : title),
+                backgroundColor: color,
+                borderColor: color,
+                pointStyle: false, // too noisy
+                spanGaps: true,
+            })),
+            labels: [],
         },
         options: {
             maintainAspectRatio: false,
             responsive: true,
             animation: false,
-            plugins: {
-                title: {
-                    display: false,
-                    text: "",
-                    color: "white",
-                },
-                legend: {
-                    labels: {
-                        color: "white",
-                    },
-                    align: "end",
-                    position: "bottom",
-                },
-                tooltip: {
-                    mode: "index",
-                    intersect: false,
-                },
-            },
+            // I'm fairly certain this was chatgpt leftover garbage that doesn't
+            // do anything? Leaving here for now in case I'm wrong
+            // plugins: {
+                // title: {
+                //     display: false,
+                //     text: "",
+                //     color: "white",
+                // },
+                // legend: {
+                //     labels: {
+                //         color: "white",
+                //     },
+                //     align: "end",
+                //     position: "bottom",
+                // },
+                // tooltip: {
+                //     mode: "index",
+                //     intersect: false,
+                // },
+            // },
             scales: {
                 x: {
                     ticks: {
@@ -47,7 +61,7 @@ function initChart(chartRef: RefObject<ChartItem>, props: CardLineChartProps) {
                     },
                     grid: {
                         display: false,
-                        color: "rgba(33, 37, 41, 0.3)",
+                        // color: "rgba(33, 37, 41, 0.3)",
                     },
                 },
                 y: {
@@ -66,10 +80,20 @@ function initChart(chartRef: RefObject<ChartItem>, props: CardLineChartProps) {
 }
 
 export default function CardLineChart(props: CardLineChartProps) {
-    const {title, color, dataX, dataY} = props;
+    const { title, dataX, dataY, numRows, datasetNames: names } = props;
+
+    for (const ySet of dataY) {
+        if (ySet.length != dataX.length) {
+            throw Error("dataY lists must have the same length as dataX!");
+        };
+    }
+
+    if (names && dataY.length != names.length) {
+        throw Error("names list must have the same length as dataY");
+    }
 
     const chartRef = useRef<ChartItem>(null);
-    const chartInstanceRef = useRef<Chart<ChartType, typeof dataY[0], typeof dataX> | null>(null);
+    const chartInstanceRef = useRef<Chart<ChartType, typeof dataY[0], string> | null>(null);
 
     // // The chart's own list of stored points, of length MAX_LENGTH.
     // // Keeping our chart points in a useState requires reassigning a
@@ -78,52 +102,36 @@ export default function CardLineChart(props: CardLineChartProps) {
 
     useEffect(() => {
         chartInstanceRef.current = initChart(chartRef, props);
+
         return () => {
             chartInstanceRef.current?.destroy();
             chartInstanceRef.current = null;
         }
     }, []);
 
-    // useMemo(() => {
-    //     if (data.length > 0) {
-    //         let newPoint = data[data.length - 1];
-    //         if (newPoint !== dataPoints[dataPoints.length - 1]) {
-    //             // TODO: some kind of check here to refill dataPoints fully
-    //             // when switching back tabs (currently it starts from scratch)
-    //             setDataPoints((prev) => {
-    //                 let updated = [...prev, newPoint];
-    //                 if (updated.length >= MAX_LENGTH) {
-    //                     updated.shift();
-    //                 }
-    //                 return updated;
-    //             });
-    //         }
-    //     }
-    // }, [data]);
-
     useEffect(() => {
-        if (chartInstanceRef.current && dataX && dataY) {
-            chartInstanceRef.current.data = {
-                // List of Y-value sets
-                // datasets: dataY.map((arr) => Array.from(arr).map((v, i) => ({ x: dataX[i], y: v }))),
-                datasets: dataY.map((set) => ({ data: set })),
-                // X-values, eg. timestamps
-                labels: Array.from(dataX).map((n) => n.toString()),
-            };
+        if (chartInstanceRef.current && dataX && dataX.length > 0) {
+            for (const [idx, ySet] of dataY.entries()) {
+                chartInstanceRef.current.data.datasets[idx].data = ySet;
+            }
+            chartInstanceRef.current.data.labels =
+                Array.from(dataX).map(n => (typeof n == "number") ? n.toFixed(2) : n.toString());
 
-            // @ts-ignore-next // We know this exists already from the config above. smh
-            chartInstanceRef.current.config.options.scales.x = {
-                // TODO: setting the min/max on each update causes a sort of
-                // visual flickering and is probably very laggy.
-                min: dataY[0][0],
-                max: dataY[0][dataX.length - 1],
-                // min: Math.floor(dataPoints[0][0]),
-                // max: Math.ceil(dataPoints[dataPoints.length - 1][0]),
-            };
+            // TODO: do we want to set scales manually? It should do this for us
+            // just fine
+            // // @ts-ignore-next // We know this exists already from the config above. smh
+            // chartInstanceRef.current.config.options.scales.y = {
+            //     TODO: setting the min/max on each update causes a sort of
+            //     visual flickering and is probably very laggy.
+            //     min: dataY[0][0],
+            //     max: dataY[0][dataX.length - 1],
+            //     min: Math.floor(dataPoints[0][0]),
+            //     max: Math.ceil(dataPoints[dataPoints.length - 1][0]),
+            // };
 
             chartInstanceRef.current.update();
         }
-    }, [dataX, dataY])
+    }, [numRows]);
 
     return (
         <>
@@ -134,13 +142,11 @@ export default function CardLineChart(props: CardLineChartProps) {
                 <div className="flex-auto">
                     {/* Chart */}
                     <div className="relative h-350-px">
-                        {/* for some reason type inference gets confused here? */}
+                        {/* for some reason tsserver gets confused here... not idea why */}
                         <canvas ref={chartRef as any}></canvas>
                     </div>
                     <p className={"transition-transform duration-500 font-mono select-none"}> Current
-                        Value: {dataY[0] && dataY[0].length > 2
-                            ? dataY[0][dataY[0].length - 1].toFixed(3)
-                            : 0.000}
+                        Value: {dataY[0] && dataY[0].length > 2 ? dataY[0][dataY[0].length - 1].toFixed(2) : 0.000}
                     </p>
                 </div>
             </div>

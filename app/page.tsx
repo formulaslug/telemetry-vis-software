@@ -6,10 +6,9 @@ import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
 import initWebSocketConnection from "./websocket";
-import { DataColDict, DataRow } from "./datatypes";
+import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
 import Papa from 'papaparse';
-import { Table } from "apache-arrow";
 
 const subsystems = [
     'Accumulator',
@@ -17,46 +16,55 @@ const subsystems = [
     'Dynamics',
 ]
 
-// This is how many rows from the main table are kept in each column vector in
-// columnDict.
-// TODO: Instead of this use something like startTime/endTime or a timeline UI
-const NUM_ROWS = 1300
+// The default number of rows of data to keep in the dataTrimmed arrays for use
+// in 2d charts.
+// TODO: Instead of this use setViewLength w/ something like startTime/endTime
+// or a timeline UI
+const DEFAULT_VIEW_LENGTH = 1300
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
 
-    // const [dataFrames, setDataFrames] = useState<DataRow[]>([]);
+    // // We store one main arrow Table which we concatenate all new data rows
+    // // onto.
+    // const dataTable = useRef<Table<DataRow>>(new Table(schema));
 
-    // We store one main arrow Table which we concatenate all new data rows
-    // onto.
-    // const dataTable = useRef<Table<DataRow>>(new Table(new Schema<DataRow>([Field.new({name: "test", type: new Float32()})])));
-    const dataTable = useRef<Table<DataRow>>(new Table());
-
-    // In addition to the main arrow Table, we store a dictionary of column_name
-    // to an arrow Vector of that column's data type. These vectors are simply
-    // small windows (slices) into the main Table that are then used to render
-    // charts.
-    // const columnDict = useRef<DataColDict>(Object.fromEntries(Array.from({length: NUM_ROWS}, (_, i) => [, new Vector()])));
-    const columnDict = useRef<DataColDict>({} as DataColDict);
+    // A simple integer incremented when a new row is added to data. Used to
+    // force chart rerenders
+    const [numRows, setNumRows] = useState(0);
+    // A dictionary of column names to arrays, which are updated with all values
+    // received over the websocket (organized by columns). This is the single
+    // source of truth of telemetry data.
+    const data = useRef<DataArrays>(emptyDataArrays());
+    // A shorter copy that's kept to length viewLength for easier use
+    // in creating 2d charts.
+    const dataTrimmed = useRef<DataArrays>(emptyDataArrays());
+    // Number of points of data to display in 2D graphs. 
+    // // The last point shown corresponds to data at viewTimestamp.
+    const [viewLength, setViewLength] = useState<number>(DEFAULT_VIEW_LENGTH);
+    // // Current timestamp (in seconds) of data to visualize.
+    // const [viewTimestamp, setViewTimestamp] = useState<number>(0);
 
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(false);
-    const [startTime, setStartTime] = useState<number | string>("");
-    const [endTime, setEndTime] = useState<number | string>("");
 
-    // Initializes WebSocket with proper hooks to update dataFrames and isConnected
-    useEffect(() => initWebSocketConnection(setIsConnected, dataTable, columnDict, NUM_ROWS), []);
+    // Initializes WebSocket connection with proper hooks and refs etc
+    useEffect(() => initWebSocketConnection(
+        setIsConnected, data, dataTrimmed, setNumRows, viewLength
+    ), []);
 
 
     useEffect(() => {
-        if (!isRecording && dataTable.current.numRows > 0) {
-            const csv = Papa.unparse(dataTable.current.toArray());
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'FS-Data.csv';
-            link.click();
-            //
+        if (!isRecording && numRows > 0) {
+            // not sure how to "transpose" obj of arrays to array of objs. Plus,
+            // this should use parquet anyways
+            // const csv = Papa.unparse(dataColArrays);
+            // const blob = new Blob([csv], { type: 'text/csv' });
+            // const link = document.createElement('a');
+            // link.href = URL.createObjectURL(blob);
+            // link.download = 'FS-Data.csv';
+            // link.click();
+
             // const handleFilterData = () => {
             //     if (startTime && endTime) {
             //       // Filter messages within the specified range
@@ -158,43 +166,32 @@ export default function Home() {
                         )}
                     </div>
                 </div>
-                {/*<div>*/}
-                {/*    {messages.length}*/}
-                {/*    /!*{messages.map((message, index) => (*!/*/}
-                {/*    /!*    <div key={index}>*!/*/}
-                {/*    /!*        /!*<p>{message}</p>*!/*!/*/}
-                {/*    /!*        /!*<p>{message.timestamp}</p>*!/*!/*/}
-                {/*    /!*        /!*<p>{message.x}</p>*!/*!/*/}
-                {/*    /!*        /!*<p>{message.y}</p>*!/*!/*/}
-                {/*    /!*    </div>*!/*/}
-                {/*    /!*))}*!/*/}
-                {/*</div>*/}
 
                 {selectedSubsystem === 0 ? (
                     <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
                         {/* Accumulator Subsystem */}
                         <ModalContainer>
-                            <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Acc Temp 1(Cel)"],]}
+                            <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Acc Temp 1(Cel)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Acc Voltage 1(V)"],]}
+                            <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Acc Voltage 1(V)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Acc Air Intake Temp(C)"],]}
+                            <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Acc Air Intake Temp(C)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Acc Air Exhaust Temp(C)"],]}
+                            <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Acc Air Exhaust Temp(C)"],]}
                             />
                         </ModalContainer>
                     </div>
@@ -204,27 +201,27 @@ export default function Home() {
                     <div className={"grid grid-cols-2 gap-6 p-6"}>
                         {/* Electrical Subsystem */}
                         <ModalContainer>
-                            <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Brake Pressure Front(PSI)"],]}
+                            <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Brake Pressure Front(PSI)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Brake Pressure Rear(PSI)"],]}
+                            <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Brake Pressure Rear(PSI)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Current to Acc(A)"],]}
+                            <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Current to Acc(A)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Steering(Deg)"],]}
+                            <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Steering(Deg)"],]}
                             />
                         </ModalContainer>
                     </div>
@@ -234,27 +231,27 @@ export default function Home() {
                     <div className={"flex flex-col md:flex-row md:flex-wrap gap-4 p-4"}>
                         {/* Dynamics Subsystem */}
                         <ModalContainer>
-                            <CardLineChart title={"Speed (MPH)"} color={"#4169e1"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Speed(mph)"],]}
+                            <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Speed(mph)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"Altitude (ft)"} color={"#696969"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["Altitude(ft)"],]}
+                            <CardLineChart title={"Altitude (ft)"} color={"#696969"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["Altitude(ft)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["x acceleration(m/s^2)"],]}
+                            <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["x acceleration(m/s^2)"],]}
                             />
                         </ModalContainer>
                         <ModalContainer>
-                            <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"}
-                                dataX={columnDict.current["Timestamp(s)"]}
-                                dataY={[columnDict.current["y acceleration(m/s^2)"],]}
+                            <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} numRows={numRows}
+                                dataX={dataTrimmed.current["Timestamp(s)"]}
+                                dataY={[dataTrimmed.current["y acceleration(m/s^2)"],]}
                             />
                         </ModalContainer>
                     </div>
@@ -262,7 +259,7 @@ export default function Home() {
             </main>
             <footer
                 className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-                <p className={"text-center"}>FS Live Visualization Demo ({dataTable.current.numRows} rows)</p>
+                <p className={"text-center"}>FS Live Visualization Demo ({numRows})</p>
             </footer>
         </div>
     );

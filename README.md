@@ -1,8 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
-
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
@@ -16,21 +14,23 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Arrow-js
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Some notes about the [arrow-js library](https://arrow.apache.org/docs/js/):
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- they somewhat recently underwent a major API change / rewrite / simplification
+  through versions 7/8/9. However, most guides on the internet are still written
+  for the old syntax and the documentation of new versions is bad at best. See
+  [this upgrade guide](https://arrow.apache.org/docs/js/classes/Arrow_dom.Table.html#concat)
+  and
+- if you're curious how the DataRow schema thing and generic type parameter
+  works, this is the [arrow-js
+  PR](https://github.com/apache/arrow/commit/8e2248273a309a2a5a3c4c6328421ae7c3aa451e)
+  that introduced that capability
+- [parquet-wasm](https://github.com/kylebarron/parquet-wasm) (and maybe
+  [arrow-js-ffi](https://github.com/kylebarron/arrow-js-ffi)) seem like
+  promising ways to deal with actual Parquet data in the browser (not just
+  arrow)
+- in the future: if we ever try out Perspective,
+  [this](https://github.com/finos/perspective/issues/929) looks promising in
+  terms of passing data over.

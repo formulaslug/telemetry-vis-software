@@ -74,7 +74,7 @@ function initWebSocketConnection(
       console.warn("All attempts failed to connect to WebSocket server!");
       return;
     }
-    console.debug("Trying URL: " + url.toString());
+    console.debug("Trying URL: ", url.toString());
     socket = new WebSocket(url);
     socket.binaryType = "arraybuffer"; // this means event.data is an ArrayBuffer
     socket.onopen = (_) => {

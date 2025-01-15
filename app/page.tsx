@@ -9,6 +9,7 @@ import initWebSocketConnection from "./websocket";
 import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
 import Papa from 'papaparse';
+import getParquet from "./http";
 
 const subsystems = [
     'Accumulator',
@@ -49,9 +50,12 @@ export default function Home() {
     const [isRecording, setIsRecording] = useState<boolean>(false);
 
     // Initializes WebSocket connection with proper hooks and refs etc
-    useEffect(() => initWebSocketConnection(
-        setIsConnected, data, dataTrimmed, setNumRows, viewLength
-    ), []);
+    useEffect(() => {
+        console.log(getParquet().then((p) => p));
+        return initWebSocketConnection(
+            setIsConnected, data, dataTrimmed, setNumRows, viewLength
+        )
+    }, []);
 
 
     useEffect(() => {

@@ -16,13 +16,14 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - ./Caddyfile:/etc/caddy/Caddyfile
-  python-test:
-    image: "${REGISTRY_URL:-}python-test:latest"
+  python:
+    image: "${REGISTRY_URL:-}python:latest"
     build:
-      context: python-test/
+      context: python/
       dockerfile: Dockerfile
     expose:
       - "8000"
+      - "9000"
 
 volumes:
   caddy_data:

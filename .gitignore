@@ -2,7 +2,7 @@ site/
 caddy_data/
 caddy_config/
 
-python-test/.venv/
+**/.venv/
 
 .env*
-python-test/__pycache__
+**/__pycache__

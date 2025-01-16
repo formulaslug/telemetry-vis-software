@@ -27,6 +27,7 @@ function initChart(chartRef: RefObject<ChartItem>, { title, color, dataY, datase
                 borderColor: color,
                 pointStyle: false, // too noisy
                 spanGaps: true,
+                borderWidth: 2,
             })),
             labels: [],
         },
@@ -34,26 +35,6 @@ function initChart(chartRef: RefObject<ChartItem>, { title, color, dataY, datase
             maintainAspectRatio: false,
             responsive: true,
             animation: false,
-            // I'm fairly certain this was chatgpt leftover garbage that doesn't
-            // do anything? Leaving here for now in case I'm wrong
-            // plugins: {
-                // title: {
-                //     display: false,
-                //     text: "",
-                //     color: "white",
-                // },
-                // legend: {
-                //     labels: {
-                //         color: "white",
-                //     },
-                //     align: "end",
-                //     position: "bottom",
-                // },
-                // tooltip: {
-                //     mode: "index",
-                //     intersect: false,
-                // },
-            // },
             scales: {
                 x: {
                     ticks: {
@@ -141,7 +122,7 @@ export default function CardLineChart(props: CardLineChartProps) {
                 </h6>
                 <div className="flex-auto">
                     {/* Chart */}
-                    <div className="relative h-350-px">
+                    <div className="relative ">
                         {/* for some reason tsserver gets confused here... not idea why */}
                         <canvas ref={chartRef as any}></canvas>
                     </div>

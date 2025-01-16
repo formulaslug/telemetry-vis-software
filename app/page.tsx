@@ -174,30 +174,24 @@ export default function Home() {
                 {selectedSubsystem === 0 ? (
                     <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
                         {/* Accumulator Subsystem */}
-                        <ModalContainer>
-                            <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Acc Temp 1(Cel)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Acc Voltage (V)"} color={"#4682b4"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Acc Voltage 1(V)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Acc Air Intake Temp (C)"} color={"#ffa07a"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Acc Air Intake Temp(C)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Acc Air Exhaust Temp (C)"} color={"#ffd700"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Acc Air Exhaust Temp(C)"],]}
-                            />
-                        </ModalContainer>
+
+                        <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} numRows={numRows}
+                            dataX={dataTrimmed.current[":Time"]}
+                            dataY={[dataTrimmed.current["APPS_1"],]}
+                        />
+                        <CardLineChart title={"Acc Temperature (C)"} color={"#4682b4"} numRows={numRows}
+                            dataX={dataTrimmed.current[":Time"]}
+                            dataY={[dataTrimmed.current["APPS_2"],]}
+                        />
+                        <CardLineChart title={"Acc Temperature (C)"} color={"#ffa07a"} numRows={numRows}
+                            dataX={dataTrimmed.current[":Time"]}
+                            dataY={[dataTrimmed.current["BMS_Fault"],]}
+                        />
+                        <CardLineChart title={"Acc Temperature (C)"} color={"#ffd700"} numRows={numRows}
+                            dataX={dataTrimmed.current[":Time"]}
+                            dataY={[dataTrimmed.current["GPSi_NumHighCNo"],]}
+                        />
+
                     </div>
                 ) : null}
 

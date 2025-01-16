@@ -20,16 +20,18 @@ async function processData(
   // This async loop essentially awaits for each websocket message to arrive
   for await (const batch of recordBatchReader) {
     // recordBatches.push(batch);
+    console.log(batch.getChild(":Time")?.toArray());
+    
 
     // TODO(jack): start trimming dataTrimmed using viewLength!!
     for (const [i, key] of columnNames.entries()) {
       data.current[key].push(...batch.getChildAt(i)?.toArray());
       dataTrimmed.current[key].push(...batch.getChildAt(i)?.toArray());
 
-      // dataTrimmed.current[key].splice(
-      //   0,
-      //   Math.max(0, dataTrimmed.current[key].length - maxRows),
-      // );
+      dataTrimmed.current[key].splice(
+        0,
+        Math.max(0, dataTrimmed.current[key].length - viewLength),
+      );
     }
 
     setNumRows((prev) => prev + batch.numRows);

@@ -1,0 +1,139 @@
+import { Field, Precision, Schema } from "apache-arrow";
+import { Float, Float32, Int64, Timestamp, Utf8 } from "apache-arrow/type";
+import { fs3dataSchema } from "./schema";
+
+// (just a shorter alias)
+// const float32 = new Float(Precision.SINGLE);
+
+const columnDataTypes = fs3dataSchema;
+// const columnDataTypes = {
+//   "Acc Temp 1(Cel)": float32,
+//   "Acc Temp 2(Cel)": float32,
+//   "Acc Temp 3(Cel)": float32,
+//   "Acc Temp 4(Cel)": float32,
+//   "Acc Temp 5(Cel)": float32,
+//   "Acc Temp 6(Cel)": float32,
+//   "Acc Temp 7(Cel)": float32,
+//   "Acc Temp 8(Cel)": float32,
+//   "Acc Temp 9(Cel)": float32,
+//   "Acc Temp 10(Cel)": float32,
+//   "Acc Temp 11(Cel)": float32,
+//   "Acc Temp 12(Cel)": float32,
+//   "Acc Temp 13(Cel)": float32,
+//   "Acc Temp 14(Cel)": float32,
+//   "Acc Temp 15(Cel)": float32,
+//   "Acc Temp 16(Cel)": float32,
+//   "Acc Temp 17(Cel)": float32,
+//   "Acc Temp 18(Cel)": float32,
+//   "Acc Temp 19(Cel)": float32,
+//   "Acc Temp 20(Cel)": float32,
+//   "Acc Temp 21(Cel)": float32,
+//   "Acc Temp 22(Cel)": float32,
+//   "Acc Temp 23(Cel)": float32,
+//   "Acc Temp 24(Cel)": float32,
+//   "Acc Temp 25(Cel)": float32,
+//   "Acc Temp 26(Cel)": float32,
+//   "Acc Temp 27(Cel)": float32,
+//   "Acc Temp 28(Cel)": float32,
+//   "Acc Voltage 1(V)": float32,
+//   "Acc Voltage 2(V)": float32,
+//   "Acc Voltage 3(V)": float32,
+//   "Acc Voltage 4(V)": float32,
+//   "Acc Voltage 5(V)": float32,
+//   "Acc Voltage 6(V)": float32,
+//   "Acc Voltage 7(V)": float32,
+//   "Acc Voltage 8(V)": float32,
+//   "Acc Voltage 9(V)": float32,
+//   "Acc Voltage 10(V)": float32,
+//   "Acc Voltage 11(V)": float32,
+//   "Acc Voltage 12(V)": float32,
+//   "Acc Voltage 13(V)": float32,
+//   "Acc Voltage 14(V)": float32,
+//   "Acc Voltage 15(V)": float32,
+//   "Acc Voltage 16(V)": float32,
+//   "Acc Voltage 17(V)": float32,
+//   "Acc Voltage 18(V)": float32,
+//   "Acc Voltage 19(V)": float32,
+//   "Acc Voltage 20(V)": float32,
+//   "Acc Voltage 21(V)": float32,
+//   "Acc Voltage 22(V)": float32,
+//   "Acc Voltage 23(V)": float32,
+//   "Acc Voltage 24(V)": float32,
+//   "Acc Voltage 25(V)": float32,
+//   "Acc Voltage 26(V)": float32,
+//   "Acc Voltage 27(V)": float32,
+//   "Acc Voltage 28(V)": float32,
+//   "Brake Pressure Front(PSI)": float32,
+//   "Brake Pressure Rear(PSI)": float32,
+//   "Current to Acc(A)": float32,
+//   "Hall Effect Sensor - FL(Hz)": float32,
+//   "Hall Effect Sensor - FR(Hz)": float32,
+//   "Hall Effect Sensor - RL(Hz)": float32,
+//   "Hall Effect Sensor - RR(Hz)": float32,
+//   "Altitude(ft)": float32,
+//   "Latitude(ft)": float32,
+//   "Longitude(ft)": float32,
+//   "Speed(mph)": float32,
+//   "x acceleration(m/s^2)": float32,
+//   "y acceleration(m/s^2)": float32,
+//   "z acceleration(m/s^2)": float32,
+//   "x gyro(deg)": float32,
+//   "y gyro(deg)": float32,
+//   "z gyro(deg)": float32,
+//   "Suspension Travel - FL(V)": float32,
+//   "Suspension Travel - FR(V)": float32,
+//   "Suspension Travel - RL(V)": float32,
+//   "Suspension Travel - RR(V)": float32,
+//   "Suspension Force - FL(Oh)": float32,
+//   "Suspension Force - FR(Oh)": float32,
+//   "Suspension Force - RL(Oh)": float32,
+//   "Suspension Force - RR(Oh)": float32,
+//   "Acc Air Intake Temp(C)": float32,
+//   "Acc Air Exhaust Temp(C)": float32,
+//   "Steering(Deg)": float32,
+//   "Acc Air Intake Pressure(PSI)": float32,
+//   "Acc Intake Air Flow Rate(m^3/sec)": float32,
+//   "Timestamp(s)": float32,
+// };
+export const columnNames = Object.keys(fs3dataSchema) as ColumnName[];
+
+// columnDataTypes and columnNames are for use at runtime; everything with a
+// PascalCase name is purely for type-checking at compile time
+
+// A type for column names mapped to their datatype
+export type DataRow = typeof columnDataTypes;
+
+// Union of all Column nam{':Lap': 91, ':LapTime': 91, ':Time': 91, 'APPS_1': 104, 'APPS_2': 104, 'APPS_Travel_1': 104, 'APPS_Travel_2': 104, 'Avg_Cell_Temp': 104, 'BMS_Balancing': 104, 'BMS_Fault': 104, 'BSPD_Fault': 101, 'Battery Volts (Internal)': 101, 'Brake_Sensor_F': 101, 'Brake_Sensor_R': 101, 'Brakes': 104, 'Brakes_On': 101, 'CAN_Flag': 104, 'Charging': 104, 'Cockpit_Switch': 104, 'Fans:Value': 104, 'Fans_On': 104, 'GLV_Voltage': 104, 'GPSi_Altitude': 88, 'GPSi_Altitude:Sensor': 88, 'GPSi_CNoAverage': 90, 'GPSi_CNoMax': 90, 'GPSi_Course': 90, 'GPSi_DayUTC': 90, 'GPSi_HoursUTC': 90, 'GPSi_Latitude': 90, 'GPSi_Longitude': 90, 'GPSi_MinutesUTC': 90, 'GPSi_MonthUTC': 90, 'GPSi_NumHighCNo': 90, 'GPSi_SatelliteCount': 90, 'GPSi_SatellitesInUse': 90, 'GPSi_SecondsUTC': 90, 'GPSi_Speed': 90, 'GPSi_Status': 101, 'GPSi_Valid': 101, 'GPSi_YearUTC': 90, 'GPSi_hAcc': 101, 'GPSi_hAcc:Sensor': 101, 'GPSi_vAcc': 101, 'GPSi_vAcc:Sensor': 101, 'IMD_Fault': 101, 'Max_Cell_Temp': 104, 'Motor_On': 104, 'Odometer:Modifier.2': 1, 'Pedal_Travel': 104, 'Precharge:Value': 104, 'Precharge_Done': 104, 'RTDS_Queue': 104, 'SME_CURRLIM_ChargeCurrentLim': 104, 'SME_CURRLIM_DischargeCurrentLim': 104, 'SME_CURRLIM_UNUSED_INT_1': 83, 'SME_TEMP_BusCurrent': 104, 'SME_TEMP_ControllerTemperature': 104, 'SME_TEMP_DC_Bus_V': 104, 'SME_TEMP_FaultCode': 104, 'SME_TEMP_FaultLevel': 104, 'SME_TEMP_MotorTemperature': 104, 'SME_THROTL_Forward': 104, 'SME_THROTL_MBB_Alive': 104, 'SME_THROTL_MaxSpeed': 104, 'SME_THROTL_PowerReady': 104, 'SME_THROTL_Reverse': 104, 'SME_THROTL_TorqueDemand': 104, 'SME_TRQSPD_Controller_Overtermp': 104, 'SME_TRQSPD_Forward': 104, 'SME_TRQSPD_Hydraulic': 104, 'SME_TRQSPD_Key_switch_overvolt': 104, 'SME_TRQSPD_Key_switch_undervolt': 104, 'SME_TRQSPD_MotorFlags': 104, 'SME_TRQSPD_Park_Brake': 104, 'SME_TRQSPD_Pedal_Brake': 104, 'SME_TRQSPD_Powering_Enabled': 104, 'SME_TRQSPD_Powering_Ready': 104, 'SME_TRQSPD_Precharging': 104, 'SME_TRQSPD_Reverse': 104, 'SME_TRQSPD_Running': 104, 'SME_TRQSPD_SOC_Low_Hydraulic': 104, 'SME_TRQSPD_SOC_Low_Traction': 104, 'SME_TRQSPD_Speed': 104, 'SME_TRQSPD_Torque': 104, 'SME_TRQSPD_Traction': 104, 'SME_TRQSPD_contactor_closed': 104, 'Seg0_TEMP_0': 104, 'Seg0_TEMP_1': 104, 'Seg0_TEMP_2': 104, 'Seg0_TEMP_3': 104, 'Seg0_TEMP_4': 104, 'Seg0_TEMP_5': 104, 'Seg0_TEMP_6': 104, 'Seg0_VOLT_0': 104, 'Seg0_VOLT_1': 104, 'Seg0_VOLT_2': 104, 'Seg0_VOLT_3': 104, 'Seg0_VOLT_4': 104, 'Seg0_VOLT_5': 104, 'Seg0_VOLT_6': 104, 'Seg1_TEMP_0': 104, 'Seg1_TEMP_1': 104, 'Seg1_TEMP_2': 104, 'Seg1_TEMP_3': 104, 'Seg1_TEMP_4': 104, 'Seg1_TEMP_5': 104, 'Seg1_TEMP_6': 104, 'Seg1_VOLT_0': 104, 'Seg1_VOLT_1': 104, 'Seg1_VOLT_2': 104, 'Seg1_VOLT_3': 104, 'Seg1_VOLT_4': 104, 'Seg1_VOLT_5': 104, 'Seg1_VOLT_6': 104, 'Seg2_TEMP_0': 104, 'Seg2_TEMP_1': 104, 'Seg2_TEMP_2': 104, 'Seg2_TEMP_3': 104, 'Seg2_TEMP_4': 104, 'Seg2_TEMP_5': 104, 'Seg2_TEMP_6': 104, 'Seg2_VOLT_0': 104, 'Seg2_VOLT_1': 104, 'Seg2_VOLT_2': 104, 'Seg2_VOLT_3': 104, 'Seg2_VOLT_4': 104, 'Seg2_VOLT_5': 104, 'Seg2_VOLT_6': 104, 'Seg3_TEMP_0': 104, 'Seg3_TEMP_1': 104, 'Seg3_TEMP_2': 104, 'Seg3_TEMP_3': 104, 'Seg3_TEMP_4': 104, 'Seg3_TEMP_5': 104, 'Seg3_TEMP_6': 104, 'Seg3_VOLT_0': 104, 'Seg3_VOLT_1': 104, 'Seg3_VOLT_2': 104, 'Seg3_VOLT_3': 104, 'Seg3_VOLT_4': 104, 'Seg3_VOLT_5': 104, 'Seg3_VOLT_6': 104, 'Shutdown_Closed': 104, 'Speed Input': 101, 'Status': 101, 'Status:Value': 101, 'Steering_Sensor': 101, 'TS_Current': 104, 'TS_Ready': 104, 'TS_Voltage': 104, 'Odometer:Modifier.1': 100, 'Seconds': 16, 'VDM_GPS_ALTITUDE': 6, 'VDM_GPS_Latitude': 6, 'VDM_GPS_Longitude': 6, 'VDM_GPS_SATELLITES_IN_USE': 6, 'VDM_GPS_SPEED': 6, 'VDM_GPS_TRUE_COURSE': 6, 'VDM_GPS_VALID1': 6, 'VDM_GPS_VALID2': 6, 'VDM_UTC_DATE_DAY': 6, 'VDM_UTC_DATE_MONTH': 6, 'VDM_UTC_DATE_YEAR': 6, 'VDM_UTC_TIME_HOURS': 6, 'VDM_UTC_TIME_MINUTES': 6, 'VDM_UTC_TIME_SECONDS': 6, 'VDM_X_AXIS_ACCELERATION': 6, 'VDM_X_AXIS_YAW_RATE': 6, 'VDM_Y_AXIS_ACCELERATION': 6, 'VDM_Y_AXIS_YAW_RATE': 6, 'VDM_Z_AXIS_ACCELERATION': 6, 'VDM_Z_AXIS_YAW_RATE': 6, 'Shutdown:Value': 3, 'TELEM_BL_SUSTRAVEL': 3, 'TELEM_BR_SUSTRAVEL': 3, 'TELEM_FL_SUSTRAVEL': 3, 'TELEM_FR_SUSTRAVEL': 3, 'TELEM_STEERBRAKE_BRAKEF': 3, 'TELEM_STEERBRAKE_BRAKER': 3, 'TELEM_STEERBRAKE_STEER': 3}es
+export type ColumnName = keyof DataRow;
+
+// Maps keynames to vectors of that datatype, in the same fashion as "struct of
+// arrays"
+export type DataArrays = {
+  // [K in keyof DataRow]: DataRow[K]["TArray"]; // for typed arrays
+  [K in keyof DataRow]: DataRow[K]["TValue"][]; // for regular arrays
+};
+
+// Generate a dictionary with keys for each column name that are mapped to empty
+// but preallocated TypedArrays of size `len`.
+export function emptyDataArrays(/*rows: number*/): DataArrays {
+  return columnNames.reduce((acc, key) => {
+    // for typed arrays:
+    // acc[key] = new columnDataTypes[key].ArrayType(rows);
+    // for regular arrays:
+    acc[key] = new Array();
+    return acc;
+  }, {} as DataArrays);
+}
+
+// list of Field objects for Table's Schema (basically just (keyname,type) pairs)
+const fields = columnNames.map((key) =>
+  // for now we use nullabe: true. Eventually the backend should alleviate this
+  Field.new({ name: key, type: fs3dataSchema[key], nullable: true }),
+);
+
+// This schema is only used for initial instantiation of the empty arrow Table.
+// I found that it's consistently slower to create the Table from record batches
+// with a schema specified.
+// This must be *exactly* identical to the schema sent over the websocket,
+// otherwise table creation will fail.
+export const schema = new Schema<DataRow>(fields);

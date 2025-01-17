@@ -1,0 +1,14 @@
+services:
+  caddy:
+    ports: !override []
+    expose:
+      - "80"
+      - "443"
+      - "443/udp"
+    networks:
+      - default
+      - bvngeedotcom-host_external
+
+networks:
+  bvngeedotcom-host_external:
+    external: true

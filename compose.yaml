@@ -1,0 +1,30 @@
+name: vis-backend
+
+services:
+  nodejs:
+    image: "${REGISTRY_URL:-}live-vis-example:latest"
+    expose:
+      - "3000"
+  caddy:
+    image: caddy:2.8.4
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
+  python:
+    image: "${REGISTRY_URL:-}python:latest"
+    build:
+      context: python/
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+      - "9000"
+
+volumes:
+  caddy_data:
+  caddy_config:

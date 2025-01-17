@@ -1,0 +1,32 @@
+# When running locally on localhost, Caddy will automatically use self-signed
+# certs for https. Otherwise it will use the Let's Encrypt CA.
+https://, http://, localhost {
+    # root * /srv # not used - website comes from nodejs process
+
+	# Logs all HTTP request headers
+	# log {
+	#        output stderr
+	#        level info
+	#        format json {
+	#            time_key timestamp
+	#            message_key message
+	#            level_key level
+	#        }
+	#    }
+
+    # Defines a named matcher for any request where "Upgrade" is _contained_ in
+    # the Connection header and the Upgrade header is equal to "websocket".
+    # Reverse proxy all matching requests to the websocket server
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade    websocket
+    }
+    reverse_proxy @websockets python:8000
+
+    # Reverse proxy http api calls to http server
+    reverse_proxy /api python:9000
+    #file_server /api/browse browse
+
+    # Reverse proxy all other paths to nodejs server (frontend UI)
+    reverse_proxy /* nodejs:3000
+}

@@ -1,0 +1,8 @@
+site/
+caddy_data/
+caddy_config/
+
+**/.venv/
+
+.env*
+**/__pycache__

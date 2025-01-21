@@ -23,7 +23,7 @@ $ python -m venv .venv
 $ source .venv/bin/activate
 $ pip install -r requirements.txt
 $ python main.py
-  # http and websocket servers are not running, yay!
+# http and websocket servers are now running, yay!
 ```
 
 

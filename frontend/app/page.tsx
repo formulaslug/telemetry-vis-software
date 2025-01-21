@@ -9,7 +9,7 @@ import initWebSocketConnection from "./websocket";
 import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
 import Papa from 'papaparse';
-import getParquet from "./http";
+import availableRecordings from "./http";
 
 const subsystems = [
     'Accumulator',
@@ -51,7 +51,7 @@ export default function Home() {
 
     // Initializes WebSocket connection with proper hooks and refs etc
     useEffect(() => {
-        console.log(getParquet().then((p) => p));
+        availableRecordings().then(d => console.log(d));
         return initWebSocketConnection(
             setIsConnected, data, dataTrimmed, setNumRows, viewLength
         )
@@ -195,65 +195,65 @@ export default function Home() {
                     </div>
                 ) : null}
 
-                {selectedSubsystem === 1 ? (
-                    <div className={"grid grid-cols-2 gap-6 p-6"}>
-                        {/* Electrical Subsystem */}
-                        <ModalContainer>
-                            <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Brake Pressure Front(PSI)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Brake Pressure Rear(PSI)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Current to Acc(A)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Steering(Deg)"],]}
-                            />
-                        </ModalContainer>
-                    </div>
-                ) : null}
+                {/* {selectedSubsystem === 1 ? ( */}
+                {/*     <div className={"grid grid-cols-2 gap-6 p-6"}> */}
+                {/* Electrical Subsystem */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["Brake Pressure Front(PSI)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["Brake Pressure Rear(PSI)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["Current to Acc(A)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["Steering(Deg)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*     </div> */}
+                {/* ) : null} */}
 
-                {selectedSubsystem === 2 ? (
-                    <div className={"flex flex-col md:flex-row md:flex-wrap gap-4 p-4"}>
-                        {/* Dynamics Subsystem */}
-                        <ModalContainer>
-                            <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Speed(mph)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"Altitude (ft)"} color={"#696969"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["Altitude(ft)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["x acceleration(m/s^2)"],]}
-                            />
-                        </ModalContainer>
-                        <ModalContainer>
-                            <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} numRows={numRows}
-                                dataX={dataTrimmed.current["Timestamp(s)"]}
-                                dataY={[dataTrimmed.current["y acceleration(m/s^2)"],]}
-                            />
-                        </ModalContainer>
-                    </div>
-                ) : null}
+                {/* {selectedSubsystem === 2 ? ( */}
+                {/*     <div className={"flex flex-col md:flex-row md:flex-wrap gap-4 p-4"}> */}
+                {/* Dynamics Subsystem */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["Speed(mph)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"Altitude (ft)"} color={"#696969"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["Altitude(ft)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["x acceleration(m/s^2)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*         <ModalContainer> */}
+                {/*             <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} numRows={numRows} */}
+                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
+                {/*                 dataY={[dataTrimmed.current["y acceleration(m/s^2)"],]} */}
+                {/*             /> */}
+                {/*         </ModalContainer> */}
+                {/*     </div> */}
+                {/* ) : null} */}
             </main>
             <footer
                 className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">

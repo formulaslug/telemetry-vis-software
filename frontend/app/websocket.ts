@@ -20,7 +20,7 @@ async function processData(
   // This async loop essentially awaits for each websocket message to arrive
   for await (const batch of recordBatchReader) {
     // recordBatches.push(batch);
-    console.log(batch.getChild(":Time")?.toArray());
+    // console.log(batch.getChild(":Time")?.toArray());
     
 
     // TODO(jack): start trimming dataTrimmed using viewLength!!

@@ -1,0 +1,40 @@
+name: telemetry-vis-software
+
+services:
+  # Reverse proxy in front of everything
+  caddy:
+    image: caddy:2.8.4
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
+
+  # Nodejs process hosts react frontend
+  nodejs:
+    image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
+    build: ./frontend
+    expose:
+      - "3000"
+
+  # Python process runs websocket and http servers (backend)
+  python:
+    image: "${REGISTRY_URL:-}telemetry-vis-software/backend:latest"
+    build: ./backend
+    expose:
+      - "8000"
+      - "9000"
+    environment:
+      # Directory where http server will look for parquet files (recursively)
+      RECORDING_DIRS: /recording_dirs
+    volumes:
+      # ./fs-3-data is a git submodule, optional
+      - ./fs-3-data:/recording_dirs/fs-3-data
+
+volumes:
+  caddy_data:
+  caddy_config:

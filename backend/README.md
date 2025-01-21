@@ -7,8 +7,8 @@ There's two parts to this (at the time of writing):
 
 Both are written in python and share the same asyncio event loop. 
 
-^ !Note:
-^ The frontend UI is hosted separately, using a nodejs process. These are
+> [!NOTE]
+> The frontend UI is hosted separately, using a nodejs process. These are
 completely separate!
 
 The websocket server serves the actual live telemetry data. The http server is

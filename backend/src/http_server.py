@@ -1,5 +1,4 @@
 import os
-from os.path import isdir
 from aiohttp import web
 import aiohttp_cors
 
@@ -28,14 +27,14 @@ routes = web.RouteTableDef()
 async def available_recordings(request):
     return web.json_response(list(parquet_files))
 
-
-@routes.get("/api/get-recording/{filename}")
-async def get_recording(request: web.Request):
-    f = request.match_info.get("filename")
-    if not f:
-        return web.Response(status=404, body="Unkown / incorrect recording filename!")
-    # return web.Response(content_type="application/vnd.apache.arrow.stream", body=)
-    return web.json_response({"you asked for": f})
+routes.static("/api/get-recording", dirs[0], show_index=True)
+# @routes.get("/api/get-recording/{filename}")
+# async def get_recording(request: web.Request):
+#     f = request.match_info.get("filename")
+#     if not f:
+#         return web.Response(status=404, body="Unkown / incorrect recording filename!")
+#     # return web.Response(content_type="application/vnd.apache.arrow.stream", body=)
+#     return web.json_response({"you asked for": f})
 
 
 app = web.Application()

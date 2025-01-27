@@ -17,41 +17,41 @@ const CHART_TYPE: ChartType = 'line'
 
 function initChart(chartRef: RefObject<ChartItem>, { title, color, dataY, datasetNames: names }: CardLineChartProps) {
 
-    const config: ChartConfiguration<ChartType, typeof dataY[0], string> = {
+    const config: ChartConfiguration<ChartType, typeof dataY[0], number> = {
         type: CHART_TYPE,
         data: {
             datasets: dataY.map((_, i) => ({
                 data: [],
                 label: names ? names[i] : (dataY.length > 1 ? `Dataset ${i}` : title),
-                backgroundColor: color,
-                borderColor: color,
-                pointStyle: false, // too noisy
-                spanGaps: true,
-                borderWidth: 2,
             })),
-            labels: [],
+            // labels: [],
         },
         options: {
+            datasets: {
+                line: {
+                    backgroundColor: color,
+                    borderColor: color,
+                    pointRadius: 0, // too noisy
+                    borderWidth: 2,
+                    spanGaps: true,
+                }
+            },
             maintainAspectRatio: false,
+            parsing: false, // requires data to be in internal obj format, should improve performance
             responsive: true,
             animation: false,
             scales: {
                 x: {
-                    ticks: {
-                        color: "rgba(255,255,255,.7)",
-                    },
-                    grid: {
-                        display: false,
-                        // color: "rgba(33, 37, 41, 0.3)",
-                    },
+                    type: 'linear',
+                    // grace: '1%',
+                    ticks: { color: "rgba(255,255,255,.7)" },
+                    grid: { display: false },
                 },
                 y: {
-                    ticks: {
-                        color: "rgba(255,255,255,.7)",
-                    },
-                    grid: {
-                        color: "rgba(255, 255, 255, 0.15)",
-                    },
+                    type: 'linear',
+                    // grace: '10%',
+                    ticks: { color: "rgba(255,255,255,.7)" },
+                    grid: { color: "rgba(255, 255, 255, 0.15)" },
                 },
             },
         },
@@ -74,7 +74,7 @@ export default function CardLineChart(props: CardLineChartProps) {
     }
 
     const chartRef = useRef<ChartItem>(null);
-    const chartInstanceRef = useRef<Chart<ChartType, typeof dataY[0], string> | null>(null);
+    const chartInstanceRef = useRef<Chart<ChartType, typeof dataY[0], number> | null>(null);
 
     // // The chart's own list of stored points, of length MAX_LENGTH.
     // // Keeping our chart points in a useState requires reassigning a
@@ -92,11 +92,13 @@ export default function CardLineChart(props: CardLineChartProps) {
 
     useEffect(() => {
         if (chartInstanceRef.current && dataX && dataX.length > 0) {
+            // assemble data
             for (const [idx, ySet] of dataY.entries()) {
-                chartInstanceRef.current.data.datasets[idx].data = ySet;
+                chartInstanceRef.current.data.datasets[idx].data =
+                    Array.from(dataX).map((v, i) => ({ x: v, y: ySet[i] }));
             }
-            chartInstanceRef.current.data.labels =
-                Array.from(dataX).map(n => (typeof n == "number") ? n.toFixed(2) : n.toString());
+            // chartInstanceRef.current.data.labels =
+            //     Array.from(dataX).map(n => (typeof n == "number") ? n.toFixed(2) : n.toString());
 
             // TODO: do we want to set scales manually? It should do this for us
             // just fine

@@ -5,11 +5,11 @@ import ModalContainer from "@/app/components/ModalContainer";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
-import initWebSocketConnection from "./websocket";
+import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
 import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
 import Papa from 'papaparse';
-import availableRecordings from "./http";
+import { availableRecordings, initRecordingData } from './http';
 
 const subsystems = [
     'Accumulator',
@@ -21,14 +21,37 @@ const subsystems = [
 // in 2d charts.
 // TODO: Instead of this use setViewLength w/ something like startTime/endTime
 // or a timeline UI
-const DEFAULT_VIEW_LENGTH = 1300
+const DEFAULT_VIEW_LENGTH = 99999999; // 1300
+
+type DataSource =
+    | { type: "live" }
+    | { type: "recording"; name: string };
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
 
-    // // We store one main arrow Table which we concatenate all new data rows
-    // // onto.
-    // const dataTable = useRef<Table<DataRow>>(new Table(schema));
+    const [selectedDataSource, setSelectedDataSource] = useState<DataSource>({ type: "live" });
+    function useLiveDataSource() {
+        setSelectedDataSource({ type: "live" });
+        data.current = emptyDataArrays()
+        dataTrimmed.current = emptyDataArrays()
+        initWebSocketConnection(setIsConnected, data, dataTrimmed, setNumRows, viewLength);
+    }
+    function useRecordingSource(filepath: string) {
+        setSelectedDataSource({ type: "recording", name: filepath });
+        data.current = emptyDataArrays()
+        dataTrimmed.current = emptyDataArrays()
+        closeWebSocketConnection();
+        initRecordingData(filepath, data, dataTrimmed, setNumRows, viewLength);
+    }
+    function switchDataSource() {
+        if (selectedDataSource.type == "live") {
+            const fp = prompt("Select a recording filepath");
+            if (fp) useRecordingSource(fp);
+        } else if (selectedDataSource.type == "recording") {
+            useLiveDataSource()
+        }
+    }
 
     // A simple integer incremented when a new row is added to data. Used to
     // force chart rerenders
@@ -133,10 +156,8 @@ export default function Home() {
                 <button onClick={() => {
                     if (isRecording) {
                         setIsRecording(false)
-                        // setEndTime(messages[messages.length - 1].timestamp);
                     } else {
                         setIsRecording(true)
-                        // setStartTime(messages[messages.length - 1].timestamp);
                     }
                 }}
                     className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
@@ -160,6 +181,17 @@ export default function Home() {
                     onSelectSubsystem={(a) => setSelectedSubsystem(a)} />
             </header>
             <main>
+                <div className={"flex absolute bottom-0 left-0 m-2"}>
+                    <div
+                        onClick={switchDataSource}
+                        className={`rounded-full p-2 bg-gray-500 text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
+                        {selectedDataSource.type == "live" ? (
+                            <p>Live Data</p>
+                        ) : (selectedDataSource.type == "recording" ?
+                            <p>Recording: {selectedDataSource.name}</p> : <p>???</p>
+                        )}
+                    </div>
+                </div>
                 <div className={"flex absolute bottom-0 right-0 m-2"}>
                     <div
                         className={`rounded-full p-2 ${isConnected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
@@ -177,19 +209,19 @@ export default function Home() {
 
                         <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} numRows={numRows}
                             dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["APPS_1"],]}
+                            dataY={[dataTrimmed.current["Seg0_TEMP_0"], dataTrimmed.current["Seg0_TEMP_1"], dataTrimmed.current["Seg0_TEMP_2"], dataTrimmed.current["Seg0_TEMP_3"], dataTrimmed.current["Seg0_TEMP_4"], dataTrimmed.current["Seg0_TEMP_5"], dataTrimmed.current["Seg0_TEMP_6"]]}
                         />
                         <CardLineChart title={"Acc Temperature (C)"} color={"#4682b4"} numRows={numRows}
                             dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["APPS_2"],]}
+                            dataY={[dataTrimmed.current["Seg1_TEMP_0"], dataTrimmed.current["Seg1_TEMP_1"], dataTrimmed.current["Seg1_TEMP_2"], dataTrimmed.current["Seg1_TEMP_3"], dataTrimmed.current["Seg1_TEMP_4"], dataTrimmed.current["Seg1_TEMP_5"], dataTrimmed.current["Seg1_TEMP_6"]]}
                         />
                         <CardLineChart title={"Acc Temperature (C)"} color={"#ffa07a"} numRows={numRows}
                             dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["BMS_Fault"],]}
+                            dataY={[dataTrimmed.current["Seg2_TEMP_0"], dataTrimmed.current["Seg2_TEMP_1"], dataTrimmed.current["Seg2_TEMP_2"], dataTrimmed.current["Seg2_TEMP_3"], dataTrimmed.current["Seg2_TEMP_4"], dataTrimmed.current["Seg2_TEMP_5"], dataTrimmed.current["Seg2_TEMP_6"]]}
                         />
                         <CardLineChart title={"Acc Temperature (C)"} color={"#ffd700"} numRows={numRows}
                             dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["GPSi_NumHighCNo"],]}
+                            dataY={[dataTrimmed.current["Seg3_TEMP_0"], dataTrimmed.current["Seg3_TEMP_1"], dataTrimmed.current["Seg3_TEMP_2"], dataTrimmed.current["Seg3_TEMP_3"], dataTrimmed.current["Seg3_TEMP_4"], dataTrimmed.current["Seg3_TEMP_5"], dataTrimmed.current["Seg3_TEMP_6"]]}
                         />
 
                     </div>
@@ -257,7 +289,7 @@ export default function Home() {
             </main>
             <footer
                 className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-                <p className={"text-center"}>FS Live Visualization Demo ({numRows})</p>
+                <p className={"text-center"}>FS Live Visualization Demo ({numRows} rows)</p>
             </footer>
         </div>
     );

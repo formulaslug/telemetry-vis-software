@@ -23,7 +23,6 @@ async function processData(
     // console.log(batch.getChild(":Time")?.toArray());
     
 
-    // TODO(jack): start trimming dataTrimmed using viewLength!!
     for (const [i, key] of columnNames.entries()) {
       data.current[key].push(...batch.getChildAt(i)?.toArray());
       dataTrimmed.current[key].push(...batch.getChildAt(i)?.toArray());
@@ -55,7 +54,7 @@ async function processData(
   }
 }
 
-function initWebSocketConnection(
+export function initWebSocketConnection(
   setIsConnected: Dispatch<SetStateAction<boolean>>,
   data: MutableRefObject<DataArrays>,
   dataTrimmed: MutableRefObject<DataArrays>,
@@ -232,9 +231,9 @@ function initWebSocketConnection(
   };
   tryUrl();
 
-  return () => {
-    socket?.close();
-  };
+  return closeWebSocketConnection;
 }
 
-export default initWebSocketConnection;
+export function closeWebSocketConnection() {
+    socket?.close();
+}

@@ -106,7 +106,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStre
                                    placeholder={"Filter Recordings"}
                                    onChange={(e) => setFilter(e.target.value)}/>
                             {recordings
-                                .filter((recording) => recording.toLowerCase().includes(filter))
+                                .filter((recording) => recording.toLowerCase().includes(filter.toLowerCase()))
                                 .sort()
                                 .map((recording) => (
                                     <button

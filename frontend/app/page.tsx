@@ -10,6 +10,8 @@ import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
 import Papa from 'papaparse';
 import availableRecordings from "./http";
+import StreamType from "@/models/StreamType";
+import StreamTypePicker from "@/app/components/StreamTypePicker";
 
 const subsystems = [
     'Accumulator',
@@ -25,6 +27,10 @@ const DEFAULT_VIEW_LENGTH = 1300
 
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
+
+    const [streamType, setStreamType] = useState<StreamType>(StreamType.UNDEFINED);
+    const [recordings, setRecordings] = useState<string[]>([]);
+    const [chosenRecording, setChosenRecording] = useState<string | null>(null);
 
     // // We store one main arrow Table which we concatenate all new data rows
     // // onto.
@@ -51,7 +57,10 @@ export default function Home() {
 
     // Initializes WebSocket connection with proper hooks and refs etc
     useEffect(() => {
-        availableRecordings().then(d => console.log(d));
+        availableRecordings().then(d => {
+            console.log(d)
+            setRecordings(d)
+        });
         return initWebSocketConnection(
             setIsConnected, data, dataTrimmed, setNumRows, viewLength
         )
@@ -128,6 +137,7 @@ export default function Home() {
 
     return (
         <div className="pt-4">
+            <StreamTypePicker streamType={streamType} setStreamType={setStreamType} recordings={recordings} setChosenRecording={setChosenRecording} />
             <div className={"pl-6 flex justify-between flex-row"}>
                 <Image src="/fs_logo.png" alt="logo" width={200} height={50} />
                 <button onClick={() => {

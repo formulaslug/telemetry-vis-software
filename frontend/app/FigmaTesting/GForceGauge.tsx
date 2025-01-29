@@ -99,8 +99,8 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 	const [active, setActive] = useState("xy");
 
 	return (
-		<div className="w-[30rem] h-[30rem]">
-			<div className="h-[28rem]">
+		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden">
+			<div className="h-[90%]">
 				<Scene
 					position={new Vector3(X, Y, Z)}
 					polarAngle={polarAngle}
@@ -109,7 +109,7 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 					active={active}
 				/>
 			</div>
-			<div className="flex justify-center h-[2rem]">
+			<div className="flex justify-center h-[10%]">
 				<button
 					onClick={() => {
 						setPolarAngle(Math.PI / 2);

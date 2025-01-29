@@ -21,14 +21,14 @@ export default function Home() {
 	}, []);
 
 	return (
-		<div className="flex justify-center py-10">
-			<div className="mx-4 bg-white/10 rounded-[4%] overflow-hidden">
+		<div className="grid grid-cols-8 grid-rows-6 gap-3 w-[100vw] h-[100vh] m-4">
+			<div className="col-span-1 row-span-2">
 				<GForceGauge X={position.x} Y={position.y} Z={position.z} Dampening={1} />
 			</div>
-			<div className="mx-4 bg-white/10 rounded-[4%] overflow-hidden">
+			<div className="col-span-2 row-span-2">
 				<SuspensionGauge S1={position.x} S2={position.y} S3={position.z} S4={0} />
 			</div>
-			<div className="mx-4 bg-white/10 rounded-[4%] overflow-hidden">
+			<div className="col-span-2 row-span-2">
 				<CarWireframe
 					rotation={{ x: position.x * 0.1, y: position.y, z: position.z * 0.001 }}
 				/>

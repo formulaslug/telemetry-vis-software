@@ -10,6 +10,8 @@ import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
 import Papa from 'papaparse';
 import { availableRecordings, initRecordingData } from './http';
+import StreamType from "@/models/StreamType";
+import StreamTypePicker from "@/app/components/StreamTypePicker";
 
 const subsystems = [
     'Accumulator',
@@ -53,6 +55,10 @@ export default function Home() {
         }
     }
 
+    const [streamType, setStreamType] = useState<StreamType>(StreamType.UNDEFINED);
+    const [recordings, setRecordings] = useState<string[]>([]);
+    const [chosenRecording, setChosenRecording] = useState<string | null>(null);
+
     // A simple integer incremented when a new row is added to data. Used to
     // force chart rerenders
     const [numRows, setNumRows] = useState(0);
@@ -74,7 +80,10 @@ export default function Home() {
 
     // Initializes WebSocket connection with proper hooks and refs etc
     useEffect(() => {
-        availableRecordings().then(d => console.log(d));
+        availableRecordings().then(d => {
+            console.log(d)
+            setRecordings(d)
+        });
         return initWebSocketConnection(
             setIsConnected, data, dataTrimmed, setNumRows, viewLength
         )
@@ -151,6 +160,7 @@ export default function Home() {
 
     return (
         <div className="pt-4">
+            <StreamTypePicker streamType={streamType} setStreamType={setStreamType} recordings={recordings} setChosenRecording={setChosenRecording} />
             <div className={"pl-6 flex justify-between flex-row"}>
                 <Image src="/fs_logo.png" alt="logo" width={200} height={50} />
                 <button onClick={() => {

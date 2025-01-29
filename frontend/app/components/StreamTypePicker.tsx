@@ -79,9 +79,9 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStre
         return (
             <div className={"flex flex-row"}>
                 <div className={"absolute z-40 bg-slate-800 w-screen h-screen bg-opacity-90"}/>
-                <div className={"z-50 bg-blue-600 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll"}>
-                    <div className={"bg-slate-800 max-h-72"}>
-                        <p className={"text-xl font-semibold"}>Select what type of data you would like to see</p>
+                <div className={"z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-screen"}>
+                    <div className={"bg-slate-950"}>
+                        <p className={"text-xl font-semibold"}>Select Playback Mode</p>
                         <button
                             className={`m-4 p-2 px-4 rounded-xl flex items-center border-white border-2 border-opacity-40`}
                             onClick={() => {
@@ -106,7 +106,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStre
                                    placeholder={"Filter Recordings"}
                                    onChange={(e) => setFilter(e.target.value)}/>
                             {recordings
-                                .filter((recording) => recording.includes(filter))
+                                .filter((recording) => recording.toLowerCase().includes(filter))
                                 .sort()
                                 .map((recording) => (
                                     <button

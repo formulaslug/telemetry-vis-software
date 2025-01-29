@@ -105,7 +105,7 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: suspensionInfo) {
 
 function SuspensionGauge({ S1, S2, S3, S4 }: suspensionInfo) {
 	return (
-		<div className="w-[30rem] h-[30rem]">
+		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden">
 			<SuspensionCanvas S1={S1} S2={S2} S3={S3} S4={S4} />
 		</div>
 	);

@@ -59,7 +59,7 @@ function Car({ rotation }: { rotation: rotation }) {
 
 function CarWireframe({ rotation }: { rotation: rotation }) {
 	return (
-		<div className="w-[30rem] h-[30rem]">
+		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden">
 			<Scene rotation={rotation} />
 		</div>
 	);

@@ -5,6 +5,7 @@ interface StreamTypePickerProps {
     streamType: StreamType;
     setStreamType: React.Dispatch<React.SetStateAction<StreamType>>;
     recordings: string[];
+    chosenRecording: string;
     setChosenRecording: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -41,6 +42,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                                                                streamType,
                                                                setStreamType,
                                                                recordings,
+                                                                chosenRecording,
                                                                setChosenRecording
                                                            }) => {
     const [minimized, setMinimized] = useState(false);
@@ -95,35 +97,23 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
 
     if (minimized) {
         return (
-            <div className="z-50 flex bg-slate-600 justify-center">
+            <div className="z-50 flex justify-end mr-4">
                 <button
-                    className={`${streamType === StreamType.LIVE ? "bg-red-500 text-white" : "text-white"} px-4 py-2 rounded-lg`}
+                    className={"p-4 bg-slate-800 m-4 rounded-xl hover:border-white border-2 border-black border-opacity-40 duration-200"}
                     onClick={() => {
-                        setStreamType(StreamType.LIVE);
-                        setChosenRecording("");
-                        setMinimized(true);
-                    }}
-                >
-                    Live
-                </button>
-                <button
-                    className={`${
-                        streamType === StreamType.PRE_RECORDED ? "bg-green-500 text-white" : "text-white"
-                    } px-4 py-2 rounded-lg`}
-                    onClick={() => {
-                        setStreamType(StreamType.UNDEFINED);
-                        setChosenRecording("");
-                        setMinimized(false);
-                    }}
-                >
-                    Pre-Recorded
+                    setMinimized(false);
+                    setStreamType(StreamType.UNDEFINED);
+                }}>
+                    {streamType === StreamType.PRE_RECORDED && chosenRecording && (
+                        <p className={"text-white font-semibold text-right"}>Current Recording: {chosenRecording}</p>
+                    )}
                 </button>
             </div>
         );
     } else {
         return (
             <div className="flex flex-row">
-                <div className="absolute z-40 bg-slate-800 w-screen h-screen bg-opacity-90" />
+                <div className="absolute z-40 bg-red-800 w-screen h-screen bg-opacity-90" />
                 <div className="z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-2/3">
                     <div className="bg-slate-950">
                         <p className="text-xl font-semibold">Select Playback Mode</p>

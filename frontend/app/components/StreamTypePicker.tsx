@@ -147,9 +147,12 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                         </button>
 
                         <div className="border-2 border-white border-opacity-5 my-4" />
-                        <p className={"text-xl mb-4"}>Recording Playback</p>
+                        <div className={"flex flex-row gap-x-4 mb-4"}>
+                            <p className={"text-xl"}>Recording Playback</p>
+                            <p className={"text-xl text-gray-500"}>Current: {chosenRecording === "" ? "Live Playback" : chosenRecording}</p>
+                        </div>
                         <div className="overflow-hidden">
-                            <div className={"flex flex-row justify-between p-2 px-4 mb-4"}>
+                        <div className={"flex flex-row justify-between p-2 px-4 mb-4"}>
                                 <div className={"flex flex-row justify-start items-center bg-slate-800 rounded-3xl pl-4 w-1/2"}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray"
                                          className="bi bi-search" viewBox="0 0 16 16">

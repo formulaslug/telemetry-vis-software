@@ -107,7 +107,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                             <p className={"font-semibold text-white"}>Live Data</p>
                     )}
                     {streamType === StreamType.PRE_RECORDED && chosenRecording && (
-                        <p className={"text-black font-semibold text-right"}>Current Recording: {chosenRecording}</p>
+                        <p className={"text-black font-semibold text-right font-mono"}>{chosenRecording}</p>
                     )}
                 </button>
             </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import StreamType from "@/models/StreamType";
 
 interface StreamTypePickerProps {
@@ -99,10 +99,13 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
         return (
             <div className="z-50 flex justify-end mr-4">
                 <button
-                    className={"p-4 bg-white m-4 rounded-xl hover:border-gray-500 border-4 border-white duration-300"}
+                    className={`p-4 ${streamType == StreamType.LIVE ? "bg-red-600" : "bg-white"} m-4 rounded-xl hover:border-gray-500 border-4 ${streamType == StreamType.LIVE ? "border-red-600" : "border-white"} duration-300`}
                     onClick={() => {
                     setMinimized(false);
                 }}>
+                    {streamType === StreamType.LIVE && (
+                            <p className={"animate-pulse duration-200 font-semibold text-white"}>Live Data</p>
+                    )}
                     {streamType === StreamType.PRE_RECORDED && chosenRecording && (
                         <p className={"text-black font-semibold text-right"}>Current Recording: {chosenRecording}</p>
                     )}

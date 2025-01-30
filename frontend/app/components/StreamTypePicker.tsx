@@ -113,7 +113,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
     } else {
         return (
             <div className="flex flex-row">
-                <div className="absolute z-40 bg-red-800 w-screen h-screen bg-opacity-90" />
+                <div className="fixed inset-0 bg-gray-600 z-40 opacity-80"/>
                 <div className="z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-2/3">
                     <div className="bg-slate-950">
                         <p className="text-xl font-semibold">Select Playback Mode</p>
@@ -140,7 +140,6 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                             {/*    type="text"*/}
                             {/*    placeholder="Filter Recordings"*/}
                             {/*    onChange={(e) => setFilter(e.target.value)}*/}
-                            {/*/>*/}
                             {root && renderTree(root)}
                         </div>
                     </div>

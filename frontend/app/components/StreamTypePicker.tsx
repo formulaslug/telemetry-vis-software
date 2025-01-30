@@ -149,13 +149,20 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                         <div className="border-2 border-white border-opacity-5 my-4" />
                         <p className={"text-xl mb-4"}>Recording Playback</p>
                         <div className="overflow-hidden">
-                            <div className={"flex flex-row justify-between"}>
-                                <input
-                                    className="p-2 px-4 w-1/2 bg-slate-800 mb-4 rounded-3xl font-mono"
-                                    type="text"
-                                    placeholder="Filter Recordings"
-                                    onChange={(e) => setFilter(e.target.value)}
-                                />
+                            <div className={"flex flex-row justify-between p-2 px-4 mb-4"}>
+                                <div className={"flex flex-row justify-start items-center bg-slate-800 rounded-3xl pl-4 w-1/2"}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray"
+                                         className="bi bi-search" viewBox="0 0 16 16">
+                                        <path
+                                            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                    </svg>
+                                    <input
+                                        className="bg-slate-800 rounded-3xl font-mono pl-4 flex-1 outline-none"
+                                        type="text"
+                                        placeholder="Filter Recordings"
+                                        onChange={(e) => setFilter(e.target.value)}
+                                    />
+                                </div>
                                 <div className={"flex flex-row gap-x-4"}>
                                     <button onClick={() => collapseAll(root!)}
                                             className={"py-2 rounded-full px-8 bg-slate-800"}>

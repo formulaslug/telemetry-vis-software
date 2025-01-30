@@ -1,15 +1,14 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react";
-import ModalContainer from "@/app/components/ModalContainer";
+import React, {useEffect, useRef, useState} from "react";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
-import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
-import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
-import Papa from 'papaparse';
+import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
 import { availableRecordings, initRecordingData } from './http';
+import { emptyDataArrays, DataArrays } from "./datatypes";
+
 import StreamType from "@/models/StreamType";
 import StreamTypePicker from "@/app/components/StreamTypePicker";
 
@@ -160,9 +159,9 @@ export default function Home() {
 
     return (
         <div className="pt-4">
-            <StreamTypePicker streamType={streamType} setStreamType={setStreamType} recordings={recordings} setChosenRecording={setChosenRecording} />
-            <div className={"pl-6 flex justify-between flex-row"}>
+            <div className={"pl-6 flex justify-between flex-row items-center"}>
                 <Image src="/fs_logo.png" alt="logo" width={200} height={50} />
+<<<<<<< HEAD
                 <button onClick={() => {
                     if (isRecording) {
                         setIsRecording(false)
@@ -185,6 +184,60 @@ export default function Home() {
                     }
                     <p className={"ml-1"}>Record</p>
                 </button>
+||||||| parent of 1602936 (Replaced minimized code with button with title of current chosen recording)
+                <button onClick={() => {
+                    if (isRecording) {
+                        setIsRecording(false)
+                        // setEndTime(messages[messages.length - 1].timestamp);
+                    } else {
+                        setIsRecording(true)
+                        // setStartTime(messages[messages.length - 1].timestamp);
+                    }
+                }}
+                    className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
+                    {isRecording ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            className="bi bi-record" viewBox="0 0 16 16">
+                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
+                        </svg>
+                    )
+                    }
+                    <p className={"ml-1"}>Record</p>
+                </button>
+=======
+                <StreamTypePicker streamType={streamType} setStreamType={setStreamType} recordings={recordings} chosenRecording={chosenRecording} setChosenRecording={setChosenRecording} />
+                {streamType == StreamType.LIVE && (
+                    <button onClick={() => {
+                        if (isRecording) {
+                            setIsRecording(false)
+                            // setEndTime(messages[messages.length - 1].timestamp);
+                        } else {
+                            setIsRecording(true)
+                            // setStartTime(messages[messages.length - 1].timestamp);
+                        }
+                    }}
+                        className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
+                        {isRecording ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                className="bi bi-record" viewBox="0 0 16 16">
+                                <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
+                            </svg>
+                        )
+                        }
+                        <p className={"ml-1"}>Record</p>
+                    </button>
+                    )}
+>>>>>>> 1602936 (Replaced minimized code with button with title of current chosen recording)
             </div>
             <header className={"flex items-center justify-between"}>
                 <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem}

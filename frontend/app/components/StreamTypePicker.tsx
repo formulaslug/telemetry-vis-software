@@ -1,6 +1,5 @@
-import React, {useEffect} from 'react';
+import React, { useEffect, useState } from "react";
 import StreamType from "@/models/StreamType";
-import {useState} from "react";
 
 interface StreamTypePickerProps {
     streamType: StreamType;
@@ -9,61 +8,107 @@ interface StreamTypePickerProps {
     setChosenRecording: React.Dispatch<React.SetStateAction<string>>;
 }
 
-interface FileSegment {
-    is_file: boolean;
-    is_dir: boolean;
+interface FileNode {
     name: string;
+    children: FileNode[];
+    parent?: FileNode | null;
+    isOpen?: boolean; // New property to handle toggling
 }
 
-const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStreamType, recordings, setChosenRecording }) => {
+const createFileTree = (paths: string[]): FileNode => {
+    const root: FileNode = { name: "root", children: [], isOpen: true };
+
+    paths.forEach((path) => {
+        const parts = path.split("/");
+        let currentNode = root;
+
+        parts.forEach((part, index) => {
+            let existingNode = currentNode.children.find((child) => child.name === part);
+
+            if (!existingNode) {
+                existingNode = { name: part, children: [], parent: currentNode, isOpen: false };
+                currentNode.children.push(existingNode);
+            }
+
+            currentNode = existingNode;
+        });
+    });
+
+    return root;
+};
+
+const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
+                                                               streamType,
+                                                               setStreamType,
+                                                               recordings,
+                                                               setChosenRecording
+                                                           }) => {
     const [minimized, setMinimized] = useState(false);
     const [filter, setFilter] = useState("");
-
-    const [files, setFiles] = useState<FileSegment[]>([]);
+    const [root, setRoot] = useState<FileNode | null>(null);
 
     useEffect(() => {
         if (minimized) {
             setFilter("");
         }
+    }, [minimized]);
 
-        // initialize file dir
-        if (recordings) {
-            for (let i = 0; i < recordings.length; i++) {
-                let t = recordings[i]
-                let segments = t.split("/");
-
-                for (let j = 0; j < segments.length - 1; j++) {
-
-                }
-                files.push({
-                    is_file: true,
-                    is_dir: false,
-                    name: recordings[i]
-                });
-            }
+    useEffect(() => {
+        if (recordings.length > 0) {
+            setRoot(createFileTree(recordings));
         }
+    }, [recordings]);
 
-    }, []);
+    const toggleNode = (node: FileNode) => {
+        node.isOpen = !node.isOpen;
+        setRoot({ ...root! }); // Trigger re-render by updating state
+    };
+
+    const renderTree = (node: FileNode, depth = 0) => {
+        return (
+            <div key={node.name} style={{ marginLeft: depth * 20 }}>
+                {node.children.length > 0 ? (
+                    <div>
+                        <button
+                            className="text-white font-bold font-mono"
+                            onClick={() => toggleNode(node)}
+                        >
+                            {node.isOpen ? "▼" : "▶"} {node.name}/
+                        </button>
+                        {node.isOpen && node.children.map((child) => renderTree(child, depth + 1))}
+                    </div>
+                ) : (
+                    <button
+                        className="text-blue-400 hover:text-blue-600 font-mono"
+                        onClick={() => {
+                            setChosenRecording(node.name);
+                            setStreamType(StreamType.PRE_RECORDED);
+                            setMinimized(true);
+                        }}
+                    >
+                        {node.name}
+                    </button>
+                )}
+            </div>
+        );
+    };
 
     if (minimized) {
         return (
-            <div className={"z-50 flex bg-slate-600 justify-center"}>
-                <button className={`${streamType === StreamType.LIVE ? "bg-red-500 text-white"
-                    : "text-white"
-                } px-4 py-2 rounded-lg`}
-                        onClick={() => {
-                            setStreamType(StreamType.LIVE);
-                            setChosenRecording("");
-                            setMinimized(true);
-                        }}
+            <div className="z-50 flex bg-slate-600 justify-center">
+                <button
+                    className={`${streamType === StreamType.LIVE ? "bg-red-500 text-white" : "text-white"} px-4 py-2 rounded-lg`}
+                    onClick={() => {
+                        setStreamType(StreamType.LIVE);
+                        setChosenRecording("");
+                        setMinimized(true);
+                    }}
                 >
                     Live
                 </button>
                 <button
                     className={`${
-                        streamType === StreamType.PRE_RECORDED
-                            ? "bg-green-500 text-white"
-                            : "text-white"
+                        streamType === StreamType.PRE_RECORDED ? "bg-green-500 text-white" : "text-white"
                     } px-4 py-2 rounded-lg`}
                     onClick={() => {
                         setStreamType(StreamType.UNDEFINED);
@@ -74,16 +119,16 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStre
                     Pre-Recorded
                 </button>
             </div>
-        )
+        );
     } else {
         return (
-            <div className={"flex flex-row"}>
-                <div className={"absolute z-40 bg-slate-800 w-screen h-screen bg-opacity-90"}/>
-                <div className={"z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-screen"}>
-                    <div className={"bg-slate-950"}>
-                        <p className={"text-xl font-semibold"}>Select Playback Mode</p>
+            <div className="flex flex-row">
+                <div className="absolute z-40 bg-slate-800 w-screen h-screen bg-opacity-90" />
+                <div className="z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-screen">
+                    <div className="bg-slate-950">
+                        <p className="text-xl font-semibold">Select Playback Mode</p>
                         <button
-                            className={`m-4 p-2 px-4 rounded-xl flex items-center border-white border-2 border-opacity-40`}
+                            className="m-4 p-2 px-4 rounded-xl flex items-center border-white border-2 border-opacity-40"
                             onClick={() => {
                                 setStreamType(StreamType.LIVE);
                                 setChosenRecording("");
@@ -92,34 +137,21 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStre
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                  className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10"/>
+                                <path fillRule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
                             </svg>
-                            <p className={"ml-1"}>Live Data</p>
+                            <p className="ml-1">Live Data</p>
                         </button>
 
-                        <p>files: {files.filter((f) => f.is_dir)}</p>
+                        <div className="border-2 border-white border-opacity-5 my-4" />
 
-                        <div className={"border-2 border-white border-opacity-5 my-4"}/>
-
-                        <div className={"overflow-hidden"}>
-                            <input className={"p-2 px-4 w-2/3 bg-black rounded-3xl font-mono"} type="text"
-                                   placeholder={"Filter Recordings"}
-                                   onChange={(e) => setFilter(e.target.value)}/>
-                            {recordings
-                                .filter((recording) => recording.toLowerCase().includes(filter.toLowerCase()))
-                                .sort()
-                                .map((recording) => (
-                                    <button
-                                        key={recording}
-                                        className={`pt-2 pb-2 px-4 flex items-center border-white border-b-2 border-opacity-40 w-2/3 hover:text-orange-500`}
-                                        onClick={() => {
-                                            setChosenRecording(recording);
-                                            setStreamType(StreamType.PRE_RECORDED);
-                                            setMinimized(true);
-                                        }}>
-                                        <p className={"ml-1 text-xs font-mono text-left"}>{recording}</p>
-                                    </button>
-                                ))}
+                        <div className="overflow-hidden">
+                            {/*<input*/}
+                            {/*    className="p-2 px-4 w-2/3 bg-black rounded-3xl font-mono"*/}
+                            {/*    type="text"*/}
+                            {/*    placeholder="Filter Recordings"*/}
+                            {/*    onChange={(e) => setFilter(e.target.value)}*/}
+                            {/*/>*/}
+                            {root && renderTree(root)}
                         </div>
 
                         <button onClick={() => setMinimized(true)}>Minimize</button>
@@ -127,8 +159,8 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({ streamType, setStre
                     </div>
                 </div>
             </div>
-        )
+        );
     }
-}
+};
 
 export default StreamTypePicker;

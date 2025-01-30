@@ -46,14 +46,14 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                                                                setChosenRecording
                                                            }) => {
     const [minimized, setMinimized] = useState(false);
-    const [filter, setFilter] = useState("");
+    // const [filter, setFilter] = useState("");
     const [root, setRoot] = useState<FileNode | null>(null);
 
-    useEffect(() => {
-        if (minimized) {
-            setFilter("");
-        }
-    }, [minimized]);
+    // useEffect(() => {
+    //     if (minimized) {
+    //         setFilter("");
+    //     }
+    // }, [minimized]);
 
     useEffect(() => {
         if (recordings.length > 0) {
@@ -99,13 +99,12 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
         return (
             <div className="z-50 flex justify-end mr-4">
                 <button
-                    className={"p-4 bg-slate-800 m-4 rounded-xl hover:border-white border-2 border-black border-opacity-40 duration-200"}
+                    className={"p-4 bg-white m-4 rounded-xl hover:border-gray-500 border-4 border-white duration-300"}
                     onClick={() => {
                     setMinimized(false);
-                    setStreamType(StreamType.UNDEFINED);
                 }}>
                     {streamType === StreamType.PRE_RECORDED && chosenRecording && (
-                        <p className={"text-white font-semibold text-right"}>Current Recording: {chosenRecording}</p>
+                        <p className={"text-black font-semibold text-right"}>Current Recording: {chosenRecording}</p>
                     )}
                 </button>
             </div>
@@ -113,7 +112,9 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
     } else {
         return (
             <div className="flex flex-row">
-                <div className="fixed inset-0 bg-gray-600 z-40 opacity-80"/>
+                <div className="fixed inset-0 bg-gray-600 z-40 opacity-80" onClick={() => {
+                    setMinimized(true);
+                }}/>
                 <div className="z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-2/3">
                     <div className="bg-slate-950">
                         <p className="text-xl font-semibold">Select Playback Mode</p>

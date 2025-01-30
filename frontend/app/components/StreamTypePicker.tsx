@@ -104,7 +104,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                     setMinimized(false);
                 }}>
                     {streamType === StreamType.LIVE && (
-                            <p className={"animate-pulse duration-200 font-semibold text-white"}>Live Data</p>
+                            <p className={"font-semibold text-white"}>Live Data</p>
                     )}
                     {streamType === StreamType.PRE_RECORDED && chosenRecording && (
                         <p className={"text-black font-semibold text-right"}>Current Recording: {chosenRecording}</p>

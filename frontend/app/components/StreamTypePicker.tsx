@@ -46,14 +46,14 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                                                                setChosenRecording
                                                            }) => {
     const [minimized, setMinimized] = useState(false);
-    // const [filter, setFilter] = useState("");
+    const [filter, setFilter] = useState("");
     const [root, setRoot] = useState<FileNode | null>(null);
 
-    // useEffect(() => {
-    //     if (minimized) {
-    //         setFilter("");
-    //     }
-    // }, [minimized]);
+    useEffect(() => {
+        if (minimized) {
+            setFilter("");
+        }
+    }, [minimized]);
 
     useEffect(() => {
         if (recordings.length > 0) {
@@ -139,12 +139,28 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                         <div className="border-2 border-white border-opacity-5 my-4" />
                         <p className={"text-xl mb-4"}>Recording Playback</p>
                         <div className="overflow-hidden">
-                            {/*<input*/}
-                            {/*    className="p-2 px-4 w-2/3 bg-black rounded-3xl font-mono"*/}
-                            {/*    type="text"*/}
-                            {/*    placeholder="Filter Recordings"*/}
-                            {/*    onChange={(e) => setFilter(e.target.value)}*/}
-                            {root && renderTree(root)}
+                            <input
+                                className="p-2 px-4 w-1/2 bg-slate-800 mb-4 rounded-3xl font-mono"
+                                type="text"
+                                placeholder="Filter Recordings"
+                                onChange={(e) => setFilter(e.target.value)}
+                            />
+                            <div className={"flex flex-col items-start"}>
+                                {filter != "" && recordings.filter((recording) => recording.toLowerCase().includes(filter.toLowerCase())).map((recording) => (
+                                    <button
+                                        key={recording}
+                                        className="text-blue-400 hover:text-blue-600 font-mono"
+                                        onClick={() => {
+                                            setChosenRecording(recording);
+                                            setStreamType(StreamType.PRE_RECORDED);
+                                            setMinimized(true);
+                                        }}
+                                    >
+                                        {recording}
+                                    </button>
+                                ))}
+                            </div>
+                            {filter == "" && root && renderTree(root)}
                         </div>
                     </div>
                 </div>

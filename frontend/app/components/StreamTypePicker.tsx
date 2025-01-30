@@ -124,18 +124,18 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
         return (
             <div className="flex flex-row">
                 <div className="absolute z-40 bg-slate-800 w-screen h-screen bg-opacity-90" />
-                <div className="z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-screen">
+                <div className="z-50 bg-slate-950 absolute right-0 left-0 m-20 p-4 rounded-lg overflow-scroll h-2/3">
                     <div className="bg-slate-950">
                         <p className="text-xl font-semibold">Select Playback Mode</p>
                         <button
-                            className="m-4 p-2 px-4 rounded-xl flex items-center border-white border-2 border-opacity-40"
+                            className="m-4 p-2 px-4 rounded-xl flex items-center border-red-500 border-2"
                             onClick={() => {
                                 setStreamType(StreamType.LIVE);
                                 setChosenRecording("");
                                 setMinimized(true);
                             }}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red"
                                  className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
                             </svg>
@@ -143,7 +143,7 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                         </button>
 
                         <div className="border-2 border-white border-opacity-5 my-4" />
-
+                        <p className={"text-xl mb-4"}>Recording Playback</p>
                         <div className="overflow-hidden">
                             {/*<input*/}
                             {/*    className="p-2 px-4 w-2/3 bg-black rounded-3xl font-mono"*/}
@@ -153,9 +153,6 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                             {/*/>*/}
                             {root && renderTree(root)}
                         </div>
-
-                        <button onClick={() => setMinimized(true)}>Minimize</button>
-                        <button onClick={() => setStreamType(StreamType.LIVE)}>Live</button>
                     </div>
                 </div>
             </div>

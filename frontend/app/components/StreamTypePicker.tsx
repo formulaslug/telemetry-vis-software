@@ -66,6 +66,16 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
         setRoot({ ...root! }); // Trigger re-render by updating state
     };
 
+    const collapseAll = (node: FileNode) => {
+        node.isOpen = false;
+        node.children.forEach(collapseAll);
+    }
+
+    const expandAll = (node: FileNode) => {
+        node.isOpen = true;
+        node.children.forEach(expandAll);
+    }
+
     const renderTree = (node: FileNode, depth = 0) => {
         return (
             <div key={node.name} style={{ marginLeft: depth * 20 }}>
@@ -139,12 +149,24 @@ const StreamTypePicker: React.FC<StreamTypePickerProps> = ({
                         <div className="border-2 border-white border-opacity-5 my-4" />
                         <p className={"text-xl mb-4"}>Recording Playback</p>
                         <div className="overflow-hidden">
-                            <input
-                                className="p-2 px-4 w-1/2 bg-slate-800 mb-4 rounded-3xl font-mono"
-                                type="text"
-                                placeholder="Filter Recordings"
-                                onChange={(e) => setFilter(e.target.value)}
-                            />
+                            <div className={"flex flex-row justify-between"}>
+                                <input
+                                    className="p-2 px-4 w-1/2 bg-slate-800 mb-4 rounded-3xl font-mono"
+                                    type="text"
+                                    placeholder="Filter Recordings"
+                                    onChange={(e) => setFilter(e.target.value)}
+                                />
+                                <div className={"flex flex-row gap-x-4"}>
+                                    <button onClick={() => collapseAll(root!)}
+                                            className={"py-2 rounded-full px-8 bg-slate-800"}>
+                                        <p>Collapse All</p>
+                                    </button>
+                                    <button onClick={() => expandAll(root!)}
+                                            className={"py-2 rounded-full px-8 bg-slate-800"}>
+                                        <p>Expand All</p>
+                                    </button>
+                                </div>
+                            </div>
                             <div className={"flex flex-col items-start"}>
                                 {filter != "" && recordings.filter((recording) => recording.toLowerCase().includes(filter.toLowerCase())).map((recording) => (
                                     <button

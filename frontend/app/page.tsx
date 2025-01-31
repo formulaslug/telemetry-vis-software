@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
 import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
@@ -24,39 +24,36 @@ const subsystems = [
 // or a timeline UI
 const DEFAULT_VIEW_LENGTH = 99999999; // 1300
 
-type DataSource =
-    | { type: "live" }
-    | { type: "recording"; name: string };
-
 export default function Home() {
     const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
 
-    const [selectedDataSource, setSelectedDataSource] = useState<DataSource>({ type: "live" });
-    function useLiveDataSource() {
-        setSelectedDataSource({ type: "live" });
-        data.current = emptyDataArrays()
-        dataTrimmed.current = emptyDataArrays()
-        initWebSocketConnection(setIsConnected, data, dataTrimmed, setNumRows, viewLength);
-    }
-    function useRecordingSource(filepath: string) {
-        setSelectedDataSource({ type: "recording", name: filepath });
-        data.current = emptyDataArrays()
-        dataTrimmed.current = emptyDataArrays()
-        closeWebSocketConnection();
-        initRecordingData(filepath, data, dataTrimmed, setNumRows, viewLength);
-    }
-    function switchDataSource() {
-        if (selectedDataSource.type == "live") {
-            const fp = prompt("Select a recording filepath");
-            if (fp) useRecordingSource(fp);
-        } else if (selectedDataSource.type == "recording") {
-            useLiveDataSource()
-        }
-    }
+    const [websocketConnected, setWebsocketConnected] = useState<boolean>(false);
 
-    const [streamType, setStreamType] = useState<StreamType>(StreamType.UNDEFINED);
     const [recordings, setRecordings] = useState<string[]>([]);
+    const [streamType, setStreamType] = useState<StreamType>(StreamType.NONE);
     const [chosenRecording, setChosenRecording] = useState<string | null>(null);
+
+    useEffect(() => {
+        const resetData = () => {
+            data.current = emptyDataArrays()
+            dataTrimmed.current = emptyDataArrays()
+        };
+        switch (streamType) {
+            case StreamType.LIVE:
+                resetData();
+                initWebSocketConnection(setWebsocketConnected, data, dataTrimmed, setNumRows, viewLength);
+            case StreamType.RECORDED:
+                resetData();
+                closeWebSocketConnection();
+            case StreamType.NONE:
+                closeWebSocketConnection();
+        }
+    }, [streamType])
+    useEffect(() => {
+        if (chosenRecording != null && chosenRecording != "") {
+            initRecordingData(chosenRecording!, data, dataTrimmed, setNumRows, viewLength);
+        }
+    }, [chosenRecording]);
 
     // A simple integer incremented when a new row is added to data. Used to
     // force chart rerenders
@@ -74,20 +71,18 @@ export default function Home() {
     // // Current timestamp (in seconds) of data to visualize.
     // const [viewTimestamp, setViewTimestamp] = useState<number>(0);
 
-    const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(false);
 
-    // Initializes WebSocket connection with proper hooks and refs etc
     useEffect(() => {
-        availableRecordings().then(d => {
-            console.log(d)
-            setRecordings(d)
-        });
-        return initWebSocketConnection(
-            setIsConnected, data, dataTrimmed, setNumRows, viewLength
-        )
+        availableRecordings().then(r => setRecordings(r));
     }, []);
 
+    // // Initializes WebSocket connection with proper hooks and refs etc
+    // useEffect(() => {
+    //     return initWebSocketConnection(
+    //         setIsConnected, data, dataTrimmed, setNumRows, viewLength
+    //     )
+    // }, []);
 
     useEffect(() => {
         if (!isRecording && numRows > 0) {
@@ -161,64 +156,12 @@ export default function Home() {
         <div className="pt-4">
             <div className={"pl-6 flex justify-between flex-row items-center"}>
                 <Image src="/fs_logo.png" alt="logo" width={200} height={50} />
-<<<<<<< HEAD
-                <button onClick={() => {
-                    if (isRecording) {
-                        setIsRecording(false)
-                    } else {
-                        setIsRecording(true)
-                    }
-                }}
-                    className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
-                    {isRecording ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
-                        </svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record" viewBox="0 0 16 16">
-                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
-                        </svg>
-                    )
-                    }
-                    <p className={"ml-1"}>Record</p>
-                </button>
-||||||| parent of 1602936 (Replaced minimized code with button with title of current chosen recording)
-                <button onClick={() => {
-                    if (isRecording) {
-                        setIsRecording(false)
-                        // setEndTime(messages[messages.length - 1].timestamp);
-                    } else {
-                        setIsRecording(true)
-                        // setStartTime(messages[messages.length - 1].timestamp);
-                    }
-                }}
-                    className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
-                    {isRecording ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
-                        </svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record" viewBox="0 0 16 16">
-                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
-                        </svg>
-                    )
-                    }
-                    <p className={"ml-1"}>Record</p>
-                </button>
-=======
-                <StreamTypePicker streamType={streamType} setStreamType={setStreamType} recordings={recordings} chosenRecording={chosenRecording} setChosenRecording={setChosenRecording} />
                 {streamType == StreamType.LIVE && (
                     <button onClick={() => {
                         if (isRecording) {
                             setIsRecording(false)
-                            // setEndTime(messages[messages.length - 1].timestamp);
                         } else {
                             setIsRecording(true)
-                            // setStartTime(messages[messages.length - 1].timestamp);
                         }
                     }}
                         className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
@@ -236,36 +179,21 @@ export default function Home() {
                         }
                         <p className={"ml-1"}>Record</p>
                     </button>
-                    )}
->>>>>>> 1602936 (Replaced minimized code with button with title of current chosen recording)
+                )}
+                <StreamTypePicker
+                    websocketConnected={websocketConnected}
+                    recordings={recordings}
+                    streamType={streamType}
+                    setStreamType={setStreamType}
+                    chosenRecording={chosenRecording!}
+                    setChosenRecording={setChosenRecording as React.Dispatch<React.SetStateAction<string>>}
+                />
             </div>
             <header className={"flex items-center justify-between"}>
                 <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem}
                     onSelectSubsystem={(a) => setSelectedSubsystem(a)} />
             </header>
             <main>
-                <div className={"flex absolute bottom-0 left-0 m-2"}>
-                    <div
-                        onClick={switchDataSource}
-                        className={`rounded-full p-2 bg-gray-500 text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
-                        {selectedDataSource.type == "live" ? (
-                            <p>Live Data</p>
-                        ) : (selectedDataSource.type == "recording" ?
-                            <p>Recording: {selectedDataSource.name}</p> : <p>???</p>
-                        )}
-                    </div>
-                </div>
-                <div className={"flex absolute bottom-0 right-0 m-2"}>
-                    <div
-                        className={`rounded-full p-2 ${isConnected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
-                        {isConnected ? (
-                            <p>Connected</p>
-                        ) : (
-                            <p>Not Connected</p>
-                        )}
-                    </div>
-                </div>
-
                 {selectedSubsystem === 0 ? (
                     <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
                         {/* Accumulator Subsystem */}

@@ -105,7 +105,7 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: suspensionInfo) {
 
 function SuspensionGauge({ S1, S2, S3, S4 }: suspensionInfo) {
 	return (
-		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden flex justify-center items-center">
+		<div className="w-full h-full bg-neutral-900 rounded-[4%] overflow-hidden flex justify-center items-center">
 			<div className="w-[90%] h-[90%] flex flex-row justify-center items-center">
 				<div className="flex relative h-full w-[5%] flex-col left-[2.5%]">
 					<div className="h-[95%] w-full flex flex-col justify-between text-[1.5vmin] items-end">

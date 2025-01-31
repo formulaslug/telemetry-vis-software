@@ -59,8 +59,15 @@ function Car({ rotation }: { rotation: rotation }) {
 
 function CarWireframe({ rotation }: { rotation: rotation }) {
 	return (
-		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden">
-			<Scene rotation={rotation} />
+		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden flex flex-col">
+			<div className="h-[90%]">
+				<Scene rotation={rotation} />
+			</div>
+			<div className="h-[10%] w-full bg-neutral-900 text-[1.5vmin] flex flex-row justify-evenly items-center">
+				<p>x: {rotation.x.toFixed(2)}</p>
+				<p>y: {rotation.y.toFixed(2)}</p>
+				<p>z: {rotation.z.toFixed(2)}</p>
+			</div>
 		</div>
 	);
 }

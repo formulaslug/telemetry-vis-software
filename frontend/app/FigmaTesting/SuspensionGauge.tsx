@@ -105,8 +105,35 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: suspensionInfo) {
 
 function SuspensionGauge({ S1, S2, S3, S4 }: suspensionInfo) {
 	return (
-		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden">
-			<SuspensionCanvas S1={S1} S2={S2} S3={S3} S4={S4} />
+		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden flex justify-center items-center">
+			<div className="w-[90%] h-[90%] flex flex-row justify-center items-center">
+				<div className="flex relative h-full w-[5%] flex-col left-[2.5%]">
+					<div className="h-[95%] w-full flex flex-col justify-between text-[1.5vmin] items-end">
+						<p>100</p>
+						<p>90</p>
+						<p>80</p>
+						<p>70</p>
+						<p>60</p>
+						<p>50</p>
+						<p>40</p>
+						<p>30</p>
+						<p>20</p>
+						<p>10</p>
+						<p>0</p>
+					</div>
+				</div>
+				<div className="flex flex-col justify-center items-center w-full h-full">
+					<div className="w-[90%] h-[90%] rounded-[4%] overflow-hidden">
+						<SuspensionCanvas S1={S1} S2={S2} S3={S3} S4={S4} />
+					</div>
+					<div className="w-[90%] h-[5%] flex flex-row justify-evenly">
+						<p className="w-[25%] text-center text-[1.5vmin]">{S1.toFixed(2)}</p>
+						<p className="w-[25%] text-center text-[1.5vmin]">{S2.toFixed(2)}</p>
+						<p className="w-[25%] text-center text-[1.5vmin]">{S3.toFixed(2)}</p>
+						<p className="w-[25%] text-center text-[1.5vmin]">{S4.toFixed(2)}</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

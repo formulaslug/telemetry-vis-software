@@ -52,7 +52,7 @@ async function tryFetch<T>(
   return tryUrl(path, callback);
 }
 
-export async function availableRecordings() {
+export async function availableRecordings(): Promise<string[]> {
   // console.log(process.env.NODE_ENV);
   return tryFetch("/api/available-recordings", (resp) => resp.json());
 }

@@ -21,8 +21,8 @@ export default function Home() {
 	}, []);
 
 	return (
-		<div className="grid grid-cols-8 grid-rows-6 gap-3 w-[100vw] h-[100vh] m-4">
-			<div className="col-span-1 row-span-2">
+		<div className="grid grid-cols-6 grid-rows-9 gap-3 md:grid-cols-9 md:grid-rows-6 w-[100vw] h-[100vh] p-4">
+			<div className="col-span-2 row-span-2">
 				<GForceGauge X={position.x} Y={position.y} Z={position.z} Dampening={1} />
 			</div>
 			<div className="col-span-2 row-span-2">

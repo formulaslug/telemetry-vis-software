@@ -70,7 +70,7 @@ function Scene({
 	position,
 }: SceneProps) {
 	return (
-		<Canvas camera={{ position: [0, 0, 10], fov: 30 }}>
+		<Canvas camera={{ position: [0, 0, 5], fov: 40 }}>
 			<Grid />
 			<OrbitControls
 				enablePan={false}
@@ -79,6 +79,8 @@ function Scene({
 				onStart={() => {
 					setActive("");
 				}}
+				maxZoom={5}
+				minZoom={5}
 			/>
 			<AngleViewer
 				polarAngle={polarAngle}
@@ -116,7 +118,9 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 						setAzimuthalAngle(0);
 						setActive("xy");
 					}}
-					className={`w-1/3 ${active === "xy" ? "bg-red-500" : "bg-neutral-900"}`}
+					className={`text-[1.5vmin] w-1/3 ${
+						active === "xy" ? "bg-red-500" : "bg-neutral-900"
+					}`}
 				>
 					xy
 				</button>
@@ -126,7 +130,9 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 						setAzimuthalAngle(0);
 						setActive("xz");
 					}}
-					className={`w-1/3 ${active === "xz" ? "bg-red-500" : "bg-neutral-900"}`}
+					className={`text-[1.5vmin] w-1/3 ${
+						active === "xz" ? "bg-red-500" : "bg-neutral-900"
+					}`}
 				>
 					xz
 				</button>
@@ -136,7 +142,9 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 						setAzimuthalAngle(Math.PI / 2);
 						setActive("yz");
 					}}
-					className={`w-1/3 ${active === "yz" ? "bg-red-500" : "bg-neutral-900"}`}
+					className={`text-[1.5vmin] w-1/3 ${
+						active === "yz" ? "bg-red-500" : "bg-neutral-900"
+					}`}
 				>
 					yz
 				</button>

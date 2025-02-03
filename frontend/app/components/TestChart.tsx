@@ -1,36 +1,43 @@
 import React, { RefObject, useEffect, useRef } from "react";
-import { Chart, ChartItem, ChartConfiguration, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, ScatterController, ChartData, ChartDataset, ChartType, BarController, BarElement } from "chart.js";
-Chart.register(LineController, BarController, BarElement, ScatterController, LineElement, PointElement, LinearScale, Title, CategoryScale);
+import { Chart, ChartItem, ChartConfiguration, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, ChartType, Legend } from "chart.js";
+Chart.register(LineController, LineElement, PointElement, LinearScale, Title, Legend, CategoryScale);
 
 // ArrayLike<any> is used for data because chartjs supports TypedArrays and we
 // might use those too down the line
 interface CardLineChartProps {
     title: string;
-    color: string;
-    datasetNames?: string[]; // optional list of names to give each y-value set
     numRows: number; // total number of rows of data. Used to rerender the chart on updates
     dataX: ArrayLike<any>; // eg. timestamps
     dataY: ArrayLike<any>[]; // 1 or more y-value sets
+    datasetNames?: string[]; // optional list of names to give each y-value set
+    dataXUnits: string,
+    dataYUnits: string,
 }
 
 const CHART_TYPE: ChartType = 'line'
 
-function initChart(chartRef: RefObject<ChartItem>, { title, color, dataY, datasetNames: names }: CardLineChartProps) {
+const unique_colors: (keyof DefaultColors)[] = [
+    "red", "amber", "lime", "cyan", "blue", "violet", "fuchsia", "pink"
+]
+import colors from "tailwindcss/colors";
+import { DefaultColors } from "tailwindcss/types/generated/colors";
+
+function initChart(chartRef: RefObject<ChartItem>, { title, dataY, datasetNames, dataXUnits, dataYUnits }: CardLineChartProps) {
 
     const config: ChartConfiguration<ChartType, typeof dataY[0], number> = {
         type: CHART_TYPE,
         data: {
             datasets: dataY.map((_, i) => ({
                 data: [],
-                label: names ? names[i] : (dataY.length > 1 ? `Dataset ${i}` : title),
+                label: datasetNames ? datasetNames[i] : (dataY.length > 1 ? `Dataset ${i}` : title),
+                backgroundColor: `${colors[unique_colors[i]]['900']}`,
+                borderColor: `${colors[unique_colors[i]]['700']}`,
             })),
             // labels: [],
         },
         options: {
             datasets: {
                 line: {
-                    backgroundColor: color,
-                    borderColor: color,
                     pointRadius: 0, // too noisy
                     borderWidth: 2,
                     spanGaps: true,
@@ -40,16 +47,50 @@ function initChart(chartRef: RefObject<ChartItem>, { title, color, dataY, datase
             parsing: false, // requires data to be in internal obj format, should improve performance
             responsive: true,
             animation: false,
+            interaction: {
+                mode: 'nearest'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'center',
+                    labels: {
+                        font: { size: 12 },
+                        boxWidth: 8,
+                        boxHeight: 8,
+                    }
+                },
+                title: {
+                    display: false,
+                    text: title,
+                },
+                tooltip: {
+                    enabled: true,
+                    intersect: false,
+                }
+            },
+            aspectRatio: 1.3,
             scales: {
                 x: {
+                    title: {
+                        display: dataXUnits != null,
+                        text: dataXUnits,
+                        font: { size: 14 },
+                        color: colors["neutral"][500],
+                    },
                     type: 'linear',
-                    // grace: '1%',
                     ticks: { color: "rgba(255,255,255,.7)" },
                     grid: { display: false },
                 },
                 y: {
+                    title: {
+                        display: dataYUnits != null,
+                        text: dataYUnits,
+                        font: { size: 14 },
+                        color: colors["neutral"][500],
+                    },
                     type: 'linear',
-                    // grace: '10%',
                     ticks: { color: "rgba(255,255,255,.7)" },
                     grid: { color: "rgba(255, 255, 255, 0.15)" },
                 },
@@ -118,19 +159,15 @@ export default function CardLineChart(props: CardLineChartProps) {
 
     return (
         <>
-            <div className="flex flex-col break-words rounded">
-                <h6 className="uppercase text-blueGray-100 text-lg font-semibold">
+            <div className="break-words">
+                <h6 className="text-lg font-semibold">
                     {title}
                 </h6>
-                <div className="flex-auto">
-                    {/* Chart */}
+                <div className="">
                     <div className="relative ">
                         {/* for some reason tsserver gets confused here... not idea why */}
                         <canvas ref={chartRef as any}></canvas>
                     </div>
-                    <p className={"transition-transform duration-500 font-mono select-none"}> Current
-                        Value: {dataY[0] && dataY[0].length > 2 ? dataY[0][dataY[0].length - 1].toFixed(2) : 0.000}
-                    </p>
                 </div>
             </div>
         </>

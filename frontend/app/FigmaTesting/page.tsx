@@ -22,13 +22,13 @@ export default function Home() {
 
 	return (
 		<div className="grid grid-cols-6 grid-rows-9 gap-3 md:grid-cols-9 md:grid-rows-6 w-[100vw] h-[100vh] p-4">
-			<div className="col-span-3 row-span-3">
+			<div className="col-span-1 row-span-1">
 				<GForceGauge X={position.x} Y={position.y} Z={position.z} Dampening={1} />
 			</div>
-			<div className="col-span-3 row-span-3">
+			<div className="col-span-1 row-span-1">
 				<SuspensionGauge S1={position.x} S2={position.y} S3={position.z} S4={0} />
 			</div>
-			<div className="col-span-3 row-span-3">
+			<div className="col-span-1 row-span-1">
 				<CarWireframe
 					rotation={{ x: position.x * 0.1, y: position.y, z: position.z * 0.001 }}
 				/>

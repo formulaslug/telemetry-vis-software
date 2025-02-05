@@ -81,10 +81,9 @@ export function initWebSocketConnection(
   // TODO: In the future user's should be shown a list of sources and which
   // ones are active, and should be able to switch between them
   const urls: string[] =
-    // hostname == "localhost"
-    //   ? ["wss://live-vis.bvngee.com", "ws://localhost", "ws://localhost:8000"]
-    //   : ["wss://live-vis.bvngee.com", `wss://${hostname}`];
-    ["ws://localhost:8000"];
+    hostname == "localhost"
+      ? ["wss://live-vis.bvngee.com", "ws://localhost", "ws://localhost:8000"]
+      : ["wss://live-vis.bvngee.com", `wss://${hostname}`];
 
 
   const tryUrl = () => {

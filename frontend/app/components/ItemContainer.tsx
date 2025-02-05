@@ -6,7 +6,7 @@ interface ItemContainerProps {
 
 export default function ItemContainer({ children }: ItemContainerProps) {
     return (
-        <div className="bg-background-2 rounded-xl p-4">
+        <div className="bg-background-2 rounded-xl p-3">
             {children}
         </div>
     )

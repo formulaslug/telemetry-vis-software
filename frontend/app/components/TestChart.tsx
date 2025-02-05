@@ -27,7 +27,7 @@ function initChart(chartRef: RefObject<ChartItem>, { title, dataY, datasetNames,
     const config: ChartConfiguration<ChartType, typeof dataY[0], number> = {
         type: CHART_TYPE,
         data: {
-            datasets: dataY.map((_, i) => ({
+            datasets: dataY.filter(d => d.length > 0).map((_, i) => ({
                 data: [],
                 label: datasetNames ? datasetNames[i] : (dataY.length > 1 ? `Dataset ${i}` : title),
                 backgroundColor: `${colors[unique_colors[i]]['900']}`,
@@ -51,14 +51,22 @@ function initChart(chartRef: RefObject<ChartItem>, { title, dataY, datasetNames,
                 mode: 'nearest'
             },
             plugins: {
+                decimation: {
+                    enabled: true,
+                },
                 legend: {
                     display: true,
                     position: 'top',
                     align: 'center',
                     labels: {
+                        // filter: (item, data) => {
+                        //     if (!data.datasets[data.labels![item.text]]) return false;
+                        //     return data.datasets[item.index!].data.length > 0;
+                        // },
                         font: { size: 12 },
                         boxWidth: 8,
                         boxHeight: 8,
+                        color: colors.neutral[400],
                     }
                 },
                 title: {
@@ -134,7 +142,7 @@ export default function CardLineChart(props: CardLineChartProps) {
     useEffect(() => {
         if (chartInstanceRef.current && dataX && dataX.length > 0) {
             // assemble data
-            for (const [idx, ySet] of dataY.entries()) {
+            for (const [idx, ySet] of dataY.filter(d => d.length > 0).entries()) {
                 chartInstanceRef.current.data.datasets[idx].data =
                     Array.from(dataX).map((v, i) => ({ x: v, y: ySet[i] }));
             }
@@ -160,7 +168,7 @@ export default function CardLineChart(props: CardLineChartProps) {
     return (
         <>
             <div className="break-words">
-                <h6 className="text-lg font-semibold">
+                <h6 className="text-lg pl-2 font-semibold">
                     {title}
                 </h6>
                 <div className="">

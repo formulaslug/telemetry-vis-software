@@ -1,5 +1,5 @@
 import { AsyncByteStream, AsyncRecordBatchStreamReader } from "apache-arrow";
-import { columnNames, DataArrays, DataRow } from "./datatypes";
+import { ColumnName, columnNames, DataArrays, DataRow, nullDataArrays } from "./datatypes";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { AsyncQueue } from "apache-arrow/io/interfaces";
 
@@ -14,20 +14,36 @@ async function processData(
   viewLength: number,
 ) {
   const byteStream = new AsyncByteStream(messageQueue);
+  // This .from() can't have the <DataRow> type param because it's not enforced
+  // that all websocket streams will have data for every key in the default schema.
   const recordBatchReader =
     await AsyncRecordBatchStreamReader.from<DataRow>(byteStream);
+
+  // Completely reset data, so keys unused by the arrow stream are left as null
+  data.current = nullDataArrays()
+  dataTrimmed.current = nullDataArrays()
+
+  // For each key found in the stream, initialize its empty array
+  // for (const k of recordBatchReader.schema.names) {
+  for (const k of columnNames) {
+    if (columnNames.includes(k)) {
+      data.current[k as ColumnName] = [];
+      dataTrimmed.current[k as ColumnName] = [];
+    } else {
+      console.warn("Unknown keyname found while parsing live data stream: ", k)
+    }
+  }
 
   // This async loop essentially awaits for each websocket message to arrive
   for await (const batch of recordBatchReader) {
     // recordBatches.push(batch);
     // console.log(batch.getChild(":Time")?.toArray());
     
-
     for (const [i, key] of columnNames.entries()) {
-      data.current[key].push(...batch.getChildAt(i)?.toArray());
-      dataTrimmed.current[key].push(...batch.getChildAt(i)?.toArray());
+      data.current[key]?.push(...batch.getChildAt(i)?.toArray());
+      dataTrimmed.current[key]?.push(...batch.getChildAt(i)?.toArray());
 
-      dataTrimmed.current[key].splice(
+      dataTrimmed.current[key]?.splice(
         0,
         Math.max(0, dataTrimmed.current[key].length - viewLength),
       );
@@ -65,9 +81,11 @@ export function initWebSocketConnection(
   // TODO: In the future user's should be shown a list of sources and which
   // ones are active, and should be able to switch between them
   const urls: string[] =
-    hostname == "localhost"
-      ? ["wss://live-vis.bvngee.com", "ws://localhost", "ws://localhost:8000"]
-      : ["wss://live-vis.bvngee.com", `wss://${hostname}`];
+    // hostname == "localhost"
+    //   ? ["wss://live-vis.bvngee.com", "ws://localhost", "ws://localhost:8000"]
+    //   : ["wss://live-vis.bvngee.com", `wss://${hostname}`];
+    ["ws://localhost:8000"];
+
 
   const tryUrl = () => {
     const url = urls.pop();
@@ -90,7 +108,7 @@ export function initWebSocketConnection(
     socket.onclose = (event) => {
       setIsConnected(false);
       if (!event.wasClean) {
-        console.warn(`Websocket at ${url} closed unexpectedly:`, event.reason);
+        console.warn(`Websocket at ${url} closed unexpectedly:`, event);
       } else {
         console.debug(`WebSocket at ${url} closed.`);
       }
@@ -230,8 +248,6 @@ export function initWebSocketConnection(
     };
   };
   tryUrl();
-
-  return closeWebSocketConnection;
 }
 
 export function closeWebSocketConnection() {

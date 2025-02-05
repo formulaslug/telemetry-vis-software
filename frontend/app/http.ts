@@ -4,8 +4,9 @@ import wasmInit, { readParquet, wasmMemory } from "parquet-wasm/esm";
 import * as arrowJSFFI from "arrow-js-ffi";
 
 import { Table } from "apache-arrow";
-import { columnNames, DataArrays, schema } from "./datatypes";
+import { columnNames, DataArrays, DataRow, nullDataArrays, schema } from "./datatypes";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { TypedArray } from "three";
 
 // TODO(jack): this setup is kinda bad cuz every time the function is called it
 // tried all URLs, including bad ones, which cause Network Errors to be thrown
@@ -67,7 +68,7 @@ export async function getRecording(filepath: string) {
     resp.arrayBuffer(),
   );
   const arrowTableWasm = readParquet(new Uint8Array(parquet!)).intoFFI();
-  const arrowTable: Table = arrowJSFFI.parseTable(
+  const arrowTable = arrowJSFFI.parseTable<DataRow>(
     WASM_MEMORY.buffer,
     arrowTableWasm.arrayAddrs(),
     arrowTableWasm.schemaAddr(),
@@ -85,7 +86,7 @@ export async function getRecording(filepath: string) {
   return arrowTable;
 }
 
-export async function initRecordingData(
+export async function initRecordingSource(
   filepath: string,
   data: MutableRefObject<DataArrays>,
   dataTrimmed: MutableRefObject<DataArrays>,
@@ -94,12 +95,41 @@ export async function initRecordingData(
 ) {
   const arrowTable = (await getRecording(filepath))!;
 
-  for (const [i, key] of columnNames.entries()) {
+  // Completely reset data, so keys unused by the recording are left as null
+  data.current = nullDataArrays()
+  dataTrimmed.current = nullDataArrays()
+
+  for (const [i, key] of arrowTable.schema.names.entries()) {
+    // Get Arrow vector from table
     const vec = arrowTable.getChildAt(i);
-    data.current[key] = vec?.toArray();
-    dataTrimmed.current[key] = vec?.slice(Math.max(0, arrowTable.numRows-viewLength-1)).toArray();
-    // dataTrimmed.current[key].slice(-viewLength);
+    // Extract JS array from Arrow vector
+    let dataArr = vec?.toArray(); 
+    let dataArrTrimmed = vec?.slice(Math.max(0, arrowTable.numRows-viewLength-1)).toArray(); 
+
+    // Chartjs doesn't support bigints ootb. The easiest solution for now is
+    // just to replace them with supported TypedArrays
+    if (dataArr instanceof BigInt64Array || dataArr instanceof BigUint64Array) {
+      dataArr = convertToInt32Array(dataArr)
+      dataArrTrimmed = convertToInt32Array(dataArrTrimmed)
+    }
+
+    // Set the data arrays directly
+    data.current[key] = dataArr;
+    dataTrimmed.current[key] = dataArrTrimmed;
   }
 
   setNumRows(arrowTable.numRows);
+}
+
+// Thanks claude
+function convertToInt32Array(bigIntArray: BigInt64Array | BigUint64Array) {
+    const int32Array = new Int32Array(bigIntArray.length);
+    const INT32_MIN = -2147483648;
+    const INT32_MAX = 2147483647;
+    
+    for (let i = 0; i < bigIntArray.length; i++) {
+        const num = Number(bigIntArray[i]);
+        int32Array[i] = Math.max(INT32_MIN, Math.min(INT32_MAX, num));
+    }
+    return int32Array;
 }

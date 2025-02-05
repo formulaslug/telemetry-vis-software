@@ -6,8 +6,8 @@ import CardLineChart from "@/app/components/TestChart";
 import Image from "next/image";
 
 import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
-import { availableRecordings, initRecordingData } from './http';
-import { emptyDataArrays, DataArrays, ColumnName } from "./datatypes";
+import { availableRecordings, initRecordingSource } from './http';
+import {DataArrays, ColumnName, nullDataArrays } from "./datatypes";
 
 import StreamType from "@/models/StreamType";
 import StreamTypePicker from "@/app/components/StreamTypePicker";
@@ -37,24 +37,17 @@ export default function Home() {
     const [chosenRecording, setChosenRecording] = useState<string | null>(null);
 
     useEffect(() => {
-        const resetData = () => {
-            data.current = emptyDataArrays()
-            dataTrimmed.current = emptyDataArrays()
-        };
-        switch (streamType) {
-            case StreamType.LIVE:
-                resetData();
-                initWebSocketConnection(setWebsocketConnected, data, dataTrimmed, setNumRows, viewLength);
-            case StreamType.RECORDED:
-                resetData();
-                closeWebSocketConnection();
-            case StreamType.NONE:
-                closeWebSocketConnection();
+        if (streamType == StreamType.LIVE) {
+            initWebSocketConnection(setWebsocketConnected, data, dataTrimmed, setNumRows, viewLength);
         }
+        // It is REQUIRED that this useEffect returns the socket close function,
+        // otherwise for some reason it will never initiate. I have no idea why.
+        return closeWebSocketConnection;
+        
     }, [streamType])
     useEffect(() => {
         if (chosenRecording != null && chosenRecording != "") {
-            initRecordingData(chosenRecording!, data, dataTrimmed, setNumRows, viewLength);
+            initRecordingSource(chosenRecording!, data, dataTrimmed, setNumRows, viewLength);
         }
     }, [chosenRecording]);
 
@@ -64,10 +57,10 @@ export default function Home() {
     // A dictionary of column names to arrays, which are updated with all values
     // received over the websocket (organized by columns). This is the single
     // source of truth of telemetry data.
-    const data = useRef<DataArrays>(emptyDataArrays());
+    const data = useRef<DataArrays>(nullDataArrays());
     // A shorter copy that's kept to length viewLength for easier use
     // in creating 2d charts.
-    const dataTrimmed = useRef<DataArrays>(emptyDataArrays());
+    const dataTrimmed = useRef<DataArrays>(nullDataArrays());
     // Number of points of data to display in 2D graphs. 
     // // The last point shown corresponds to data at viewTimestamp.
     const [viewLength, setViewLength] = useState<number>(DEFAULT_VIEW_LENGTH);
@@ -156,16 +149,21 @@ export default function Home() {
 
     const LineChart: React.FC<{
         title: string,
-        dataXKey: ColumnName,
+        dataXKey?: ColumnName,
         dataYKeys: ColumnName[],
         dataXUnits?: string,
         dataYUnits: string,
     }> = ({ title, dataXKey, dataYKeys, dataXUnits, dataYUnits }) => {
+        const dataYArrs = dataYKeys.map(k => dataTrimmed.current[k]).filter(a => a != null);
+        const dataXArr = dataTrimmed.current[dataXKey ?? ":Time"] ?? [];
         return <ItemContainer>
             <CardLineChart title={title} numRows={numRows}
-                dataX={dataTrimmed.current[dataXKey]}
-                dataY={dataYKeys.map(k => dataTrimmed.current[k])}
-                datasetNames={dataYKeys.map(k => k.toString())}
+                dataX={dataXArr}
+                dataY={dataYArrs}
+                datasetNames={dataYKeys
+                    .filter(k => dataTrimmed.current[k] != null)
+                    .map(k => k.toString())
+                }
                 dataXUnits={dataXUnits ?? "Time (s)"}
                 dataYUnits={dataYUnits}
             />
@@ -201,25 +199,21 @@ export default function Home() {
                     <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
                         <LineChart
                             title={"Acc Seg 0"}
-                            dataXKey={":Time"}
                             dataYKeys={["Seg0_TEMP_0", "Seg0_TEMP_1", "Seg0_TEMP_2", "Seg0_TEMP_3", "Seg0_TEMP_4", "Seg0_TEMP_5", "Seg0_TEMP_6"]}
                             dataYUnits={"Temperature (°C)"}
                         />
                         <LineChart
                             title={"Acc Seg 1"}
-                            dataXKey={":Time"}
                             dataYKeys={["Seg1_TEMP_0", "Seg1_TEMP_1", "Seg1_TEMP_2", "Seg1_TEMP_3", "Seg1_TEMP_4", "Seg1_TEMP_5", "Seg1_TEMP_6"]}
-                            dataYUnits={"Temperature (°C)"}                                                                            
-                        />                                                                                                             
-                        <LineChart                                                                                                     
-                            title={"Acc Seg 2"}                                                                                    
-                            dataXKey={":Time"}                                                                                         
+                            dataYUnits={"Temperature (°C)"}
+                        />
+                        <LineChart
+                            title={"Acc Seg 2"}
                             dataYKeys={["Seg2_TEMP_0", "Seg2_TEMP_1", "Seg2_TEMP_2", "Seg2_TEMP_3", "Seg2_TEMP_4", "Seg2_TEMP_5", "Seg2_TEMP_6"]}
-                            dataYUnits={"Temperature (°C)"}                                                                            
-                        />                                                                                                             
-                        <LineChart                                                                                                     
-                            title={"Acc Seg 3"}                                                                                    
-                            dataXKey={":Time"}                                                                                         
+                            dataYUnits={"Temperature (°C)"}
+                        />
+                        <LineChart
+                            title={"Acc Seg 3"}
                             dataYKeys={["Seg3_TEMP_0", "Seg3_TEMP_1", "Seg3_TEMP_2", "Seg3_TEMP_3", "Seg3_TEMP_4", "Seg3_TEMP_5", "Seg3_TEMP_6"]}
                             dataYUnits={"Temperature (°C)"}
                         />

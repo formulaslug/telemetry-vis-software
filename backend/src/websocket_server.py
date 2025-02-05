@@ -1,60 +1,88 @@
 import asyncio
 import io
-import signal
+from websockets import ConnectionClosed
 import websockets.asyncio.server as ws
 import polars as pl
 import pyarrow as pa
 import random
+
 import sim
 
+# List of WebSocket connections with their corresponding Arrow Stream (IPC)
+# Writers and BytesIO buffers
+connections: list[
+    tuple[ws.ServerConnection, pa.RecordBatchStreamWriter, io.BytesIO]
+] = []
 
-async def websocket_serve(websocket: ws.ServerConnection):
+
+# Todo: this will come from the radio module eventually!
+def get_arrow_data():
+    current_df = sim.createdf()
+    arrow_data = current_df.to_arrow()
+    assert arrow_data.schema.equals(sim.get_schema()), "get_schema() != df's schema!"
+    return arrow_data
+
+
+# TODO: use IDs and not indexes (race condition here I think)
+def clean_connection(idx: int):
+    rb_writer: pa.RecordBatchStreamWriter
+    buffer: io.BytesIO
+    if connections[idx]:
+        _, rb_writer, buffer = connections[idx]
+        rb_writer.close()
+        buffer.close()
+        del connections[idx]
+
+
+# The main loop that sends Arrow record batches to all connected clients
+async def ws_main_loop(freq_hertz: int):
+    while True:
+        arrow_data = get_arrow_data()
+
+        disconnected_idxs = []
+        for idx, (ws_connection, rb_writer, buffer) in enumerate(connections):
+            try:
+                rb_writer.write_table(arrow_data)
+
+                ipc_data = buffer.getvalue()
+                buffer.seek(0)
+                buffer.truncate()
+
+                await ws_connection.send(ipc_data)
+            except ConnectionClosed as e:
+                print("ConnectionClosed:", e)
+                disconnected_idxs.append(idx)
+
+        # Clean any disconnected websockets
+        for idx in reversed(disconnected_idxs):
+            clean_connection(idx)
+
+        await asyncio.sleep(
+            1 / freq_hertz + random.uniform(-0.4 / freq_hertz, 0.4 / freq_hertz)
+        )
+
+
+# Handler function for each incoming connection
+async def websocket_handler(websocket: ws.ServerConnection):
     buffer = io.BytesIO()
-    with pa.ipc.new_stream(buffer, sim.get_schema()) as writer:
-        while True:
-            df = sim.createdf()
-            # print(str(df))
-            arrow_data = df.to_arrow()
+    rb_writer = pa.ipc.new_stream(buffer, sim.get_schema())
 
-            assert arrow_data.schema.equals(sim.get_schema()), "get_schema() != df's schema!"
+    connections.append((websocket, rb_writer, buffer))
+    print(f"Client connected! Current connections: {len(connections)}")
 
-            writer.write_table(arrow_data)
-
-            ipc_data = buffer.getvalue()
-            buffer.seek(0)
-            buffer.truncate()
-
-            await websocket.send(ipc_data)
-            # await websocket.send(df.write_ndjson())
-            await asyncio.sleep((1 + random.uniform(-0.5, 0.5)) / 100)
-
-
-    # Old code, which created a new Arrow IPC stream for each record batch
-    # (which breaks decoding multiple batches with a single reader on the client)
-    # while True:
-    #     df = sim.createdf()
-    #     # print(str(df))
-    #     arrow_data = df.to_arrow()
-    #     byte_stream = io.BytesIO()
-    #     with pa.ipc.new_stream(byte_stream, arrow_data.schema) as writer:
-    #         writer.write_table(arrow_data)
-    #
-    #     ipc_data = byte_stream.getvalue()
-    #
-    #     await websocket.send(ipc_data)
-    #     # await websocket.send(df.write_ndjson())
-    #     await asyncio.sleep((1 + random.uniform(-0.5, 0.5)) / 100)
-
+    try:
+        await websocket.wait_closed()
+    finally:
+        if (websocket, rb_writer, buffer) in connections:
+            idx = connections.index((websocket, rb_writer, buffer))
+            clean_connection(idx)
+        print(f"Client disconnected. Remaining connections: {len(connections)}")
 
 
 async def ws_main(port: int):
-    # Add signal handler for SIGTERM
-    stop = asyncio.Event()
-    loop = asyncio.get_running_loop()
-    loop.add_signal_handler(signal.SIGTERM, lambda: stop.set())
+    ws_server = await ws.serve(websocket_handler, "0.0.0.0", port)
 
-    async with ws.serve(websocket_serve, "0.0.0.0", port):
-        await stop.wait()  # Run until stop "event" has been triggered
+    await asyncio.gather(ws_main_loop(100), ws_server.serve_forever())
 
 
 # asyncio.run(ws_main()) # handled by main.py now

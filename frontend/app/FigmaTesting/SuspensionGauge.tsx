@@ -2,13 +2,13 @@ import { useEffect, useRef, useCallback } from "react";
 import colors from "tailwindcss/colors";
 
 interface SuspensionInfo {
-  S1: number;
-  S2: number;
-  S3: number;
-  S4: number;
+  s1: number;
+  s2: number;
+  s3: number;
+  s4: number;
 }
 
-function SuspensionCanvas({ S1, S2, S3, S4 }: SuspensionInfo) {
+function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
 
@@ -54,7 +54,7 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: SuspensionInfo) {
 
     // Draw foreground sections
     context.fillStyle = colors.neutral[700];
-    const values = [S1, S2, S3, S4];
+    const values = [s1, s2, s3, s4];
     values.forEach((value, i) => {
       context.fillRect(
         (canvas.width / 4) * i,
@@ -63,7 +63,7 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: SuspensionInfo) {
         Math.abs(value) * -scaleFactor
       );
     });
-  }, [S1, S2, S3, S4]);
+  }, [s1, s2, s3, s4]);
 
   const handleResize = useCallback((canvas: HTMLCanvasElement) => {
     const parent = canvas.parentElement;
@@ -114,12 +114,12 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: SuspensionInfo) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     drawCanvas(canvas);
-  }, [S1, S2, S3, S4, drawCanvas]);
+  }, [s1, s2, s3, s4, drawCanvas]);
 
   return <canvas ref={canvasRef} className="w-full h-full" />;
 }
 
-export default function SuspensionGauge({ S1, S2, S3, S4 }: SuspensionInfo) {
+export default function SuspensionGauge({ s1, s2, s3, s4 }: SuspensionInfo) {
   return (
     <div className="w-full h-full bg-neutral-900 rounded-[4%] overflow-hidden flex justify-center items-center">
       <div className="w-[90%] h-[90%] flex flex-row justify-center items-center">
@@ -132,10 +132,10 @@ export default function SuspensionGauge({ S1, S2, S3, S4 }: SuspensionInfo) {
         </div>
         <div className="flex flex-col justify-center items-center w-full h-full">
           <div className="w-[90%] h-[90%] rounded-[4%] overflow-hidden">
-            <SuspensionCanvas S1={S1} S2={S2} S3={S3} S4={S4} />
+            <SuspensionCanvas s1={s1} s2={s2} s3={s3} s4={s4} />
           </div>
           <div className="w-[90%] h-[5%] flex flex-row justify-evenly">
-            {[S1, S2, S3, S4].map((value, index) => (
+            {[s1, s2, s3, s4].map((value, index) => (
               <p key={index} className="w-[25%] text-center text-[1.5vmin]">
                 {value.toFixed(2)}
               </p>

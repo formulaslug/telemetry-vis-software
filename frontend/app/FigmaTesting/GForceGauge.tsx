@@ -1,13 +1,13 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
+import getTextSize from "../utils/getTextSize";
 
 interface GForceProps {
-	X: number;
-	Y: number;
-	Z: number;
-	Dampening: number;
+	x: number;
+	y: number;
+	z: number;
 }
 
 interface SceneProps {
@@ -94,17 +94,22 @@ function Scene({
 	);
 }
 
-function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
+export default function GForceGauge({ x, y, z }: GForceProps) {
 	const [polarAngle, setPolarAngle] = useState(Math.PI / 2);
 	const [azimuthalAngle, setAzimuthalAngle] = useState(0);
 
 	const [active, setActive] = useState("xy");
+	const containerRef = useRef<HTMLDivElement>(null);
+	const textSize = getTextSize({ ref: containerRef });
 
 	return (
-		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden">
+		<div
+			ref={containerRef}
+			className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden"
+		>
 			<div className="h-[90%]">
 				<Scene
-					position={new Vector3(X, Y, Z)}
+					position={new Vector3(x, y, z)}
 					polarAngle={polarAngle}
 					azimuthalAngle={azimuthalAngle}
 					setActive={setActive}
@@ -118,9 +123,8 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 						setAzimuthalAngle(0);
 						setActive("xy");
 					}}
-					className={`text-[1.5vmin] w-1/3 ${
-						active === "xy" ? "bg-red-500" : "bg-neutral-900"
-					}`}
+					className={`w-1/3 ${active === "xy" ? "bg-red-500" : "bg-neutral-900"}`}
+					style={{ fontSize: textSize }}
 				>
 					xy
 				</button>
@@ -130,9 +134,8 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 						setAzimuthalAngle(0);
 						setActive("xz");
 					}}
-					className={`text-[1.5vmin] w-1/3 ${
-						active === "xz" ? "bg-red-500" : "bg-neutral-900"
-					}`}
+					className={`w-1/3 ${active === "xz" ? "bg-red-500" : "bg-neutral-900"}`}
+					style={{ fontSize: textSize }}
 				>
 					xz
 				</button>
@@ -142,9 +145,8 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 						setAzimuthalAngle(Math.PI / 2);
 						setActive("yz");
 					}}
-					className={`text-[1.5vmin] w-1/3 ${
-						active === "yz" ? "bg-red-500" : "bg-neutral-900"
-					}`}
+					className={`w-1/3 ${active === "yz" ? "bg-red-500" : "bg-neutral-900"}`}
+					style={{ fontSize: textSize }}
 				>
 					yz
 				</button>
@@ -152,5 +154,3 @@ function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 		</div>
 	);
 }
-
-export default GForceGauge;

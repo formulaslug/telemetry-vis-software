@@ -3,6 +3,7 @@ import { OrbitControls, Plane, useGLTF } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 
 import { useEffect, useRef } from "react";
+import getTextSize from "../utils/getTextSize";
 
 interface rotation {
 	x: number;
@@ -57,19 +58,34 @@ function Car({ rotation }: { rotation: rotation }) {
 	);
 }
 
-function CarWireframe({ rotation }: { rotation: rotation }) {
+export default function CarWireframe({
+	x,
+	y,
+	z,
+}: {
+	x: number;
+	y: number;
+	z: number;
+}) {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const textSize = getTextSize({ ref: containerRef });
+
 	return (
-		<div className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden flex flex-col">
+		<div
+			ref={containerRef}
+			className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden flex flex-col"
+		>
 			<div className="h-[90%]">
-				<Scene rotation={rotation} />
+				<Scene rotation={{ x: x, y: y, z: z }} />
 			</div>
-			<div className="h-[10%] w-full bg-neutral-900 text-[1.5vmin] flex flex-row justify-evenly items-center">
-				<p>x: {rotation.x.toFixed(2)}</p>
-				<p>y: {rotation.y.toFixed(2)}</p>
-				<p>z: {rotation.z.toFixed(2)}</p>
+			<div
+				className="h-[10%] w-full bg-neutral-900 flex flex-row justify-evenly items-center"
+				style={{ fontSize: textSize }}
+			>
+				<p>x: {x.toFixed(2)}</p>
+				<p>y: {y.toFixed(2)}</p>
+				<p>z: {z.toFixed(2)}</p>
 			</div>
 		</div>
 	);
 }
-
-export default CarWireframe;

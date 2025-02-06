@@ -59,7 +59,6 @@ export async function availableRecordings(): Promise<string[] | null> {
 }
 
 export async function getRecording(filepath: string) {
-  // if (typeof window === "undefined") return;
   // Initializes WebAssembly memory for parquet-wasm, and gets a reference to it
   await wasmInit();
   const WASM_MEMORY = wasmMemory();

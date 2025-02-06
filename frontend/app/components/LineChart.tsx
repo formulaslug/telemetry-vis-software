@@ -1,5 +1,4 @@
 import React, { RefObject, useEffect, useRef } from "react";
-import ZoomPlugin from "chartjs-plugin-zoom";
 import {
     Chart,
     ChartItem,
@@ -26,7 +25,6 @@ Chart.register(
     Legend,
     Decimation,
     Tooltip,
-    ZoomPlugin,
 );
 
 // ArrayLike<any> is used for data because chartjs supports TypedArrays and we
@@ -60,6 +58,11 @@ function initChart(
     chartRef: RefObject<ChartItem>,
     { dataY, datasetNames, dataXUnits, dataYUnits }: LineChartProps,
 ) {
+    // Zoom plugin to be registered here because it references `window` which breaks SSR
+    import("chartjs-plugin-zoom").then((ZoomPlugin) => {
+        Chart.register(ZoomPlugin.default);
+    });
+
     const config: ChartConfiguration<ChartType, (typeof dataY)[0], number> = {
         type: CHART_TYPE,
         data: {
@@ -249,7 +252,7 @@ export default function LineChart(props: LineChartProps) {
             //     max: Math.ceil(dataPoints[dataPoints.length - 1][0]),
             // };
 
-            chartInstanceRef.current.update('none');
+            chartInstanceRef.current.update("none");
         }
     }, [numRows]);
 

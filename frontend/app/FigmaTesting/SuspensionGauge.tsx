@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import getTextSize from "../utils/getTextSize";
 
 interface suspensionInfo {
-	S1: number;
-	S2: number;
-	S3: number;
-	S4: number;
+	s1: number;
+	s2: number;
+	s3: number;
+	s4: number;
 }
 
-function SuspensionCanvas({ S1, S2, S3, S4 }: suspensionInfo) {
+function SuspensionCanvas({ s1, s2, s3, s4 }: suspensionInfo) {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
 	useEffect(() => {
@@ -72,29 +72,29 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: suspensionInfo) {
 					0,
 					canvas.height,
 					canvas.width / 4,
-					Math.abs(S1) * -scaleFactor
+					Math.abs(s1) * -scaleFactor
 				);
 				context.fillRect(
 					canvas.width / 4,
 					canvas.height,
 					canvas.width / 4,
-					Math.abs(S2) * -scaleFactor
+					Math.abs(s2) * -scaleFactor
 				);
 				context.fillRect(
 					(canvas.width / 4) * 2,
 					canvas.height,
 					canvas.width / 4,
-					Math.abs(S3) * -scaleFactor
+					Math.abs(s3) * -scaleFactor
 				);
 				context.fillRect(
 					(canvas.width / 4) * 3,
 					canvas.height,
 					canvas.width / 4,
-					Math.abs(S4) * -scaleFactor
+					Math.abs(s4) * -scaleFactor
 				);
 			}
 		}
-	}, [S1, S2, S3, S4]);
+	}, [s1, s2, s3, s4]);
 
 	return (
 		<canvas
@@ -104,7 +104,7 @@ function SuspensionCanvas({ S1, S2, S3, S4 }: suspensionInfo) {
 	);
 }
 
-function SuspensionGauge({ S1, S2, S3, S4 }: suspensionInfo) {
+function SuspensionGauge({ s1, s2, s3, s4 }: suspensionInfo) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const textSize = getTextSize({ ref: containerRef });
 
@@ -134,16 +134,16 @@ function SuspensionGauge({ S1, S2, S3, S4 }: suspensionInfo) {
 				</div>
 				<div className="flex flex-col justify-center items-center w-full h-full">
 					<div className="w-[90%] h-[90%] rounded-[4%] overflow-hidden">
-						<SuspensionCanvas S1={S1} S2={S2} S3={S3} S4={S4} />
+						<SuspensionCanvas s1={s1} s2={s2} s3={s3} s4={s4} />
 					</div>
 					<div
 						className="w-[90%] h-[5%] flex flex-row justify-evenly "
 						style={{ fontSize: textSize }}
 					>
-						<p className="w-[25%] text-center ">{S1.toFixed(2)}</p>
-						<p className="w-[25%] text-center ">{S2.toFixed(2)}</p>
-						<p className="w-[25%] text-center ">{S3.toFixed(2)}</p>
-						<p className="w-[25%] text-center ">{S4.toFixed(2)}</p>
+						<p className="w-[25%] text-center ">{s1.toFixed(2)}</p>
+						<p className="w-[25%] text-center ">{s2.toFixed(2)}</p>
+						<p className="w-[25%] text-center ">{s3.toFixed(2)}</p>
+						<p className="w-[25%] text-center ">{s4.toFixed(2)}</p>
 					</div>
 				</div>
 			</div>

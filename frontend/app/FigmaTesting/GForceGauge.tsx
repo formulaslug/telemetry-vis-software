@@ -5,10 +5,9 @@ import { Vector3 } from "three";
 import getTextSize from "../utils/getTextSize";
 
 interface GForceProps {
-	X: number;
-	Y: number;
-	Z: number;
-	Dampening: number;
+	x: number;
+	y: number;
+	z: number;
 }
 
 interface SceneProps {
@@ -95,7 +94,7 @@ function Scene({
 	);
 }
 
-export default function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
+export default function GForceGauge({ x, y, z }: GForceProps) {
 	const [polarAngle, setPolarAngle] = useState(Math.PI / 2);
 	const [azimuthalAngle, setAzimuthalAngle] = useState(0);
 
@@ -111,7 +110,7 @@ export default function GForceGauge({ X, Y, Z, Dampening }: GForceProps) {
 		>
 			<div className="h-[90%]">
 				<Scene
-					position={new Vector3(X, Y, Z)}
+					position={new Vector3(x, y, z)}
 					polarAngle={polarAngle}
 					azimuthalAngle={azimuthalAngle}
 					setActive={setActive}

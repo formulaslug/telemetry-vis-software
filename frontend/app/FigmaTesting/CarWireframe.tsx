@@ -58,7 +58,15 @@ function Car({ rotation }: { rotation: rotation }) {
 	);
 }
 
-export default function CarWireframe({ rotation }: { rotation: rotation }) {
+export default function CarWireframe({
+	x,
+	y,
+	z,
+}: {
+	x: number;
+	y: number;
+	z: number;
+}) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const textSize = getTextSize({ ref: containerRef });
 
@@ -68,15 +76,15 @@ export default function CarWireframe({ rotation }: { rotation: rotation }) {
 			className="w-full h-full bg-white/10 rounded-[4%] overflow-hidden flex flex-col"
 		>
 			<div className="h-[90%]">
-				<Scene rotation={rotation} />
+				<Scene rotation={{ x: x, y: y, z: z }} />
 			</div>
 			<div
 				className="h-[10%] w-full bg-neutral-900 flex flex-row justify-evenly items-center"
 				style={{ fontSize: textSize }}
 			>
-				<p>x: {rotation.x.toFixed(2)}</p>
-				<p>y: {rotation.y.toFixed(2)}</p>
-				<p>z: {rotation.z.toFixed(2)}</p>
+				<p>x: {x.toFixed(2)}</p>
+				<p>y: {y.toFixed(2)}</p>
+				<p>z: {z.toFixed(2)}</p>
 			</div>
 		</div>
 	);

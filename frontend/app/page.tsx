@@ -7,18 +7,19 @@ import Image from "next/image";
 
 import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
 import { availableRecordings, initRecordingSource } from './http';
-import {DataArrays, ColumnName, nullDataArrays } from "./datatypes";
+import { DataArrays, ColumnName, nullDataArrays } from "./datatypes";
 
 import StreamType from "@/models/StreamType";
 import StreamTypePicker from "@/app/components/StreamTypePicker";
 import { Record } from "@phosphor-icons/react";
 import ItemContainer from "./components/ItemContainer";
+import SuspensionGauge from "./FigmaTesting/SuspensionGauge";
 
 
 const subsystems = [
     'Accumulator',
-    'Electrical',
-    'Dynamics',
+    'Idk What To Call This',
+    'Faults',
 ]
 
 // The default number of rows of data to keep in the dataTrimmed arrays for use
@@ -43,7 +44,7 @@ export default function Home() {
         // It is REQUIRED that this useEffect returns the socket close function,
         // otherwise for some reason it will never initiate. I have no idea why.
         return closeWebSocketConnection;
-        
+
     }, [streamType])
     useEffect(() => {
         if (chosenRecording != null && chosenRecording != "") {
@@ -217,6 +218,22 @@ export default function Home() {
                             dataYKeys={["Seg3_TEMP_0", "Seg3_TEMP_1", "Seg3_TEMP_2", "Seg3_TEMP_3", "Seg3_TEMP_4", "Seg3_TEMP_5", "Seg3_TEMP_6"]}
                             dataYUnits={"Temperature (°C)"}
                         />
+                    </div>
+                ) : null}
+                {selectedSubsystem === 1 ? (
+                    <div className="grid grid-cols-6 grid-rows-9 gap-3 md:grid-cols-9 md:grid-rows-6 w-[100vw] h-[100vh] p-4">
+                        {(dataTrimmed.current.TELEM_FL_SUSTRAVEL && dataTrimmed.current.TELEM_FR_SUSTRAVEL && dataTrimmed.current.TELEM_BL_SUSTRAVEL && dataTrimmed.current.TELEM_BR_SUSTRAVEL) ?
+                        <div className="col-span-3 row-span-3">
+                            <SuspensionGauge
+                                S1={dataTrimmed.current.TELEM_FL_SUSTRAVEL[dataTrimmed.current.TELEM_FL_SUSTRAVEL.length-1]}
+                                S2={dataTrimmed.current.TELEM_FR_SUSTRAVEL[dataTrimmed.current.TELEM_FR_SUSTRAVEL.length-1]}
+                                S3={dataTrimmed.current.TELEM_BL_SUSTRAVEL[dataTrimmed.current.TELEM_BL_SUSTRAVEL.length-1]}
+                                S4={dataTrimmed.current.TELEM_BR_SUSTRAVEL[dataTrimmed.current.TELEM_BR_SUSTRAVEL.length-1]}
+                            />
+                        </div>
+                        :
+                        <p className="text-center">Suspension Travel is not currently avaiable.</p>
+                        }
                     </div>
                 ) : null}
             </main>

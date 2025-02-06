@@ -27,7 +27,9 @@ routes = web.RouteTableDef()
 async def available_recordings(request):
     return web.json_response(list(parquet_files))
 
-routes.static("/api/get-recording", dirs[0], show_index=True)
+if len(dirs) > 0:
+    # TODO: decide on multuple dirs
+    routes.static("/api/get-recording", dirs[0], show_index=True)
 # @routes.get("/api/get-recording/{filename}")
 # async def get_recording(request: web.Request):
 #     f = request.match_info.get("filename")

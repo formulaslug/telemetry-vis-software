@@ -27,7 +27,7 @@ def get_arrow_data():
 def clean_connection(idx: int):
     rb_writer: pa.RecordBatchStreamWriter
     buffer: io.BytesIO
-    if connections[idx]:
+    if idx < len(connections):
         _, rb_writer, buffer = connections[idx]
         rb_writer.close()
         buffer.close()

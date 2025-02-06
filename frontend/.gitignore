@@ -38,3 +38,6 @@ jspm_packages
 .next
 # JetBrains IDE stuff
 .idea
+
+# VSCode
+.vscode

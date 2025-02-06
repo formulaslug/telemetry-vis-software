@@ -1,34 +1,56 @@
-"use client"
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import ModalContainer from "@/app/components/ModalContainer";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
-import CardLineChart from "@/app/components/TestChart";
+import LineChart from "@/app/components/LineChart";
 import Image from "next/image";
-import initWebSocketConnection from "./websocket";
-import { emptyDataArrays as emptyDataArrays, DataArrays } from "./datatypes";
 
-import Papa from 'papaparse';
-import availableRecordings from "./http";
+import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
+import { availableRecordings, initRecordingSource } from "./http";
+import { DataArrays, ColumnName, nullDataArrays } from "./datatypes";
 
-const subsystems = [
-    'Accumulator',
-    'Electrical',
-    'Dynamics',
-]
+import StreamType from "@/models/StreamType";
+import StreamTypePicker from "@/app/components/StreamTypePicker";
+import { Record } from "@phosphor-icons/react";
+import ItemContainer from "./components/ItemContainer";
+import SuspensionGauge from "./FigmaTesting/SuspensionGauge";
+
+const subsystems = ["Accumulator", "Idk What To Call This", "Faults"];
 
 // The default number of rows of data to keep in the dataTrimmed arrays for use
 // in 2d charts.
 // TODO: Instead of this use setViewLength w/ something like startTime/endTime
 // or a timeline UI
-const DEFAULT_VIEW_LENGTH = 1300
+const DEFAULT_VIEW_LENGTH = 99999999; // 1300
 
 export default function Home() {
-    const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0)
+    const [selectedSubsystem, setSelectedSubsystem] = useState<number>(0);
 
-    // // We store one main arrow Table which we concatenate all new data rows
-    // // onto.
-    // const dataTable = useRef<Table<DataRow>>(new Table(schema));
+    const [websocketConnected, setWebsocketConnected] = useState<boolean>(false);
+
+    const [recordings, setRecordings] = useState<string[]>([]);
+    const [streamType, setStreamType] = useState<StreamType>(StreamType.NONE);
+    const [chosenRecording, setChosenRecording] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (streamType == StreamType.LIVE) {
+            initWebSocketConnection(
+                setWebsocketConnected,
+                data,
+                dataTrimmed,
+                setNumRows,
+                viewLength,
+            );
+        }
+        // It is REQUIRED that this useEffect returns the socket close function,
+        // otherwise for some reason it will never initiate. I have no idea why.
+        return closeWebSocketConnection;
+    }, [streamType]);
+    useEffect(() => {
+        if (chosenRecording != null && chosenRecording != "") {
+            initRecordingSource(chosenRecording!, data, dataTrimmed, setNumRows, viewLength);
+        }
+    }, [chosenRecording]);
 
     // A simple integer incremented when a new row is added to data. Used to
     // force chart rerenders
@@ -36,27 +58,28 @@ export default function Home() {
     // A dictionary of column names to arrays, which are updated with all values
     // received over the websocket (organized by columns). This is the single
     // source of truth of telemetry data.
-    const data = useRef<DataArrays>(emptyDataArrays());
+    const data = useRef<DataArrays>(nullDataArrays());
     // A shorter copy that's kept to length viewLength for easier use
     // in creating 2d charts.
-    const dataTrimmed = useRef<DataArrays>(emptyDataArrays());
-    // Number of points of data to display in 2D graphs. 
+    const dataTrimmed = useRef<DataArrays>(nullDataArrays());
+    // Number of points of data to display in 2D graphs.
     // // The last point shown corresponds to data at viewTimestamp.
     const [viewLength, setViewLength] = useState<number>(DEFAULT_VIEW_LENGTH);
     // // Current timestamp (in seconds) of data to visualize.
     // const [viewTimestamp, setViewTimestamp] = useState<number>(0);
 
-    const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isRecording, setIsRecording] = useState<boolean>(false);
 
-    // Initializes WebSocket connection with proper hooks and refs etc
     useEffect(() => {
-        availableRecordings().then(d => console.log(d));
-        return initWebSocketConnection(
-            setIsConnected, data, dataTrimmed, setNumRows, viewLength
-        )
+        availableRecordings().then((r) => setRecordings(r ?? []));
     }, []);
 
+    // // Initializes WebSocket connection with proper hooks and refs etc
+    // useEffect(() => {
+    //     return initWebSocketConnection(
+    //         setIsConnected, data, dataTrimmed, setNumRows, viewLength
+    //     )
+    // }, []);
 
     useEffect(() => {
         if (!isRecording && numRows > 0) {
@@ -68,7 +91,6 @@ export default function Home() {
             // link.href = URL.createObjectURL(blob);
             // link.download = 'FS-Data.csv';
             // link.click();
-
             // const handleFilterData = () => {
             //     if (startTime && endTime) {
             //       // Filter messages within the specified range
@@ -122,142 +144,164 @@ export default function Home() {
             //     </div>
             //   );
         }
-
     }, [isRecording]);
 
+    const LineChartWrapper: React.FC<{
+        title: string;
+        dataXKey?: ColumnName;
+        dataYKeys: ColumnName[];
+        dataXUnits?: string;
+        dataYUnits: string;
+    }> = ({ title, dataXKey, dataYKeys, dataXUnits, dataYUnits }) => {
+        const dataYArrs = dataYKeys
+            .map((k) => dataTrimmed.current[k])
+            .filter((a) => a != null);
+        const dataXArr = dataTrimmed.current[dataXKey ?? ":Time"];
+        return (
+            <ItemContainer title={title}>
+                {dataXArr == null || dataYArrs.length == 0 ? null : (
+                    <LineChart
+                        title={title}
+                        numRows={numRows}
+                        dataX={dataXArr}
+                        dataY={dataYArrs}
+                        datasetNames={dataYKeys
+                            .filter((k) => dataTrimmed.current[k] != null)
+                            .map((k) => k.toString())}
+                        dataXUnits={dataXUnits ?? "Time (s)"}
+                        dataYUnits={dataYUnits}
+                    />
+                )}
+            </ItemContainer>
+        );
+    };
 
     return (
-        <div className="pt-4">
-            <div className={"pl-6 flex justify-between flex-row"}>
-                <Image src="/fs_logo.png" alt="logo" width={200} height={50} />
-                <button onClick={() => {
-                    if (isRecording) {
-                        setIsRecording(false)
-                        // setEndTime(messages[messages.length - 1].timestamp);
-                    } else {
-                        setIsRecording(true)
-                        // setStartTime(messages[messages.length - 1].timestamp);
+        <div className="pt-4 bg-background-1">
+            <div className={"pl-6 flex justify-between flex-row items-center"}>
+                <Image src="/fs_logo.png" alt="fs-logo" width={100} height={40} />
+                {streamType == StreamType.LIVE && (
+                    <button
+                        onClick={() => setIsRecording(!isRecording)}
+                        className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}
+                    >
+                        <Record />
+                        <p className={"ml-1"}>Record</p>
+                    </button>
+                )}
+                <StreamTypePicker
+                    websocketConnected={websocketConnected}
+                    recordings={recordings}
+                    streamType={streamType}
+                    setStreamType={setStreamType}
+                    chosenRecording={chosenRecording!}
+                    setChosenRecording={
+                        setChosenRecording as React.Dispatch<React.SetStateAction<string>>
                     }
-                }}
-                    className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}>
-                    {isRecording ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record-fill animate-pulse" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 13A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
-                        </svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            className="bi bi-record" viewBox="0 0 16 16">
-                            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8m0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10" />
-                        </svg>
-                    )
-                    }
-                    <p className={"ml-1"}>Record</p>
-                </button>
+                />
             </div>
             <header className={"flex items-center justify-between"}>
-                <SubsystemPicker subsystems={subsystems} selectedSubsystem={selectedSubsystem}
-                    onSelectSubsystem={(a) => setSelectedSubsystem(a)} />
+                <SubsystemPicker
+                    subsystems={subsystems}
+                    selectedSubsystem={selectedSubsystem}
+                    onSelectSubsystem={(a) => setSelectedSubsystem(a)}
+                />
             </header>
             <main>
-                <div className={"flex absolute bottom-0 right-0 m-2"}>
-                    <div
-                        className={`rounded-full p-2 ${isConnected ? `bg-green-800` : 'bg-red-600'} text-center border-white border-2 border-opacity-20 text-opacity-80 font-bold text-white text-xs`}>
-                        {isConnected ? (
-                            <p>Connected</p>
-                        ) : (
-                            <p>Not Connected</p>
-                        )}
-                    </div>
-                </div>
-
                 {selectedSubsystem === 0 ? (
                     <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
-                        {/* Accumulator Subsystem */}
-
-                        <CardLineChart title={"Acc Temperature (C)"} color={"#ff6347"} numRows={numRows}
-                            dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["APPS_1"],]}
+                        <LineChartWrapper
+                            title={"Acc Seg 0 Temperature"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg0_TEMP_0", "Seg0_TEMP_1", "Seg0_TEMP_2", "Seg0_TEMP_3", "Seg0_TEMP_4", "Seg0_TEMP_5", "Seg0_TEMP_6", ]}
+                            dataYUnits={"Temperature (°C)"}
                         />
-                        <CardLineChart title={"Acc Temperature (C)"} color={"#4682b4"} numRows={numRows}
-                            dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["APPS_2"],]}
+                        <LineChartWrapper
+                            title={"Acc Seg 1 Temperature"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg1_TEMP_0", "Seg1_TEMP_1", "Seg1_TEMP_2", "Seg1_TEMP_3", "Seg1_TEMP_4", "Seg1_TEMP_5", "Seg1_TEMP_6", ]}
+                            dataYUnits={"Temperature (°C)"}
                         />
-                        <CardLineChart title={"Acc Temperature (C)"} color={"#ffa07a"} numRows={numRows}
-                            dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["BMS_Fault"],]}
+                        <LineChartWrapper
+                            title={"Acc Seg 2 Temperature"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg2_TEMP_0", "Seg2_TEMP_1", "Seg2_TEMP_2", "Seg2_TEMP_3", "Seg2_TEMP_4", "Seg2_TEMP_5", "Seg2_TEMP_6", ]}
+                            dataYUnits={"Temperature (°C)"}
                         />
-                        <CardLineChart title={"Acc Temperature (C)"} color={"#ffd700"} numRows={numRows}
-                            dataX={dataTrimmed.current[":Time"]}
-                            dataY={[dataTrimmed.current["GPSi_NumHighCNo"],]}
+                        <LineChartWrapper
+                            title={"Acc Seg 3 Temperature"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg3_TEMP_0", "Seg3_TEMP_1", "Seg3_TEMP_2", "Seg3_TEMP_3", "Seg3_TEMP_4", "Seg3_TEMP_5", "Seg3_TEMP_6", ]}
+                            dataYUnits={"Temperature (°C)"}
                         />
-
+                        <LineChartWrapper
+                            title={"Acc Seg 0 Voltage"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg0_VOLT_0", "Seg0_VOLT_1", "Seg0_VOLT_2", "Seg0_VOLT_3", "Seg0_VOLT_4", "Seg0_VOLT_5", "Seg0_VOLT_6", ]}
+                            dataYUnits={"Volts"}
+                        />
+                        <LineChartWrapper
+                            title={"Acc Seg 1 Voltage"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg1_VOLT_0", "Seg1_VOLT_1", "Seg1_VOLT_2", "Seg1_VOLT_3", "Seg1_VOLT_4", "Seg1_VOLT_5", "Seg1_VOLT_6", ]}
+                            dataYUnits={"Volts"}
+                        />
+                        <LineChartWrapper
+                            title={"Acc Seg 2 Voltage"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg2_VOLT_0", "Seg2_VOLT_1", "Seg2_VOLT_2", "Seg2_VOLT_3", "Seg2_VOLT_4", "Seg2_VOLT_5", "Seg2_VOLT_6", ]}
+                            dataYUnits={"Volts"}
+                        />
+                        <LineChartWrapper
+                            title={"Acc Seg 3 Voltage"}
+                            // prettier-ignore
+                            dataYKeys={[ "Seg3_VOLT_0", "Seg3_VOLT_1", "Seg3_VOLT_2", "Seg3_VOLT_3", "Seg3_VOLT_4", "Seg3_VOLT_5", "Seg3_VOLT_6", ]}
+                            dataYUnits={"Volts"}
+                        />
                     </div>
                 ) : null}
-
-                {/* {selectedSubsystem === 1 ? ( */}
-                {/*     <div className={"grid grid-cols-2 gap-6 p-6"}> */}
-                {/* Electrical Subsystem */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"Brake Pressure Front (PSI)"} color={"#8b4513"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["Brake Pressure Front(PSI)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"Brake Pressure Rear (PSI)"} color={"#a52a2a"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["Brake Pressure Rear(PSI)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"Current to Acc (A)"} color={"#4682b4"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["Current to Acc(A)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"Steering (Deg)"} color={"#ff69b4"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["Steering(Deg)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*     </div> */}
-                {/* ) : null} */}
-
-                {/* {selectedSubsystem === 2 ? ( */}
-                {/*     <div className={"flex flex-col md:flex-row md:flex-wrap gap-4 p-4"}> */}
-                {/* Dynamics Subsystem */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"Speed (MPH)"} color={"#4169e1"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["Speed(mph)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"Altitude (ft)"} color={"#696969"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["Altitude(ft)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"x Acceleration (m/s^2)"} color={"#228b22"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["x acceleration(m/s^2)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*         <ModalContainer> */}
-                {/*             <CardLineChart title={"y Acceleration (m/s^2)"} color={"#ff8c00"} numRows={numRows} */}
-                {/*                 dataX={dataTrimmed.current["Timestamp(s)"]} */}
-                {/*                 dataY={[dataTrimmed.current["y acceleration(m/s^2)"],]} */}
-                {/*             /> */}
-                {/*         </ModalContainer> */}
-                {/*     </div> */}
-                {/* ) : null} */}
+                {selectedSubsystem === 1 ? (
+                    <div className="grid grid-cols-6 grid-rows-9 gap-3 md:grid-cols-9 md:grid-rows-6 w-[100vw] h-[100vh] p-4">
+                        <div className="col-span-3 row-span-3">
+                            <ItemContainer title={"Suspension Travel"}>
+                                {dataTrimmed.current.TELEM_FL_SUSTRAVEL &&
+                                dataTrimmed.current.TELEM_FR_SUSTRAVEL &&
+                                dataTrimmed.current.TELEM_BL_SUSTRAVEL &&
+                                dataTrimmed.current.TELEM_BR_SUSTRAVEL ? (
+                                    <SuspensionGauge
+                                        S1={
+                                            dataTrimmed.current.TELEM_FL_SUSTRAVEL[
+                                                dataTrimmed.current.TELEM_FL_SUSTRAVEL.length -
+                                                    1
+                                            ]
+                                        }
+                                        S2={
+                                            dataTrimmed.current.TELEM_FR_SUSTRAVEL[
+                                                dataTrimmed.current.TELEM_FR_SUSTRAVEL.length -
+                                                    1
+                                            ]
+                                        }
+                                        S3={
+                                            dataTrimmed.current.TELEM_BL_SUSTRAVEL[
+                                                dataTrimmed.current.TELEM_BL_SUSTRAVEL.length -
+                                                    1
+                                            ]
+                                        }
+                                        S4={
+                                            dataTrimmed.current.TELEM_BR_SUSTRAVEL[
+                                                dataTrimmed.current.TELEM_BR_SUSTRAVEL.length -
+                                                    1
+                                            ]
+                                        }
+                                    />
+                                ) : null}
+                            </ItemContainer>
+                        </div>
+                    </div>
+                ) : null}
             </main>
-            <footer
-                className="absolute row-start-3 flex gap-6 flex-wrap items-center justify-center bottom-0 right-0 left-0">
-                <p className={"text-center"}>FS Live Visualization Demo ({numRows})</p>
+            <footer>
+                <p className={"text-center"}>FS Live Visualization Demo ({numRows} rows)</p>
             </footer>
         </div>
     );

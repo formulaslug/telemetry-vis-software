@@ -99,7 +99,6 @@ export default function GForceGauge({ x, y, z }: GForceProps) {
 	const [azimuthalAngle, setAzimuthalAngle] = useState(0);
 
 	const [active, setActive] = useState("xy");
-
 	const containerRef = useRef<HTMLDivElement>(null);
 	const textSize = getTextSize({ ref: containerRef });
 

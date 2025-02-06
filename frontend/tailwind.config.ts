@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
 
 const config: Config = {
   content: [
@@ -9,8 +10,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        "background": colors.neutral[950],
+        "background-1": colors.neutral[950],
+        "background-2": colors.neutral[900],
+        "foreground": colors.neutral[300],
+        "foreground-1": colors.neutral[300],
+        "foreground-2": colors.neutral[500],
+        "foreground-gray": colors.neutral[700],
       },
     },
   },

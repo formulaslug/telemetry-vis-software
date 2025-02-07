@@ -39,7 +39,7 @@ export default function Home() {
                 data,
                 dataTrimmed,
                 setNumRows,
-                viewLength,
+                viewLength
             );
         }
         // It is REQUIRED that this useEffect returns the socket close function,
@@ -183,7 +183,9 @@ export default function Home() {
                 {streamType == StreamType.LIVE && (
                     <button
                         onClick={() => setIsRecording(!isRecording)}
-                        className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}
+                        className={`m-4 p-2 px-4 rounded-xl ${
+                            isRecording ? "bg-red-600" : "bg-black"
+                        } flex items-center border-white border-2 border-opacity-40`}
                     >
                         <Record />
                         <p className={"ml-1"}>Record</p>
@@ -269,25 +271,25 @@ export default function Home() {
                                 dataTrimmed.current.TELEM_BL_SUSTRAVEL &&
                                 dataTrimmed.current.TELEM_BR_SUSTRAVEL ? (
                                     <SuspensionGauge
-                                        S1={
+                                        s1={
                                             dataTrimmed.current.TELEM_FL_SUSTRAVEL[
                                                 dataTrimmed.current.TELEM_FL_SUSTRAVEL.length -
                                                     1
                                             ]
                                         }
-                                        S2={
+                                        s2={
                                             dataTrimmed.current.TELEM_FR_SUSTRAVEL[
                                                 dataTrimmed.current.TELEM_FR_SUSTRAVEL.length -
                                                     1
                                             ]
                                         }
-                                        S3={
+                                        s3={
                                             dataTrimmed.current.TELEM_BL_SUSTRAVEL[
                                                 dataTrimmed.current.TELEM_BL_SUSTRAVEL.length -
                                                     1
                                             ]
                                         }
-                                        S4={
+                                        s4={
                                             dataTrimmed.current.TELEM_BR_SUSTRAVEL[
                                                 dataTrimmed.current.TELEM_BR_SUSTRAVEL.length -
                                                     1

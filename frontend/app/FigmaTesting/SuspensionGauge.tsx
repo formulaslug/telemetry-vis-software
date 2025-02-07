@@ -7,6 +7,8 @@ interface SuspensionInfo {
     s2: number;
     s3: number;
     s4: number;
+    min?: number;
+    max?: number;
 }
 
 function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
@@ -54,9 +56,9 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
             values.forEach((value, i) => {
                 context.fillRect(
                     (canvas.width / 8) * i,
-                    canvas.height,
+                    canvas.height / 2,
                     canvas.width / 8,
-                    Math.abs(value) * -scaleFactor
+                    (Math.abs(value) * -scaleFactor) / 2
                 );
             });
         },
@@ -120,7 +122,7 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
     return <canvas ref={canvasRef} className="w-full h-full" />;
 }
 
-export default function SuspensionGauge({ s1, s2, s3, s4 }: SuspensionInfo) {
+export default function SuspensionGauge({ s1, s2, s3, s4, min, max }: SuspensionInfo) {
     const containerRef = useRef<HTMLDivElement>(null);
     const textSize = getTextSize({ ref: containerRef });
 

@@ -35,14 +35,8 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
 
             // Draw background sections
             context.fillStyle = colors.neutral[800];
-            for (let i = 0; i < 4; i++) {
-                context.fillRect(
-                    (canvas.width / 4) * i,
-                    canvas.height,
-                    canvas.width / 4,
-                    -scaleFactor
-                );
-            }
+
+            context.fillRect(0, canvas.height, canvas.width, -scaleFactor);
 
             // // Foreground gradient
             // const frontGradient = context.createLinearGradient(
@@ -59,9 +53,9 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
             const values = [s1, s2, s3, s4];
             values.forEach((value, i) => {
                 context.fillRect(
-                    (canvas.width / 4) * i,
+                    (canvas.width / 8) * i,
                     canvas.height,
-                    canvas.width / 4,
+                    canvas.width / 8,
                     Math.abs(value) * -scaleFactor
                 );
             });

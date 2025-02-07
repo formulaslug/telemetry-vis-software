@@ -14,8 +14,10 @@ import StreamTypePicker from "@/app/components/StreamTypePicker";
 import { Record } from "@phosphor-icons/react";
 import ItemContainer from "./components/ItemContainer";
 import SuspensionGauge from "./FigmaTesting/SuspensionGauge";
+import GForceGauge from "./FigmaTesting/GForceGauge";
+import CarWireframe from "./FigmaTesting/CarWireframe";
 
-const subsystems = ["Accumulator", "Idk What To Call This", "Faults"];
+const subsystems = ["Accumulator", "Suspension", "IMU Data", "Faults", "3D Tests"];
 
 // The default number of rows of data to keep in the dataTrimmed arrays for use
 // in 2d charts.
@@ -176,6 +178,11 @@ export default function Home() {
         );
     };
 
+    function getMostRecent(key: ColumnName) {
+        if (!dataTrimmed.current[key]) return null;
+        return dataTrimmed.current[key][dataTrimmed.current[key].length - 1];
+    }
+
     return (
         <div className="pt-4 bg-background-1">
             <div className={"pl-6 flex justify-between flex-row items-center"}>
@@ -269,32 +276,99 @@ export default function Home() {
                                 dataTrimmed.current.TELEM_BL_SUSTRAVEL &&
                                 dataTrimmed.current.TELEM_BR_SUSTRAVEL ? (
                                     <SuspensionGauge
-                                        S1={
-                                            dataTrimmed.current.TELEM_FL_SUSTRAVEL[
-                                                dataTrimmed.current.TELEM_FL_SUSTRAVEL.length -
-                                                    1
-                                            ]
-                                        }
-                                        S2={
-                                            dataTrimmed.current.TELEM_FR_SUSTRAVEL[
-                                                dataTrimmed.current.TELEM_FR_SUSTRAVEL.length -
-                                                    1
-                                            ]
-                                        }
-                                        S3={
-                                            dataTrimmed.current.TELEM_BL_SUSTRAVEL[
-                                                dataTrimmed.current.TELEM_BL_SUSTRAVEL.length -
-                                                    1
-                                            ]
-                                        }
-                                        S4={
-                                            dataTrimmed.current.TELEM_BR_SUSTRAVEL[
-                                                dataTrimmed.current.TELEM_BR_SUSTRAVEL.length -
-                                                    1
-                                            ]
-                                        }
+                                        s1={getMostRecent("TELEM_FL_SUSTRAVEL")!}
+                                        s2={getMostRecent("TELEM_FR_SUSTRAVEL")!}
+                                        s3={getMostRecent("TELEM_BL_SUSTRAVEL")!}
+                                        s4={getMostRecent("TELEM_BR_SUSTRAVEL")!}
                                     />
                                 ) : null}
+                            </ItemContainer>
+                        </div>
+                    </div>
+                ) : null}
+                {selectedSubsystem === 2 ? <p>imu data</p> : null}
+                {selectedSubsystem === 3 ? (
+                    <div className="flex justify-evenly">
+                        <div className="grow m-4">
+                            <ItemContainer title="BMS_Fault">
+                                {dataTrimmed.current.BMS_Fault ? (
+                                    <div
+                                        className={
+                                            getMostRecent("BMS_Fault") != 0
+                                                ? "bg-red-500"
+                                                : "bg-green-500"
+                                        }
+                                    >
+                                        <p>
+                                            {getMostRecent("BMS_Fault") != 0
+                                                ? "Fault!"
+                                                : "No Fault."}
+                                        </p>
+                                    </div>
+                                ) : null}
+                            </ItemContainer>
+                        </div>
+
+                        <div className="grow m-4">
+                            <ItemContainer title="BSPD_Fault">
+                                {dataTrimmed.current.BSPD_Fault ? (
+                                    <div
+                                        className={
+                                            getMostRecent("BSPD_Fault") != 0
+                                                ? "bg-red-500"
+                                                : "bg-green-500"
+                                        }
+                                    >
+                                        <p>
+                                            {getMostRecent("BSPD_Fault") != 0
+                                                ? "Fault!"
+                                                : "No Fault."}
+                                        </p>
+                                    </div>
+                                ) : null}
+                            </ItemContainer>
+                        </div>
+                        <div className="grow m-4">
+                            <ItemContainer title="IMD_Fault">
+                                {dataTrimmed.current.IMD_Fault ? (
+                                    <div
+                                        className={
+                                            getMostRecent("IMD_Fault") != 0
+                                                ? "bg-red-500"
+                                                : "bg-green-500"
+                                        }
+                                    >
+                                        <p>
+                                            {getMostRecent("IMD_Fault") != 0
+                                                ? "Fault!"
+                                                : "No Fault."}
+                                        </p>
+                                    </div>
+                                ) : null}
+                            </ItemContainer>
+                        </div>
+                    </div>
+                ) : null}
+                {selectedSubsystem === 4 ? (
+                    <div className="grid grid-cols-4 grid-rows-2 gap-4 w-[100vw] h-[100vh] p-4">
+                        <div className="col-span-1 row-span-2">
+                            <ItemContainer title="GPS Acceleration">
+                                {dataTrimmed.current.VDM_X_AXIS_ACCELERATION &&
+                                dataTrimmed.current.VDM_Y_AXIS_ACCELERATION &&
+                                dataTrimmed.current.VDM_Z_AXIS_ACCELERATION ? (
+                                    <GForceGauge
+                                        x={getMostRecent("VDM_X_AXIS_ACCELERATION")!}
+                                        y={getMostRecent("VDM_X_AXIS_ACCELERATION")!}
+                                        z={getMostRecent("VDM_X_AXIS_ACCELERATION")!}
+                                    />
+                                ) : null}
+                            </ItemContainer>
+                        </div>
+                        <div className="col-span-1 row-span-2">
+                            <ItemContainer title="GPS Course">
+                            {dataTrimmed.current.GPSi_Course ? (
+                                <CarWireframe x={0} y={getMostRecent("GPSi_Course")!} z={0} />
+                            ) : null}
                             </ItemContainer>
                         </div>
                     </div>

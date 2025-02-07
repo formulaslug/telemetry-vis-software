@@ -41,7 +41,7 @@ export default function Home() {
                 data,
                 dataTrimmed,
                 setNumRows,
-                viewLength,
+                viewLength
             );
         }
         // It is REQUIRED that this useEffect returns the socket close function,
@@ -190,7 +190,9 @@ export default function Home() {
                 {streamType == StreamType.LIVE && (
                     <button
                         onClick={() => setIsRecording(!isRecording)}
-                        className={`m-4 p-2 px-4 rounded-xl ${isRecording ? "bg-red-600" : "bg-black"} flex items-center border-white border-2 border-opacity-40`}
+                        className={`m-4 p-2 px-4 rounded-xl ${
+                            isRecording ? "bg-red-600" : "bg-black"
+                        } flex items-center border-white border-2 border-opacity-40`}
                     >
                         <Record />
                         <p className={"ml-1"}>Record</p>

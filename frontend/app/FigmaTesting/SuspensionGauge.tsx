@@ -55,10 +55,10 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
             const values = [s1, s2, s3, s4];
             values.forEach((value, i) => {
                 context.fillRect(
-                    (canvas.width / 8) * i,
-                    canvas.height / 2,
-                    canvas.width / 8,
-                    (Math.abs(value) * -scaleFactor) / 2
+                    (canvas.width / 4) * i,
+                    canvas.height,
+                    canvas.width / 4,
+                    (Math.abs(value) * -scaleFactor)
                 );
             });
         },

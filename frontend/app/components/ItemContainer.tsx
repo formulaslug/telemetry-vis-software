@@ -8,9 +8,11 @@ interface ItemContainerProps {
 // Generic wrapper that can contain any visualization. Spares some boilerplate
 export default function ItemContainer({ children, title }: ItemContainerProps) {
     return (
-        <div className="bg-background-2 rounded-xl p-3 min-h-40">
+        <div className="bg-background-2 rounded-xl p-3 min-h-40 h-full w-full">
             {title && <h6 className="text-lg pl-2 font-semibold">{title}</h6>}
-            {children ?? (
+            {children ? (
+                <div className="h-full w-full">{children}</div>
+            ) : (
                 <>
                     <br />
                     <p className="text-center text-foreground-2">

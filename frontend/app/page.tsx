@@ -185,8 +185,14 @@ export default function Home() {
 
     return (
         <div className="pt-4 bg-background-1">
-            <div className={"pl-6 flex justify-between flex-row items-center"}>
-                <Image src="/fs_logo.png" alt="fs-logo" width={100} height={40} />
+            <div className={"px-6 flex justify-between flex-row items-center"}>
+                <Image
+                    className="py-4"
+                    src="/fs_logo.png"
+                    alt="fs-logo"
+                    width={100}
+                    height={40}
+                />
                 {streamType == StreamType.LIVE && (
                     <button
                         onClick={() => setIsRecording(!isRecording)}
@@ -209,7 +215,7 @@ export default function Home() {
                     }
                 />
             </div>
-            <header className={"flex items-center justify-between"}>
+            <header className={"flex items-center w-full"}>
                 <SubsystemPicker
                     subsystems={subsystems}
                     selectedSubsystem={selectedSubsystem}
@@ -291,14 +297,15 @@ export default function Home() {
                 {selectedSubsystem === 2 ? <p>imu data</p> : null}
                 {selectedSubsystem === 3 ? (
                     <div className="flex justify-evenly">
-                        <div className="grow m-4">
+                        <div className="grow m-4 ">
                             <ItemContainer title="BMS_Fault">
-                                {dataTrimmed.current.BMS_Fault ? (
+                                {dataTrimmed.current.IMD_Fault ? (
                                     <div
                                         className={
-                                            getMostRecent("BMS_Fault") != 0
+                                            (getMostRecent("BMS_Fault") != 0
                                                 ? "bg-red-500"
-                                                : "bg-green-500"
+                                                : "bg-green-500") +
+                                            " h-full rounded-lg flex justify-center items-center text-3xl"
                                         }
                                     >
                                         <p>
@@ -311,14 +318,15 @@ export default function Home() {
                             </ItemContainer>
                         </div>
 
-                        <div className="grow m-4">
+                        <div className="grow m-4 ">
                             <ItemContainer title="BSPD_Fault">
                                 {dataTrimmed.current.BSPD_Fault ? (
                                     <div
                                         className={
-                                            getMostRecent("BSPD_Fault") != 0
+                                            (getMostRecent("BSPD_Fault") != 0
                                                 ? "bg-red-500"
-                                                : "bg-green-500"
+                                                : "bg-green-500") +
+                                            " h-full rounded-lg flex justify-center items-center text-3xl"
                                         }
                                     >
                                         <p>
@@ -330,14 +338,15 @@ export default function Home() {
                                 ) : null}
                             </ItemContainer>
                         </div>
-                        <div className="grow m-4">
+                        <div className="grow m-4 ">
                             <ItemContainer title="IMD_Fault">
                                 {dataTrimmed.current.IMD_Fault ? (
                                     <div
                                         className={
-                                            getMostRecent("IMD_Fault") != 0
+                                            (getMostRecent("IMD_Fault") != 0
                                                 ? "bg-red-500"
-                                                : "bg-green-500"
+                                                : "bg-green-500") +
+                                            " h-full rounded-lg flex justify-center items-center text-3xl"
                                         }
                                     >
                                         <p>
@@ -352,8 +361,8 @@ export default function Home() {
                     </div>
                 ) : null}
                 {selectedSubsystem === 4 ? (
-                    <div className="grid grid-cols-4 grid-rows-2 gap-4 w-[100vw] h-[100vh] p-4">
-                        <div className="col-span-1 row-span-2">
+                    <div className="grid grid-cols-2 grid-rows-4 md:grid-cols-4 md:grid-rows-2 gap-4 w-[100vw] h-[100vh] p-4">
+                        <div className="col-span-1 row-span-1">
                             <ItemContainer title="GPS Acceleration">
                                 {dataTrimmed.current.VDM_X_AXIS_ACCELERATION &&
                                 dataTrimmed.current.VDM_Y_AXIS_ACCELERATION &&
@@ -366,11 +375,15 @@ export default function Home() {
                                 ) : null}
                             </ItemContainer>
                         </div>
-                        <div className="col-span-1 row-span-2">
+                        <div className="col-span-1 row-span-1">
                             <ItemContainer title="GPS Course">
-                            {dataTrimmed.current.GPSi_Course ? (
-                                <CarWireframe x={0} y={getMostRecent("GPSi_Course")!} z={0} />
-                            ) : null}
+                                {dataTrimmed.current.GPSi_Course ? (
+                                    <CarWireframe
+                                        x={0}
+                                        y={getMostRecent("GPSi_Course")!}
+                                        z={0}
+                                    />
+                                ) : null}
                             </ItemContainer>
                         </div>
                     </div>

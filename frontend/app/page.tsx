@@ -11,12 +11,12 @@ import { DataArrays, ColumnName, nullDataArrays } from "./datatypes";
 
 import StreamType from "@/models/StreamType";
 import StreamTypePicker from "@/app/components/StreamTypePicker";
-import { Pause, Play, PlayPause, Record } from "@phosphor-icons/react";
+import { Pause, Play, PlayPause, Record, Rss, RssSimple } from "@phosphor-icons/react";
 import ItemContainer from "./components/ItemContainer";
 import SuspensionGauge from "./FigmaTesting/SuspensionGauge";
 import GForceGauge from "./FigmaTesting/GForceGauge";
 import CarWireframe from "./FigmaTesting/CarWireframe";
-import { ActionIcon, Button, RangeSlider } from "@mantine/core";
+import { ActionIcon, Button, RangeSlider, SegmentedControl, Slider } from "@mantine/core";
 
 const subsystems = ["Accumulator", "Suspension", "IMU Data", "Faults", "3D Tests"];
 
@@ -42,7 +42,7 @@ export default function Home() {
                 data,
                 dataTrimmed,
                 setNumRows,
-                viewLength
+                viewLength,
             );
         }
         // It is REQUIRED that this useEffect returns the socket close function,
@@ -393,15 +393,45 @@ export default function Home() {
             <footer className="h-max">
                 <p className={"text-center"}>FS Live Visualization Demo ({numRows} rows)</p>
             </footer>
-            <div className="fixed bottom-0 w-full bg-background-3 rounded-t-3xl min-h-20 p-4 flex gap-4">
-                <ActionIcon variant="empty" onClick={() => setStreamType(streamType == StreamType.LIVE ? StreamType.RECORDED : StreamType.LIVE)}>
-                    {streamType == StreamType.LIVE ? 
-                        <Pause />
-                        :
-                        <Play />
+            <div className="fixed p-4 flex gap-4 bottom-0 w-full bg-background-3 rounded-t-3xl shadow-black/30 shadow-[var(--ts-shadow-color)_0_-4px_6px_-1px]">
+                <ActionIcon
+                    color="neutral.5"
+                    variant="transparent"
+                    onClick={() =>
+                        setStreamType(
+                            streamType == StreamType.LIVE
+                                ? StreamType.RECORDED
+                                : StreamType.LIVE,
+                        )
                     }
+                >
+                    {streamType == StreamType.LIVE ? (
+                        <Pause size={32} weight="fill" />
+                    ) : (
+                        <Play size={32} weight="fill" />
+                    )}
                 </ActionIcon>
-                <RangeSlider className="flex-1" />
+                <div className="flex-1">
+                    <RangeSlider
+                        size={10}
+                        thumbSize="6"
+                        styles={{
+                            thumb: {
+                                borderWidth: 0,
+                                backgroundColor: "var(--mantine-color-neutral-3)",
+                            },
+                            bar: {
+                                // Fixes this bug: https://github.com/mantinedev/mantine/pull/7464
+                                width: "calc(var(--slider-bar-width) + var(--slider-size))",
+                            },
+                        }}
+                    />
+                    <div className="flex justify-between font-bold text-sm">
+                        <p>0:00</p>
+                        <p>9:99</p>
+                    </div>
+                </div>
+                <SegmentedControl withItemsBorders={false} radius="lg" data={['Live', 'Recording']} />
             </div>
         </div>
     );

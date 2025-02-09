@@ -2,46 +2,83 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-import '@mantine/core/styles.css';
-import { ColorSchemeScript, createTheme, mantineHtmlProps, MantineProvider } from '@mantine/core';
+import "@mantine/core/styles.css";
+import {
+    ColorSchemeScript,
+    createTheme,
+    mantineHtmlProps,
+    MantineProvider,
+} from "@mantine/core";
+import colors from "tailwindcss/colors";
 const theme = createTheme({
-  /** Put your mantine theme override here */
+    /** Put your mantine theme override here */
+    colors: {
+        neutral: [
+            // // Manually converted from Tailwind `neutral-[100-950]`
+            // "oklch(0.97 0 0)", //--color-neutral-100:  #f5f5f5
+            // "oklch(0.922 0 0)", //--color-neutral-200:  #e5e5e5
+            // "oklch(0.87 0 0)", //--color-neutral-300:  #d4d4d4
+            // "oklch(0.708 0 0)", //--color-neutral-400:  #a1a1a1
+            // "oklch(0.556 0 0)", //--color-neutral-500:  #737373
+            // "oklch(0.439 0 0)", //--color-neutral-600:  #525252
+            // "oklch(0.371 0 0)", //--color-neutral-700:  #404040
+            // "oklch(0.269 0 0)", //--color-neutral-800:  #262626
+            // "oklch(0.205 0 0)", //--color-neutral-900:  #171717
+            // "oklch(0.145 0 0)", //--color-neutral-950:  #0a0a0a
+
+            // Better version of "neutral", more compatible with Mantine
+            // Generated using Mantine's color generator
+            "#f5f5f5",
+            "#e7e7e7",
+            "#cdcdcd",
+            "#b2b2b2",
+            "#9a9a9a",
+            "#8b8b8b",
+            "#848484",
+            "#717171",
+            "#656565",
+            "#575757"
+        ],
+    },
+    primaryColor: "neutral",
 });
 
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+    src: "./fonts/GeistVF.woff",
+    variable: "--font-geist-sans",
+    weight: "100 900",
 });
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+    src: "./fonts/GeistMonoVF.woff",
+    variable: "--font-geist-mono",
+    weight: "100 900",
 });
 
 export const metadata: Metadata = {
-  title: "FS-3 Live Visualization",
-  description: "Created by the Formula Slug Telemetry Team",
+    title: "FS-3 Live Visualization",
+    description: "Created by the Formula Slug Telemetry Team",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" {...mantineHtmlProps}>
-      <head>
-      <ColorSchemeScript defaultColorScheme="dark" />
-      </head>
-      <body className={`
+    return (
+        <html lang="en" {...mantineHtmlProps}>
+            <head>
+                <ColorSchemeScript forceColorScheme="dark" />
+            </head>
+            <body
+                className={`
         ${geistSans.variable} ${geistMono.variable} antialiased
         bg-background text-foreground
-      `}>
-        <MantineProvider theme={theme}>
-          {children}
-        </MantineProvider>
-      </body>
-    </html>
-  );
+      `}
+            >
+                <MantineProvider forceColorScheme="dark" theme={theme}>
+                    {children}
+                </MantineProvider>
+            </body>
+        </html>
+    );
 }

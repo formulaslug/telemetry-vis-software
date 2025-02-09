@@ -13,6 +13,7 @@ const config: Config = {
         "background": colors.neutral[950],
         "background-1": colors.neutral[950],
         "background-2": colors.neutral[900],
+        "background-3": colors.neutral[800],
         "foreground": colors.neutral[300],
         "foreground-1": colors.neutral[300],
         "foreground-2": colors.neutral[500],

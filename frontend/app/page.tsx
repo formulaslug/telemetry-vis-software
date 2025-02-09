@@ -11,11 +11,12 @@ import { DataArrays, ColumnName, nullDataArrays } from "./datatypes";
 
 import StreamType from "@/models/StreamType";
 import StreamTypePicker from "@/app/components/StreamTypePicker";
-import { Record } from "@phosphor-icons/react";
+import { Pause, Play, PlayPause, Record } from "@phosphor-icons/react";
 import ItemContainer from "./components/ItemContainer";
 import SuspensionGauge from "./FigmaTesting/SuspensionGauge";
 import GForceGauge from "./FigmaTesting/GForceGauge";
 import CarWireframe from "./FigmaTesting/CarWireframe";
+import { ActionIcon, Button, RangeSlider } from "@mantine/core";
 
 const subsystems = ["Accumulator", "Suspension", "IMU Data", "Faults", "3D Tests"];
 
@@ -184,8 +185,8 @@ export default function Home() {
     }
 
     return (
-        <div className="pt-4 bg-background-1">
-            <div className={"px-6 flex justify-between flex-row items-center"}>
+        <div className="pt-4 bg-background-1 flex flex-col min-h-screen">
+            <div className={"px-6 flex justify-between flex-row items-center max-h-20"}>
                 <Image
                     className="py-4"
                     src="/fs_logo.png"
@@ -204,6 +205,13 @@ export default function Home() {
                         <p className={"ml-1"}>Record</p>
                     </button>
                 )}
+                <header className={"flex justify-center gap-4 w-full"}>
+                    <SubsystemPicker
+                        subsystems={subsystems}
+                        selectedSubsystem={selectedSubsystem}
+                        onSelectSubsystem={(a) => setSelectedSubsystem(a)}
+                    />
+                </header>
                 <StreamTypePicker
                     websocketConnected={websocketConnected}
                     recordings={recordings}
@@ -215,14 +223,7 @@ export default function Home() {
                     }
                 />
             </div>
-            <header className={"flex items-center w-full"}>
-                <SubsystemPicker
-                    subsystems={subsystems}
-                    selectedSubsystem={selectedSubsystem}
-                    onSelectSubsystem={(a) => setSelectedSubsystem(a)}
-                />
-            </header>
-            <main>
+            <main className="flex-1">
                 {selectedSubsystem === 0 ? (
                     <div className={"grid grid-cols-1 md:grid-cols-2 gap-4 p-4"}>
                         <LineChartWrapper
@@ -389,9 +390,19 @@ export default function Home() {
                     </div>
                 ) : null}
             </main>
-            <footer>
+            <footer className="h-max">
                 <p className={"text-center"}>FS Live Visualization Demo ({numRows} rows)</p>
             </footer>
+            <div className="fixed bottom-0 w-full bg-background-3 rounded-t-3xl min-h-20 p-4 flex gap-4">
+                <ActionIcon variant="empty" onClick={() => setStreamType(streamType == StreamType.LIVE ? StreamType.RECORDED : StreamType.LIVE)}>
+                    {streamType == StreamType.LIVE ? 
+                        <Pause />
+                        :
+                        <Play />
+                    }
+                </ActionIcon>
+                <RangeSlider className="flex-1" />
+            </div>
         </div>
     );
 }

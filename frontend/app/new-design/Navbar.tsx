@@ -101,11 +101,11 @@ export default function Navbar() {
                                         size={18}
                                         style={{
                                             transform: expanded
-                                                ? "rotate(180deg)"
-                                                : "rotate(0deg)",
+                                                ? "rotate(0deg)"
+                                                : "rotate(-90deg)",
                                             transition: "all 0.2s",
                                             transitionTimingFunction: "bounce",
-                                            fill: expanded ? "white" : "gray",
+                                            fill: "gray",
                                         }}
                                     />
                                 )}
@@ -118,12 +118,8 @@ export default function Navbar() {
                                             close();
                                         }
                                     }}
-                                    style={{
-                                        color:
-                                            expanded || node.label == fileName
-                                                ? "white"
-                                                : "gray",
-                                    }}
+                                    className={hasChildren ? "text-foreground" : `text-[--mantine-color-primary-5]`}
+
                                 >
                                     {node.label}
                                 </span>
@@ -144,7 +140,6 @@ export default function Navbar() {
                             onChange={onPickerChanged}
                             size={"lg"}
                             radius={"md"}
-                            style={{ margin: 3 }}
                             data={[
                                 { label: "Live", value: "live" },
                                 { label: displayedName, value: "recording" },
@@ -164,7 +159,7 @@ export default function Navbar() {
                 <div className="flex flex-row items-center">
                     {/* Logo */}
                     <div className="m-3">
-                        <Image src="/fs_logo.png" alt="fs-logo" width={100} height={40} />
+                        <Image src="/fs_logo.png" alt="fs-logo" width={100} height={40} className="w-auto" priority={true} />
                     </div>
 
                     {/* Modal */}
@@ -173,7 +168,7 @@ export default function Navbar() {
                     </div>
                 </div>
                 {/* Right Side */}
-                <div className="m-3 w-[10%]">
+                <div className="m-3">
                     <Button
                         fullWidth
                         onClick={open}

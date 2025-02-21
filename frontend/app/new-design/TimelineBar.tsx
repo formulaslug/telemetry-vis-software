@@ -69,7 +69,7 @@ export default function TimelineBar() {
                     min={0}
                     max={100}
                     step={1}
-                    size={3}
+                    size={8}
                     thumbSize={6}
                     styles={{
                         track: { cursor: "pointer" },

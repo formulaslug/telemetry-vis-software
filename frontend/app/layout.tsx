@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
+
+import "./globals.css"; // Imports tailwind styles
 
 import "@mantine/core/styles.css";
 import {
@@ -9,9 +10,9 @@ import {
     mantineHtmlProps,
     MantineProvider,
 } from "@mantine/core";
-import colors from "tailwindcss/colors";
 const theme = createTheme({
-    /** Put your mantine theme override here */
+    defaultRadius: "md",
+
     colors: {
         neutral: [
             // // Manually converted from Tailwind `neutral-[100-950]`
@@ -26,8 +27,8 @@ const theme = createTheme({
             // "oklch(0.205 0 0)", //--color-neutral-900:  #171717
             // "oklch(0.145 0 0)", //--color-neutral-950:  #0a0a0a
 
-            // Better version of "neutral", more compatible with Mantine
-            // Generated using Mantine's color generator
+            // Better version of "neutral", generated using
+            // Mantine's color generator
             "#f5f5f5",
             "#e7e7e7",
             "#cdcdcd",
@@ -78,6 +79,7 @@ const geistMono = localFont({
     weight: "100 900",
 });
 
+// TODO: how should this get used?
 export const metadata: Metadata = {
     title: "FS-3 Live Visualization",
     description: "Created by the Formula Slug Telemetry Team",
@@ -95,9 +97,8 @@ export default function RootLayout({
             </head>
             <body
                 className={`
-        ${geistSans.variable} ${geistMono.variable} antialiased
-        bg-background text-foreground
-      `}
+                    ${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground
+                `}
             >
                 <MantineProvider forceColorScheme="dark" theme={theme}>
                     {children}

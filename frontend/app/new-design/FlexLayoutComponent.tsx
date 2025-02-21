@@ -84,7 +84,7 @@ const model = Model.fromJson({
     },
 });
 
-export default function LayoutComponent() {
+export default function FlexLayoutComponent() {
     const [sinNum, setSinNum] = useState(0);
 
     useEffect(() => {

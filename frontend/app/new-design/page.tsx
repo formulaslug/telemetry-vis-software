@@ -2,7 +2,7 @@
 
 import Navbar from "./Navbar";
 import "./dark-rounded.css";
-import LayoutComponent from "./LayoutComponent";
+import FlexLayoutComponent from "./FlexLayoutComponent";
 import TimelineBar from "./TimelineBar";
 
 export default function Page() {
@@ -11,7 +11,7 @@ export default function Page() {
             <div className="w-[100vw] h-[100vh] flex flex-col">
                 <Navbar />
                 <div className="grow w-[100vw] overflow-hidden">
-                    <LayoutComponent />
+                    <FlexLayoutComponent />
                 </div>
                 <div className="p-3">
                     <TimelineBar />

@@ -5,7 +5,7 @@ export default function getTextSize({ ref }: { ref: RefObject<HTMLDivElement> })
 
     useEffect(() => {
         if (ref) {
-            const scaledTextSize = (ref.current?.offsetWidth as number) / 24;
+            const scaledTextSize = (ref.current?.offsetHeight as number) / 24;
             setTextSize(scaledTextSize);
             return () => {
                 scaledTextSize;

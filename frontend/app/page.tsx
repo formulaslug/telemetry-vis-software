@@ -162,7 +162,7 @@ export default function Home() {
         const dataXArr = dataTrimmed.current[dataXKey ?? ":Time"];
         return (
             <ItemContainer title={title}>
-                {dataXArr == null || dataYArrs.length == 0 ? null : (
+               {dataXArr == null || dataYArrs.length == 0 ? null : (
                     <LineChart
                         title={title}
                         numRows={numRows}

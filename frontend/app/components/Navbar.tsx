@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
-import { availableRecordings } from "../http";
+import { availableRecordings } from "../data-processing/http";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {

@@ -1,6 +1,6 @@
 import React, { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import StreamType from "@/models/StreamType";
-import { availableRecordings } from "../http";
+import { availableRecordings } from "../data-processing/http";
 
 interface StreamTypePickerProps {
     websocketConnected: boolean;

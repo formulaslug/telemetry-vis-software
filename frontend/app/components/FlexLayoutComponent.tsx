@@ -1,9 +1,9 @@
 import { Layout, Model, TabNode } from "flexlayout-react";
 import { useEffect, useState } from "react";
-import SuspensionGauge from "../components/SuspensionGauge";
-import CarWireframe from "../components/CarWireframe";
-import GForceGauge from "../components/GForceGauge";
-import DemoChart from "./DemoChart";
+import SuspensionGauge from "./visualizations/SuspensionGauge";
+import CarWireframe from "./visualizations/CarWireframe";
+import GForceGauge from "./visualizations/GForceGauge";
+import DemoChart from "./visualizations/DemoChart";
 
 const model = Model.fromJson({
     global: {},

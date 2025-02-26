@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+// import localFont from "next/font/local";
 
 import "./globals.css"; // Imports tailwind styles
 
@@ -68,18 +68,13 @@ const theme = createTheme({
     primaryColor: "neutral",
 });
 
-const geistSans = localFont({
-    src: "./fonts/GeistVF.woff",
-    variable: "--font-geist-sans",
-    weight: "100 900",
-});
-const geistMono = localFont({
-    src: "./fonts/GeistMonoVF.woff",
-    variable: "--font-geist-mono",
-    weight: "100 900",
+import { Inter } from "next/font/google";
+const inter = Inter({
+    subsets: ["latin"],
+    display: "swap",
 });
 
-// TODO: how should this get used?
+// this gets used automatically by NextJS
 export const metadata: Metadata = {
     title: "FS-3 Live Visualization",
     description: "Created by the Formula Slug Telemetry Team",
@@ -95,11 +90,7 @@ export default function RootLayout({
             <head>
                 <ColorSchemeScript forceColorScheme="dark" />
             </head>
-            <body
-                className={`
-                    ${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground
-                `}
-            >
+            <body className={`${inter.className} antialiased bg-background text-foreground`}>
                 <MantineProvider forceColorScheme="dark" theme={theme}>
                     {children}
                 </MantineProvider>

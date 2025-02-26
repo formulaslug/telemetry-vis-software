@@ -2,7 +2,7 @@ import { OrbitControls } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
-import getTextSize from "../utils/getTextSize";
+import getTextSize from "@/app/utils/getTextSize";
 
 interface GForceProps {
     x: number;

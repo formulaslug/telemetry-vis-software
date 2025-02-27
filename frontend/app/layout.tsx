@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-// import localFont from "next/font/local";
+import localFont from "next/font/local";
 
 import "./globals.css"; // Imports tailwind styles
 
@@ -68,10 +68,17 @@ const theme = createTheme({
     primaryColor: "neutral",
 });
 
-import { Inter } from "next/font/google";
-const inter = Inter({
-    subsets: ["latin"],
-    display: "swap",
+const inter = localFont({
+    src: "./fonts/InterVariable.woff2",
+    variable: "--font-inter",
+    style: "normal",
+    weight: "100 900",
+});
+const interItalic = localFont({
+    src: "./fonts/InterVariable-Italic.woff2",
+    variable: "--font-inter-italic",
+    style: "italic",
+    weight: "100 900",
 });
 
 // this gets used automatically by NextJS
@@ -90,7 +97,9 @@ export default function RootLayout({
             <head>
                 <ColorSchemeScript forceColorScheme="dark" />
             </head>
-            <body className={`${inter.className} antialiased bg-background text-foreground`}>
+            {/* using .variable here allows us to choose the font based on
+            tailwind italic/no-italic classes in globals.css */}
+            <body className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}>
                 <MantineProvider forceColorScheme="dark" theme={theme}>
                     {children}
                 </MantineProvider>

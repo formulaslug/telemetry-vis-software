@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lightningchart/lcjs": "^7.0.2",
+    "@lightningchart/lcjs-themes": "^5.0.1",
     "@mantine/core": "^7.16.3",
     "@mantine/hooks": "^7.16.3",
     "@mantine/modals": "^7.16.3",

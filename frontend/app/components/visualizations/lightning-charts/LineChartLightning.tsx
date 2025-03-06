@@ -8,6 +8,7 @@ import {
     ChartXY,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
+import globalTheme from "./globalTheme";
 
 interface LineChartLightningProps {
     data: { x: number; y: number }[];
@@ -41,13 +42,17 @@ export default function LineChartLightning(props: LineChartLightningProps) {
             },
         });
 
-        const chart = lc.ChartXY({ container });
+        const chart = lc.ChartXY({ container, theme: globalTheme });
         const lineSeries = chart
             .addPointLineAreaSeries({
                 dataPattern: "ProgressiveX",
             })
             .setAreaFillStyle(emptyFill)
-            .setMaxSampleCount(100_00);
+            .appendSamples({
+                xValues: Array.from({ length: 1000000 }, (_, i) => i as number),
+                yValues: Array.from({ length: 1000000 }, (i, n) => Math.random() * n * n),
+            });
+
         setChartState({ chart, lineSeries });
         // chart.getDefaultAxisX().setScrollStrategy(AxisScrollStrategies.progressive);
         // .setInterval({ start: -100, end: 0, stopAxisAfter: false });
@@ -55,13 +60,13 @@ export default function LineChartLightning(props: LineChartLightningProps) {
         return () => lc.dispose();
     }, [id /*, lc*/]);
 
-    useEffect(() => {
-        if (!chartState || !data || chartState.chart.isDisposed()) {
-            return;
-        }
-        const { lineSeries } = chartState;
-        lineSeries.appendJSON(data);
-    }, [data]);
+    // useEffect(() => {
+    //     if (!chartState || !data || chartState.chart.isDisposed()) {
+    //         return;
+    //     }
+    //     const { lineSeries } = chartState;
+    //     lineSeries.appendJSON(data);
+    // }, [data]);
 
     return <div id={id} ref={containerRef} style={{ width: "100%", height: "100%" }}></div>;
 }

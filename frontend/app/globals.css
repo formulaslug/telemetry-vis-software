@@ -2,24 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* :root { */
-/*   --background: var(--color-background-1) */
-/*   --foreground: var(--color-foreground) */
-/* } */
+/* 
+*Color Palette: Catppuccin (Frape)*
 
-/* @media (prefers-color-scheme: dark) { */
-/*   :root { */
-/*      --background: #0a0a0a; */
-/*      --foreground: #ededed; */
-/*   } */
-/* } */
+link: https://catppuccin.com/palette/
 
-/* body { */
-/*   color: var(--foreground); */
-/*   background: var(--background); */
-/* } */
 
-body, .not-italic {
+*/
+body,
+.not-italic {
     font-family: var(--font-inter);
 }
 

@@ -2,22 +2,22 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import SubsystemPicker from "@/app/components/SubsystemPicker";
-import LineChart from "@/app/components/LineChart";
+import LineChart from "./components/visualizations/LineChart";
 import Image from "next/image";
 
-import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
-import { availableRecordings, initRecordingSource } from "./http";
-import { DataArrays, ColumnName, nullDataArrays } from "./datatypes";
+import { closeWebSocketConnection, initWebSocketConnection } from "./data-processing/websocket";
+import { availableRecordings, initRecordingSource } from "./data-processing/http";
+import { DataArrays, ColumnName, nullDataArrays } from "./data-processing/datatypes";
 
 import StreamType from "@/models/StreamType";
-import StreamTypePicker from "@/app/components/StreamTypePicker";
+import StreamTypePicker from "./components/StreamTypePicker_Old";
 import { Pause, Play, PlayPause, Record, Rss, RssSimple } from "@phosphor-icons/react";
 import ItemContainer from "./components/ItemContainer";
-import SuspensionGauge from "./FigmaTesting/SuspensionGauge";
-import GForceGauge from "./FigmaTesting/GForceGauge";
-import CarWireframe from "./FigmaTesting/CarWireframe";
+import SuspensionGauge from "./components/visualizations/SuspensionGauge";
+import GForceGauge from "./components/visualizations/GForceGauge";
+import CarWireframe from "./components/visualizations/CarWireframe";
 import { ActionIcon, Button, RangeSlider, SegmentedControl, Slider } from "@mantine/core";
-import LineChartLightning from "./components/LineChartLightning";
+import LineChartLightning from "./components/visualizations/lightning-charts/LineChartLightning";
 
 const subsystems = ["Accumulator", "Suspension", "IMU Data", "Faults", "3D Tests"];
 

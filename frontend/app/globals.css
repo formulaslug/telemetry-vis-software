@@ -2,13 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
-*Color Palette: Catppuccin (Frape)*
-
-link: https://catppuccin.com/palette/
-
-
-*/
 body,
 .not-italic {
     font-family: var(--font-inter);

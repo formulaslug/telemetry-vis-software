@@ -88,31 +88,31 @@ export default function FlexLayoutComponent() {
     const [sinNum, setSinNum] = useState(0);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSinNum(Math.sin(Date.now() * 0.001));
-        }, 16);
-
-        return () => clearInterval(interval);
+        // const interval = setInterval(() => {
+        //     setSinNum(Math.sin(Date.now() * 0.001));
+        // }, 16);
+        //
+        // return () => clearInterval(interval);
     }, []);
 
-    let components = {
-        "suspension-gauge": (
-            <SuspensionGauge s1={sinNum} s2={sinNum ** 2} s3={sinNum ** 3} s4={sinNum ** 4} />
-        ),
-        "car-wireframe": <CarWireframe x={sinNum} y={sinNum} z={sinNum} />,
-        "g-force-gauge": <GForceGauge x={sinNum} y={sinNum} z={sinNum} />,
-        "demo-chart": <DemoChart />,
-        skeleton: <div className="w-full h-full bg-neutral-500"></div>,
-    };
-
-    type componentKey = keyof typeof components;
-
     function factory(node: TabNode) {
+        const components = {
+            // prettier-ignore
+            "suspension-gauge": <SuspensionGauge s1={sinNum} s2={sinNum ** 2} s3={sinNum ** 3} s4={sinNum ** 4} />,
+            "car-wireframe": <CarWireframe x={sinNum} y={sinNum} z={sinNum} />,
+            "g-force-gauge": <GForceGauge x={sinNum} y={sinNum} z={sinNum} />,
+            "demo-chart": <DemoChart />,
+            skeleton: <div className="w-full h-full bg-neutral-500"></div>,
+        };
+
+        type ComponentKey = keyof typeof components;
+
         const component = node.getComponent();
 
         return components[
-            (component && component in components ? component : "skeleton") as componentKey
+            (component && component in components ? component : "skeleton") as ComponentKey
         ];
     }
+
     return <Layout realtimeResize={true} model={model} factory={factory} />;
 }

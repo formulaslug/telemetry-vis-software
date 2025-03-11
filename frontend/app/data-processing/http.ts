@@ -3,10 +3,8 @@ import wasmInit, { readParquet, wasmMemory } from "parquet-wasm/esm";
 // Enables zero-copy transer of Arrow data from wasm memory to JS
 import * as arrowJSFFI from "arrow-js-ffi";
 
-import { Table } from "apache-arrow";
-import { columnNames, DataArrays, DataRow, nullDataArrays, schema } from "./datatypes";
+import { DataArrays, DataRow, nullDataArrays, schema } from "./datatypes";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { TypedArray } from "three";
 
 // TODO(jack): this setup is kinda bad cuz every time the function is called it
 // tried all URLs, including bad ones, which cause Network Errors to be thrown

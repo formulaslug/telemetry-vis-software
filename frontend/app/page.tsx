@@ -5,7 +5,7 @@ import FlexLayoutComponent from "./components/FlexLayoutComponent";
 import Navbar from "./components/Navbar";
 import TimelineBar from "./components/TimelineBar";
 
-import { LightningChartsHost } from "./components/visualizations/lightning-charts/GlobalContext";
+import { LightningChartsProvider } from "./components/visualizations/lightning-charts/GlobalContext";
 
 export default function Page() {
     return (
@@ -13,9 +13,9 @@ export default function Page() {
             <Navbar />
             <div className="grow w-[100vw] overflow-hidden">
                 {/* TODO: LightningChartsHost doesn't work yet */}
-                <LightningChartsHost>
+                <LightningChartsProvider>
                     <FlexLayoutComponent />
-                </LightningChartsHost>
+                </LightningChartsProvider>
             </div>
             <div className="p-3">
                 <TimelineBar />

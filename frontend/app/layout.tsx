@@ -95,11 +95,16 @@ export default function RootLayout({
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
+                {/* Uncomment the next line to enable visual component rerendering detection! */}
+                {/* <script src="https://unpkg.com/react-scan/dist/auto.global.js" /> */}
+
                 <ColorSchemeScript forceColorScheme="dark" />
             </head>
             {/* using .variable here allows us to choose the font based on
             tailwind italic/no-italic classes in globals.css */}
-            <body className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}>
+            <body
+                className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}
+            >
                 <MantineProvider forceColorScheme="dark" theme={theme}>
                     {children}
                 </MantineProvider>

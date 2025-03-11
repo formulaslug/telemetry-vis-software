@@ -110,21 +110,19 @@ export type ColumnName = keyof DataRow;
 // arrays". Importantly values can also be null, as not every schema has all
 // known keys (eg. old recordings)! This forces consumers to do error handling
 export type DataArrays = {
-  // [K in keyof DataRow]: DataRow[K]["TArray"] | null; // for typed arrays
   [K in keyof DataRow]: DataRow[K]["TValue"][] | null; // for regular arrays
 };
+export type DataArraysTyped = {
+  [K in keyof DataRow]: DataRow[K]["TArray"] | null; // for typed arrays
+}
 
-// Generate a dictionary with keys for each column name that are mapped to empty
-// arrays
-// export function emptyDataArrays(/*rows: number*/): DataArrays {
-//   return columnNames.reduce((acc, key) => {
-//     // for typed arrays:
-//     acc[key] = new columnDataTypes[key].ArrayType(rows);
-//     // for regular arrays:
-//     // acc[key] = new Array();
-//     return acc;
-//   }, {} as DataArrays);
-// }
+// Generate a dictionary with keys for each column name that are mapped to empty TypedArrays
+export function emptyDataArraysTyped(rows: number): DataArraysTyped {
+  return columnNames.reduce((acc, key) => {
+    acc[key] = new columnDataTypes[key].ArrayType(rows);
+    return acc;
+  }, {} as DataArraysTyped);
+}
 // Generate a dictionary with keys for each column name that are mapped to null.
 // This forces initializers (websocket, recordings) to initialize to real arrays
 export function nullDataArrays(): DataArrays {

@@ -10,6 +10,8 @@ import {
     mantineHtmlProps,
     MantineProvider,
 } from "@mantine/core";
+import { DataSubscriptionProvider } from "./data-processing/DataSubscriptionProvider";
+import { LightningChartsProvider } from "./components/visualizations/lightning-charts/GlobalContext";
 const theme = createTheme({
     defaultRadius: "md",
 
@@ -106,7 +108,9 @@ export default function RootLayout({
                 className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}
             >
                 <MantineProvider forceColorScheme="dark" theme={theme}>
-                    {children}
+                    <DataSubscriptionProvider>
+                        <LightningChartsProvider>{children}</LightningChartsProvider>
+                    </DataSubscriptionProvider>
                 </MantineProvider>
             </body>
         </html>

@@ -2,23 +2,26 @@ import { TypedArray } from "apache-arrow/interfaces";
 import { createContext, PropsWithChildren, useContext, useRef } from "react";
 import { DataArrays, DataArraysTyped } from "./datatypes";
 
-type SubscriptionLatestArrayTyped = (latest: DataArraysTyped, reset: boolean) => void;
-type SubscriptionLatestArray = (latest: DataArrays, reset: boolean) => void;
-type SubscriptionFullArray = (latest: TypedArray) => void;
-type SubscriptionCursorRow = (latest: number) => void;
-type SubscriptionNumRows = (latest: number) => void;
+type SubscriptionReset = () => void; // possibly remove in favor of additional arg?
+type SubscriptionLatestArraysTyped = (latest: DataArraysTyped) => void;
+type SubscriptionLatestArrays = (latest: DataArrays) => void;
+type SubscriptionFullArrays = (latest: DataArrays) => void;
+type SubscriptionCursorRow = (cursorRow: number) => void;
+type SubscriptionNumRows = (numRows: number) => void;
 
 type Subscription =
-    | SubscriptionLatestArrayTyped
-    | SubscriptionLatestArray
-    | SubscriptionFullArray
+    | SubscriptionReset
+    | SubscriptionLatestArraysTyped
+    | SubscriptionLatestArrays
+    | SubscriptionFullArrays
     | SubscriptionCursorRow
     | SubscriptionNumRows;
 
 type DataSubscribers = {
-    subscribeLatestArrayTyped: (clbk: SubscriptionLatestArrayTyped) => () => void;
-    subscribeLatestArray: (clbk: SubscriptionLatestArray) => () => void;
-    subscribeFullArray: (clbk: SubscriptionFullArray) => () => void;
+    subscribeReset: (clbk: SubscriptionReset) => () => void;
+    subscribeLatestArraysTyped: (clbk: SubscriptionLatestArraysTyped) => () => void;
+    subscribeLatestArrays: (clbk: SubscriptionLatestArrays) => () => void;
+    subscribeFullArrays: (clbk: SubscriptionFullArrays) => () => void;
     subscribeCursorRow: (clbk: SubscriptionCursorRow) => () => void;
     subscribeNumRows: (clbk: SubscriptionNumRows) => () => void;
 };
@@ -53,7 +56,15 @@ export function DataSubscriptionProvider({ children }: PropsWithChildren) {
     );
 }
 
-export function useDataSubscriptionContext() {
+export function switchToLiveData() {
+    
+}
+
+export function switchToRecording(filename: string) {
+    
+}
+
+export function useDataSubscription() {
     const context = useContext(DataSubscriptionContext);
     if (!context) {
         throw new Error(

@@ -3,13 +3,16 @@ import React, { useContext, useEffect, useId, useRef, useState } from "react";
 import { lightningChart, emptyFill, PointLineAreaSeries, ChartXY } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
+import { useDataSubscription } from "@/app/data-processing/DataSubscriptionProvider";
+import { ColumnName, DataArraysTyped } from "@/app/data-processing/datatypes";
 
 interface LineChartLightningProps {
-    data: { x: number; y: number }[];
+    keyName: ColumnName;
 }
-export default function LineChartLightning({data}: LineChartLightningProps) {
+export default function LineChartLightning({ keyName }: LineChartLightningProps) {
     const id = useId();
     const lc = useContext(LightningChartsContext); // TODO(jack): make this work
+    const { subscribeReset, subscribeLatestArraysTyped: subscribeLatestArrayTyped } = useDataSubscription();
     const containerRef = useRef(null);
     const [chartState, setChartState] = useState<{
         chart: ChartXY;
@@ -32,10 +35,24 @@ export default function LineChartLightning({data}: LineChartLightningProps) {
         setChartState({ chart, lineSeries });
         // chart.getDefaultAxisX().setScrollStrategy(AxisScrollStrategies.progressive);
         // .setInterval({ start: -100, end: 0, stopAxisAfter: false });
+
+        const detach1 = subscribeReset(() => {
+            lineSeries.clear();
+        });
+        const detach2 = subscribeLatestArrayTyped((latest: DataArraysTyped) => {
+            lineSeries.appendSamples({
+                xValues: latest["Seconds"]!,
+                yValues: latest[keyName]!,
+            });
+        });
+        return () => {
+            detach1();
+            detach2();
+        };
     }, [id, lc]);
 
     useEffect(() => {
-        if (!chartState || !data || chartState.chart.isDisposed()) {
+        if (!chartState || chartState.chart.isDisposed()) {
             return;
         }
         const { lineSeries } = chartState;
@@ -44,7 +61,6 @@ export default function LineChartLightning({data}: LineChartLightningProps) {
             yValues: Array.from({ length: 1000000 }, (_, i) => Math.random() * i * i),
         });
         console.log("appendSamples lkasdjflkasjdfkl");
-        
     }, [data]);
 
     return <div id={id} ref={containerRef} style={{ width: "100%", height: "100%" }}></div>;

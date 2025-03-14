@@ -115,6 +115,9 @@ export type DataArrays = {
 export type DataArraysTyped = {
   [K in keyof DataRow]: DataRow[K]["TArray"] | null; // for typed arrays
 }
+export type DataValues = { // intended for getting the current row of cursor
+  [K in keyof DataRow]: DataRow[K]["TValue"];
+};
 
 // Generate a dictionary with keys for each column name that are mapped to empty TypedArrays
 export function emptyDataArraysTyped(rows: number): DataArraysTyped {
@@ -128,6 +131,12 @@ export function emptyDataArraysTyped(rows: number): DataArraysTyped {
 export function nullDataArrays(): DataArrays {
   return columnNames.reduce((acc, key) => {
     acc[key] = null
+    return acc;
+  }, {} as DataArrays);
+}
+export function emptyDataArrays(): DataArrays {
+  return columnNames.reduce((acc, key) => {
+    acc[key] = []
     return acc;
   }, {} as DataArrays);
 }

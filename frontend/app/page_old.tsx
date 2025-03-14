@@ -9,7 +9,7 @@ import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
 import { availableRecordings, initRecordingSource } from "./http";
 import { DataArrays, ColumnName, nullDataArrays } from "./datatypes";
 
-import StreamType from "@/models/StreamType";
+import DataSourceType from "@/models/StreamType";
 import StreamTypePicker from "@/app/components/StreamTypePicker";
 import { Pause, Play, PlayPause, Record, Rss, RssSimple } from "@phosphor-icons/react";
 import ItemContainer from "./components/ItemContainer";
@@ -33,11 +33,11 @@ export default function Home() {
     const [websocketConnected, setWebsocketConnected] = useState<boolean>(false);
 
     const [recordings, setRecordings] = useState<string[]>([]);
-    const [streamType, setStreamType] = useState<StreamType>(StreamType.NONE);
+    const [streamType, setStreamType] = useState<DataSourceType>(DataSourceType.NONE);
     const [chosenRecording, setChosenRecording] = useState<string | null>(null);
 
     useEffect(() => {
-        if (streamType == StreamType.LIVE) {
+        if (streamType == DataSourceType.LIVE) {
             initWebSocketConnection(
                 setWebsocketConnected,
                 data,
@@ -195,7 +195,7 @@ export default function Home() {
                     width={100}
                     height={40}
                 />
-                {streamType == StreamType.LIVE && (
+                {streamType == DataSourceType.LIVE && (
                     <button
                         onClick={() => setIsRecording(!isRecording)}
                         className={`m-4 p-2 px-4 rounded-xl ${
@@ -409,13 +409,13 @@ export default function Home() {
                     variant="transparent"
                     onClick={() =>
                         setStreamType(
-                            streamType == StreamType.LIVE
-                                ? StreamType.RECORDED
-                                : StreamType.LIVE,
+                            streamType == DataSourceType.LIVE
+                                ? DataSourceType.RECORDED
+                                : DataSourceType.LIVE,
                         )
                     }
                 >
-                    {streamType == StreamType.LIVE ? (
+                    {streamType == DataSourceType.LIVE ? (
                         <Pause size={32} weight="fill" />
                     ) : (
                         <Play size={32} weight="fill" />

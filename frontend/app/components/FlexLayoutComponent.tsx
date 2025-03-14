@@ -4,6 +4,7 @@ import SuspensionGauge from "./visualizations/SuspensionGauge";
 import CarWireframe from "./visualizations/CarWireframe";
 import GForceGauge from "./visualizations/GForceGauge";
 import DemoChart from "./visualizations/DemoChart";
+import LineChartLightning from "./visualizations/lightning-charts/LineChartLightning";
 
 const model = Model.fromJson({
     global: {},
@@ -98,10 +99,10 @@ export default function FlexLayoutComponent() {
     function factory(node: TabNode) {
         const components = {
             // prettier-ignore
-            "suspension-gauge": <SuspensionGauge s1={sinNum} s2={sinNum ** 2} s3={sinNum ** 3} s4={sinNum ** 4} />,
-            "car-wireframe": <CarWireframe x={sinNum} y={sinNum} z={sinNum} />,
-            "g-force-gauge": <GForceGauge x={sinNum} y={sinNum} z={sinNum} />,
-            "demo-chart": <DemoChart />,
+            // "suspension-gauge": <SuspensionGauge s1={sinNum} s2={sinNum ** 2} s3={sinNum ** 3} s4={sinNum ** 4} />,
+            // "car-wireframe": <CarWireframe x={sinNum} y={sinNum} z={sinNum} />,
+            // "g-force-gauge": <GForceGauge x={sinNum} y={sinNum} z={sinNum} />,
+            "demo-chart": <LineChartLightning keyName="Seg0_VOLT_0"/>,
             skeleton: <div className="w-full h-full bg-neutral-500"></div>,
         };
 
@@ -114,5 +115,5 @@ export default function FlexLayoutComponent() {
         ];
     }
 
-    return <Layout realtimeResize={true} model={model} factory={factory} />;
+    return <Layout realtimeResize={false} model={model} factory={factory} />;
 }

@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useId, useRef, useState } from "react";
 import { lightningChart, emptyFill, PointLineAreaSeries, ChartXY } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
-import { useDataSubscription } from "@/app/data-processing/DataSubscriptionProvider";
+import { useDataSourceContext } from "@/app/data-processing/DataSubscriptionProvider";
 import { ColumnName, DataArraysTyped } from "@/app/data-processing/datatypes";
 
 interface LineChartLightningProps {
@@ -11,8 +11,8 @@ interface LineChartLightningProps {
 }
 export default function LineChartLightning({ keyName }: LineChartLightningProps) {
     const id = useId();
-    const lc = useContext(LightningChartsContext); // TODO(jack): make this work
-    const { subscribeReset, subscribeLatestArraysTyped: subscribeLatestArrayTyped } = useDataSubscription();
+    const lc = useContext(LightningChartsContext);
+    const { subscribeReset, subscribeLatestArraysTyped, subscribeViewEdges } = useDataSourceContext();
     const containerRef = useRef(null);
     const [chartState, setChartState] = useState<{
         chart: ChartXY;
@@ -39,7 +39,10 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
         const detach1 = subscribeReset(() => {
             lineSeries.clear();
         });
-        const detach2 = subscribeLatestArrayTyped((latest: DataArraysTyped) => {
+        const detach2 = subscribeViewEdges((left: number, right: number) => {
+            lineSeries.axisX.setInterval({ start: left, end: right + 1 });
+        });
+        const detach3 = subscribeLatestArraysTyped((latest: DataArraysTyped) => {
             lineSeries.appendSamples({
                 xValues: latest["Seconds"]!,
                 yValues: latest[keyName]!,
@@ -48,20 +51,21 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
         return () => {
             detach1();
             detach2();
+            detach3();
         };
     }, [id, lc]);
 
-    useEffect(() => {
-        if (!chartState || chartState.chart.isDisposed()) {
-            return;
-        }
-        const { lineSeries } = chartState;
-        lineSeries.appendSamples({
-            xValues: Array.from({ length: 1000000 }, (_, i) => i as number),
-            yValues: Array.from({ length: 1000000 }, (_, i) => Math.random() * i * i),
-        });
-        console.log("appendSamples lkasdjflkasjdfkl");
-    }, [data]);
+    // useEffect(() => {
+    //     if (!chartState || chartState.chart.isDisposed()) {
+    //         return;
+    //     }
+    //     const { lineSeries } = chartState;
+    //     lineSeries.appendSamples({
+    //         xValues: Array.from({ length: 1000000 }, (_, i) => i as number),
+    //         yValues: Array.from({ length: 1000000 }, (_, i) => Math.random() * i * i),
+    //     });
+    //     console.log("appendSamples lkasdjflkasjdfkl");
+    // }, [data]);
 
     return <div id={id} ref={containerRef} style={{ width: "100%", height: "100%" }}></div>;
 }

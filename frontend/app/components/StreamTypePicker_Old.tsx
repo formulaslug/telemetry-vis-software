@@ -1,12 +1,12 @@
 import React, { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
-import StreamType from "@/models/StreamType";
+import DataSourceType from "@/models/StreamType";
 import { availableRecordings } from "../data-processing/http";
 
 interface StreamTypePickerProps {
     websocketConnected: boolean;
     recordings: string[];
-    streamType: StreamType;
-    setStreamType: Dispatch<SetStateAction<StreamType>>;
+    streamType: DataSourceType;
+    setStreamType: Dispatch<SetStateAction<DataSourceType>>;
     chosenRecording: string;
     setChosenRecording: Dispatch<SetStateAction<string>>;
 }
@@ -117,7 +117,7 @@ export default function StreamTypePicker({
                         className="text-blue-400 hover:text-blue-600 font-mono"
                         onClick={() => {
                             setChosenRecording(getNodeAbsoluteName(node));
-                            setStreamType(StreamType.RECORDED);
+                            setStreamType(DataSourceType.RECORDED);
                             setMinimized(true);
                         }}
                     >
@@ -133,7 +133,7 @@ export default function StreamTypePicker({
             <button
                 className={`p-2 px-4 border-none
                         ${
-                            streamType == StreamType.LIVE
+                            streamType == DataSourceType.LIVE
                                 ? websocketConnected
                                     ? "bg-green-600 hover:border-green-200"
                                     : "bg-red-600 hover:border-red-200"
@@ -141,21 +141,21 @@ export default function StreamTypePicker({
                         }
                         m-4 rounded-full hover:border-gray-500 border-2
                         whitespace-nowrap overflow-hidden overflow-ellipsis
-                        ${streamType == StreamType.NONE && "bg-gray-600"}
+                        ${streamType == DataSourceType.NONE && "bg-gray-600"}
                         border-white duration-300`}
                 onClick={() => {
                     setMinimized(false);
                 }}
             >
-                {streamType === StreamType.LIVE && (
+                {streamType === DataSourceType.LIVE && (
                     <p className={"font-semibold text-white"}>Live Data</p>
                 )}
-                {streamType === StreamType.RECORDED && chosenRecording && (
+                {streamType === DataSourceType.RECORDED && chosenRecording && (
                     <p className={"text-black font-semibold text-right font-mono"}>
                         {chosenRecording}
                     </p>
                 )}
-                {streamType === StreamType.NONE && (
+                {streamType === DataSourceType.NONE && (
                     <p className={"text-black font-semibold text-right font-mono"}>Paused</p>
                 )}
             </button>
@@ -176,7 +176,7 @@ export default function StreamTypePicker({
                             <button
                                 className="m-4 p-2 px-4 rounded-xl flex items-center border-red-500 border-2"
                                 onClick={() => {
-                                    setStreamType(StreamType.LIVE);
+                                    setStreamType(DataSourceType.LIVE);
                                     setChosenRecording("");
                                     setMinimized(true);
                                 }}
@@ -190,7 +190,7 @@ export default function StreamTypePicker({
                             <button
                                 className="m-4 p-2 px-4 rounded-xl flex items-center border-gray-500 border-2"
                                 onClick={() => {
-                                    setStreamType(StreamType.NONE);
+                                    setStreamType(DataSourceType.NONE);
                                     setChosenRecording("");
                                     setMinimized(true);
                                 }}
@@ -237,7 +237,7 @@ export default function StreamTypePicker({
                                                 );
                                                 if (filtered.length == 1) {
                                                     setChosenRecording(filtered[0]);
-                                                    setStreamType(StreamType.RECORDED);
+                                                    setStreamType(DataSourceType.RECORDED);
                                                     setMinimized(true);
                                                 }
                                             }
@@ -278,7 +278,7 @@ export default function StreamTypePicker({
                                                 className="text-blue-400 hover:text-blue-600 font-mono"
                                                 onClick={() => {
                                                     setChosenRecording(recording);
-                                                    setStreamType(StreamType.RECORDED);
+                                                    setStreamType(DataSourceType.RECORDED);
                                                     setMinimized(true);
                                                 }}
                                             >

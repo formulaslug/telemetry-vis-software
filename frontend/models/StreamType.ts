@@ -1,8 +1,8 @@
 // For allowing the user to pick how they want to see data
-enum StreamType {
+enum DataSourceType {
     LIVE,
     RECORDED,
     NONE,
 }
 
-export default StreamType;
+export default DataSourceType;

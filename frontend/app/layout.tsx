@@ -10,7 +10,7 @@ import {
     mantineHtmlProps,
     MantineProvider,
 } from "@mantine/core";
-import { DataSubscriptionProvider } from "./data-processing/DataSubscriptionProvider";
+import { DataSourceProvider } from "./data-processing/DataSubscriptionProvider";
 import { LightningChartsProvider } from "./components/visualizations/lightning-charts/GlobalContext";
 const theme = createTheme({
     defaultRadius: "md",
@@ -98,7 +98,7 @@ export default function RootLayout({
         <html lang="en" {...mantineHtmlProps}>
             <head>
                 {/* Uncomment the next line to enable visual component rerendering detection! */}
-                {/* <script src="https://unpkg.com/react-scan/dist/auto.global.js" /> */}
+                <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
 
                 <ColorSchemeScript forceColorScheme="dark" />
             </head>
@@ -108,9 +108,9 @@ export default function RootLayout({
                 className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}
             >
                 <MantineProvider forceColorScheme="dark" theme={theme}>
-                    <DataSubscriptionProvider>
+                    <DataSourceProvider>
                         <LightningChartsProvider>{children}</LightningChartsProvider>
-                    </DataSubscriptionProvider>
+                    </DataSourceProvider>
                 </MantineProvider>
             </body>
         </html>

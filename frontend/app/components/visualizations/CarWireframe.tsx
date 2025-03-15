@@ -58,7 +58,10 @@ function Car({ rotation }: { rotation: rotation }) {
     );
 }
 
-export default function CarWireframe({ x, y, z }: { x: number; y: number; z: number }) {
+export default function CarWireframe() {
+    const x = 0;
+    const y = 0;
+    const z = 0;
     const containerRef = useRef<HTMLDivElement>(null);
     const textSize = getTextSize({ ref: containerRef });
 

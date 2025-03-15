@@ -1,18 +1,25 @@
 "use client";
 import React, { useContext, useEffect, useId, useRef, useState } from "react";
-import { lightningChart, emptyFill, PointLineAreaSeries, ChartXY } from "@lightningchart/lcjs";
+import {
+    lightningChart,
+    emptyFill,
+    PointLineAreaSeries,
+    ChartXY,
+    AxisScrollStrategies,
+} from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
-import { useDataSourceContext } from "@/app/data-processing/DataSubscriptionProvider";
+import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 import { ColumnName, DataArraysTyped } from "@/app/data-processing/datatypes";
 
 interface LineChartLightningProps {
-    keyName: ColumnName;
+    // keyName: ColumnName;
 }
-export default function LineChartLightning({ keyName }: LineChartLightningProps) {
+export default function LineChartLightning({}: LineChartLightningProps) {
     const id = useId();
     const lc = useContext(LightningChartsContext);
-    const { subscribeReset, subscribeLatestArraysTyped, subscribeViewEdges } = useDataSourceContext();
+    const { subscribeReset, subscribeLatestArraysTyped, subscribeViewEdges } =
+        useDataMethods();
     const containerRef = useRef(null);
     const [chartState, setChartState] = useState<{
         chart: ChartXY;
@@ -33,7 +40,20 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
         console.log("useState alskdjflkasdjf");
 
         setChartState({ chart, lineSeries });
-        // chart.getDefaultAxisX().setScrollStrategy(AxisScrollStrategies.progressive);
+        chart
+            .getDefaultAxisX()
+            .setScrollStrategy(AxisScrollStrategies.progressive)
+            .setUserInteractions({
+                pan: {
+                    lmb: { drag: {} },
+                    rmb: false,
+                },
+                zoom: {
+                    lmb: false,
+                    rmb: { drag: {} },
+                    wheel: {},
+                },
+            });
         // .setInterval({ start: -100, end: 0, stopAxisAfter: false });
 
         const detach1 = subscribeReset(() => {
@@ -44,8 +64,8 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
         });
         const detach3 = subscribeLatestArraysTyped((latest: DataArraysTyped) => {
             lineSeries.appendSamples({
-                xValues: latest["Seconds"]!,
-                yValues: latest[keyName]!,
+                xValues: latest[":Time"]!,
+                yValues: latest["Seg0_VOLT_0"]!,
             });
         });
         return () => {

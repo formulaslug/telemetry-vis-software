@@ -4,11 +4,11 @@ import { useDisclosure } from "@mantine/hooks";
 import { CaretDown } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
 import { availableRecordings } from "../data-processing/http";
-import { useDataSourceContext } from "../data-processing/DataSubscriptionProvider";
+import { useDataMethods } from "../data-processing/DataMethodsProvider";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {
@@ -52,7 +52,18 @@ export default function Navbar() {
     const [recordings, setRecordings] = useState<string[] | null>(null);
     const displayedName = fileName.split("/")[fileName.split("/").length - 1];
 
-    const { switchToRecording, switchToLiveData } = useDataSourceContext();
+    const { switchToRecording, switchToLiveData, subscribeNumRows } = useDataMethods();
+    const myRowsPRef = useRef<HTMLParagraphElement | null>(null);
+    useEffect(() => {
+        return subscribeNumRows((numRows: number) => {
+            if (myRowsPRef.current) {
+                myRowsPRef.current.innerText = numRows.toString();
+            }
+        });
+    }, []);
+    {/* <p>{myNumRows}</p> */}
+    {/* <button onClick={() => switchToLiveData()}>blah</button> */}
+
 
     useEffect(() => {
         availableRecordings().then((r) => setRecordings(r ?? []));
@@ -189,6 +200,8 @@ export default function Navbar() {
                     <div className="m-3">
                         <SystemSelector />
                     </div>
+
+                    <p ref={myRowsPRef}>?</p>
                 </div>
                 {/* Right Side */}
                 <div className="m-3">

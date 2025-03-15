@@ -86,23 +86,13 @@ const model = Model.fromJson({
 });
 
 export default function FlexLayoutComponent() {
-    const [sinNum, setSinNum] = useState(0);
-
-    useEffect(() => {
-        // const interval = setInterval(() => {
-        //     setSinNum(Math.sin(Date.now() * 0.001));
-        // }, 16);
-        //
-        // return () => clearInterval(interval);
-    }, []);
-
     function factory(node: TabNode) {
         const components = {
             // prettier-ignore
-            // "suspension-gauge": <SuspensionGauge s1={sinNum} s2={sinNum ** 2} s3={sinNum ** 3} s4={sinNum ** 4} />,
-            // "car-wireframe": <CarWireframe x={sinNum} y={sinNum} z={sinNum} />,
-            // "g-force-gauge": <GForceGauge x={sinNum} y={sinNum} z={sinNum} />,
-            "demo-chart": <LineChartLightning keyName="Seg0_VOLT_0"/>,
+            "suspension-gauge": <SuspensionGauge s1={1} s2={1 ** 2} s3={1 ** 3} s4={1 ** 4} />,
+            "car-wireframe": <CarWireframe/>,
+            "g-force-gauge": <GForceGauge x={1} y={1} z={1} />,
+            "demo-chart": <LineChartLightning/>,
             skeleton: <div className="w-full h-full bg-neutral-500"></div>,
         };
 
@@ -115,5 +105,5 @@ export default function FlexLayoutComponent() {
         ];
     }
 
-    return <Layout realtimeResize={false} model={model} factory={factory} />;
+    return <Layout realtimeResize={true} model={model} factory={factory} />;
 }

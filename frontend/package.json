@@ -30,6 +30,7 @@
     "parquet-wasm": "^0.6.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-scan": "^0.2.14",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "three": "^0.172.0"

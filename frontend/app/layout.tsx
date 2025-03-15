@@ -1,3 +1,6 @@
+// must be the top-most import!!
+import { ReactScan } from "./utils/ReactScan";
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
@@ -10,7 +13,7 @@ import {
     mantineHtmlProps,
     MantineProvider,
 } from "@mantine/core";
-import { DataSourceProvider } from "./data-processing/DataSubscriptionProvider";
+import { DataMethodsProvider } from "./data-processing/DataMethodsProvider";
 import { LightningChartsProvider } from "./components/visualizations/lightning-charts/GlobalContext";
 const theme = createTheme({
     defaultRadius: "md",
@@ -97,9 +100,7 @@ export default function RootLayout({
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
-                {/* Uncomment the next line to enable visual component rerendering detection! */}
-                <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
-
+                <ReactScan />
                 <ColorSchemeScript forceColorScheme="dark" />
             </head>
             {/* using .variable here allows us to choose the font based on
@@ -108,9 +109,9 @@ export default function RootLayout({
                 className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}
             >
                 <MantineProvider forceColorScheme="dark" theme={theme}>
-                    <DataSourceProvider>
+                    <DataMethodsProvider>
                         <LightningChartsProvider>{children}</LightningChartsProvider>
-                    </DataSourceProvider>
+                    </DataMethodsProvider>
                 </MantineProvider>
             </body>
         </html>

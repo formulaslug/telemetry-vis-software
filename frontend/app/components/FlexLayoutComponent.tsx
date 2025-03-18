@@ -57,28 +57,28 @@ const model = Model.fromJson({
                             },
                         ],
                     },
-                    {
-                        type: "tabset",
-                        weight: 33,
-                        children: [
-                            {
-                                type: "tab",
-                                name: "Chart 2",
-                                component: "demo-chart",
-                            },
-                        ],
-                    },
-                    {
-                        type: "tabset",
-                        weight: 33,
-                        children: [
-                            {
-                                type: "tab",
-                                name: "Chart 3",
-                                component: "demo-chart",
-                            },
-                        ],
-                    },
+                    // {
+                    //     type: "tabset",
+                    //     weight: 33,
+                    //     children: [
+                    //         {
+                    //             type: "tab",
+                    //             name: "Chart 2",
+                    //             component: "demo-chart",
+                    //         },
+                    //     ],
+                    // },
+                    // {
+                    //     type: "tabset",
+                    //     weight: 33,
+                    //     children: [
+                    //         {
+                    //             type: "tab",
+                    //             name: "Chart 3",
+                    //             component: "demo-chart",
+                    //         },
+                    //     ],
+                    // },
                 ],
             },
         ],
@@ -92,7 +92,7 @@ export default function FlexLayoutComponent() {
             "suspension-gauge": <SuspensionGauge s1={1} s2={1 ** 2} s3={1 ** 3} s4={1 ** 4} />,
             "car-wireframe": <CarWireframe/>,
             "g-force-gauge": <GForceGauge x={1} y={1} z={1} />,
-            "demo-chart": <LineChartLightning/>,
+            "demo-chart": <LineChartLightning keyName="Seg0_VOLT_0"/>,
             skeleton: <div className="w-full h-full bg-neutral-500"></div>,
         };
 

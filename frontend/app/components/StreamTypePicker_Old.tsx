@@ -1,5 +1,5 @@
 import React, { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
-import DataSourceType from "@/models/StreamType";
+import DataSourceType from "@/models/DataSourceType";
 import { availableRecordings } from "../data-processing/http";
 
 interface StreamTypePickerProps {

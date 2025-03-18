@@ -1,116 +1,140 @@
-import { RangeSlider } from "@mantine/core";
+import { RangeSlider, RangeSliderValue } from "@mantine/core";
 import { Pause, Play } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import DraggableRangeSlider from "./DraggableRangeSlider";
+import { useDataMethods } from "../data-processing/DataMethodsProvider";
+import DataSourceType from "@/models/DataSourceType";
+import { timeColumnName } from "../data-processing/datatypes";
+import { useDebouncedCallback } from "@mantine/hooks";
 
 export default function TimelineBar() {
     const [paused, setPaused] = useState(true);
 
-    function DraggableRangeSlider() {
-        const [range, setRange] = useState<[number, number]>([30, 70]); // Initial range
-        const draggingRef = useRef(false);
-        const lastMouseX = useRef(0);
-        const sliderRef = useRef<HTMLDivElement | null>(null);
-        const width = range[1] - range[0];
-
-        const handleMouseDown = (event: React.MouseEvent) => {
-            draggingRef.current = true;
-            lastMouseX.current = event.clientX;
-        };
-
-        const handleMouseUp = () => {
-            draggingRef.current = false;
-        };
-
-        const handleMouseMove = (event: MouseEvent) => {
-            if (!draggingRef.current || !sliderRef.current) return;
-
-            const deltaX = event.clientX - lastMouseX.current;
-            lastMouseX.current = event.clientX;
-
-            // Convert pixels to range values proportionally
-            const sliderWidth = sliderRef.current.clientWidth;
-            const rangeWidth = 100; // Assuming the slider goes from 0 to 100
-            const scaleFactor = rangeWidth / sliderWidth; // Converts pixels to value change
-
-            const deltaValue = deltaX * scaleFactor; // Smooth movement
-
-            setRange(([start, end]) => {
-                let newStart = start + deltaValue;
-                let newEnd = end + deltaValue;
-
-                // Prevent exceeding min/max limits
-                if (newStart < 0) {
-                    newStart = 0;
-                    newEnd = end - start; // Maintain width
-                }
-                if (newEnd > 100) {
-                    newEnd = 100;
-                    newStart = newEnd - (end - start); // Maintain width
-                }
-
-                return [newStart, newEnd];
-            });
-        };
-
-        useEffect(() => {
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
-            return () => {
-                document.removeEventListener("mousemove", handleMouseMove);
-                document.removeEventListener("mouseup", handleMouseUp);
-            };
-        }, []);
-
-        return (
-            <div ref={sliderRef} className="relative w-full">
-                <RangeSlider
-                    value={range}
-                    onChange={setRange}
-                    min={0}
-                    max={100}
-                    step={1}
-                    size={8}
-                    thumbSize={6}
-                    styles={{
-                        track: { cursor: "pointer" },
-                        bar: { cursor: "pointer" },
-                    }}
-                />
-                {/* Invisible overlay to detect middle drag */}
-                <div
-                    className="absolute top-0 left-0 h-full bg-red-300"
-                    style={{
-                        cursor: "grab",
-                        width: `${width - width * 0.1}%`,
-                        left: `${range[0] + width * 0.05}%`,
-                        height: "20px", // Make it easy to grab
-                        backgroundColor: "transparent",
-                        zIndex: 10,
-                        top:
-                            -(20 - (sliderRef.current ? sliderRef.current.offsetHeight : 0)) /
-                            2,
-                    }}
-                    onMouseDown={handleMouseDown}
-                />
-            </div>
-        );
-    }
-
     return (
         <>
-            <div className="flex flex-row w-full items-center">
+            <div className="flex flex-row w-full items-center bg-background-2 p-3">
                 <div
                     className="p-2 hover:cursor-pointer"
                     onClick={() => {
                         setPaused(!paused);
                     }}
                 >
-                    {paused ? <Play /> : <Pause />}
+                    {paused ? <Play weight="fill" /> : <Pause weight="fill" />}
                 </div>
                 <div className="grow">
-                    <DraggableRangeSlider />
+                    <MainSlider />
                 </div>
             </div>
         </>
     );
+}
+
+function MainSlider() {
+    const [disabled, setDisabled] = useState<boolean>(false);
+    const [minMax, setMinMax] = useState<RangeSliderValue>([0, 10]); // timestamp (seconds)
+    const [value, setValue] = useState<RangeSliderValue>([0, 10]);
+    const debouncedSetValue = useGreedyDebounce((value) => setValue(value), 10);
+    const ref = useRef<HTMLDivElement>(null);
+    // id is only used to differentiate between who set viewEdges (avoid infinite recursion)
+    const id = useId();
+
+    const {
+        setViewEdges,
+        subscribeFullArrays,
+        subscribeDataSource,
+        subscribeNumRows,
+        subscribeViewEdges,
+        // setCursorPosition, // eventually?
+    } = useDataMethods();
+
+    useEffect(() => {
+        const unsub1 = subscribeFullArrays((fullArrays) => {
+            const timeColumn = fullArrays[timeColumnName];
+            if (timeColumn && timeColumn.length > 0) {
+                setMinMax([timeColumn[0], timeColumn[timeColumn.length - 1]]);
+            }
+        });
+        const unsub2 = subscribeDataSource((dataSource: DataSourceType) => {
+            // setDisabled(dataSource == DataSourceType.NONE);
+        });
+        const unsub3 = subscribeViewEdges((range, setterID) => {
+            if (setterID === id) return;
+            console.log("hi!!", setterID, id);
+            
+            // TODO: this debouncing is a very acceptable compromise between
+            // choppy-looking synchronization and performance penalties. But I
+            // wonder if it's possible to hack in some native CSS animations
+            // between values (using Mantine's Styles API) to smoothen out lower
+            // update frequencies? (Future investigation maybe)
+            debouncedSetValue(range);
+        });
+        return () => {
+            unsub1();
+            unsub2();
+            unsub3();
+        };
+    }, []);
+
+    const updateViewEdges = useCallback(
+        (range: RangeSliderValue) => setViewEdges(range, id),
+        [],
+    );
+
+    const sliderStyles = useMemo(
+        () => ({
+            bar: {
+                width: "calc(var(--slider-bar-width) + var(--slider-size))",
+            },
+        }),
+        [],
+    );
+
+    return (
+        <>
+            <RangeSlider
+                ref={ref}
+                step={0.01} // 100Hz == 0.01s per point
+                disabled={disabled}
+                onChange={updateViewEdges}
+                // it's right around the corner I can feel it...
+                min={minMax[0]}
+                max={minMax[1]}
+                minRange={1}
+                value={value}
+                styles={sliderStyles}
+            />
+            {/* <DraggableRangeSlider */}
+            {/*     value={sliderRange} */}
+            {/*     onChange={setSliderRange} */}
+            {/*     min={0} */}
+            {/*     max={100} */}
+            {/*     step={1} */}
+            {/*     size={8} */}
+            {/*     thumbSize={6} */}
+            {/* /> */}
+        </>
+    );
+}
+
+function useGreedyDebounce<T extends (...args: any[]) => any>(func: T, delay: number) {
+    const timeoutRef = useRef<number>();
+    const isCooldownRef = useRef(false);
+
+    const debouncedFunc = useCallback((...args: Parameters<T>) => {
+        if (!isCooldownRef.current) {
+            func(...args);
+            isCooldownRef.current = true;
+            timeoutRef.current = window.setTimeout(() => {
+                isCooldownRef.current = false;
+            }, delay);
+        }
+    }, [func, delay]);
+
+    useEffect(() => {
+        return () => {
+            window.clearTimeout(timeoutRef.current);
+        };
+    }, []);
+
+    return debouncedFunc;
 }

@@ -6,6 +6,7 @@ import {
     PointLineAreaSeries,
     ChartXY,
     AxisScrollStrategies,
+    synchronizeAxisIntervals,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
@@ -13,13 +14,19 @@ import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 import { ColumnName, DataArraysTyped } from "@/app/data-processing/datatypes";
 
 interface LineChartLightningProps {
-    // keyName: ColumnName;
+    keyName: ColumnName;
 }
-export default function LineChartLightning({}: LineChartLightningProps) {
+export default function LineChartLightning({ keyName }: LineChartLightningProps) {
     const id = useId();
     const lc = useContext(LightningChartsContext);
-    const { subscribeReset, subscribeLatestArraysTyped, subscribeViewEdges } =
-        useDataMethods();
+    const {
+        subscribeReset,
+        subscribeLatestArraysTyped,
+        subscribeViewEdges,
+        getFullArraysRef,
+        setCursorTimestamp,
+        setViewEdges,
+    } = useDataMethods();
     const containerRef = useRef(null);
     const [chartState, setChartState] = useState<{
         chart: ChartXY;
@@ -37,8 +44,6 @@ export default function LineChartLightning({}: LineChartLightningProps) {
             })
             .setAreaFillStyle(emptyFill);
 
-        console.log("useState alskdjflkasdjf");
-
         setChartState({ chart, lineSeries });
         chart
             .getDefaultAxisX()
@@ -46,34 +51,57 @@ export default function LineChartLightning({}: LineChartLightningProps) {
             .setUserInteractions({
                 pan: {
                     lmb: { drag: {} },
-                    rmb: false,
+                    rmb: {},
                 },
                 zoom: {
-                    lmb: false,
+                    lmb: {},
                     rmb: { drag: {} },
                     wheel: {},
                 },
+                restoreDefault: { doubleClick: true },
+            })
+            .addEventListener("intervalchange", ({ start, end }) => {
+                setViewEdges([start, end], id);
+                setCursorTimestamp(end); // assume cursor is always latest / far right
             });
-        // .setInterval({ start: -100, end: 0, stopAxisAfter: false });
 
-        const detach1 = subscribeReset(() => {
+        synchronizeAxisIntervals
+
+        const fullDataRef = getFullArraysRef();
+
+        const unsub1 = subscribeReset(() => {
             lineSeries.clear();
         });
-        const detach2 = subscribeViewEdges((left: number, right: number) => {
-            lineSeries.axisX.setInterval({ start: left, end: right + 1 });
+        const unsub2 = subscribeViewEdges(([left, right], setterID) => {
+            if (setterID === id) return;
+            lineSeries.axisX.setInterval({
+                start: left, // (fullDataRef.current[":Time"] ?? [])[left],
+                end: right, // (fullDataRef.current[":Time"] ?? [])[right + 1],
+                stopAxisAfter: false,
+            });
+            // lineSeries.axisX.setIntervalRestrictions({ startMin: left, endMax: right + 1 });
         });
-        const detach3 = subscribeLatestArraysTyped((latest: DataArraysTyped) => {
+        const unsub3 = subscribeLatestArraysTyped((latest: DataArraysTyped) => {
             lineSeries.appendSamples({
                 xValues: latest[":Time"]!,
-                yValues: latest["Seg0_VOLT_0"]!,
+                yValues: latest[keyName]!,
             });
         });
+
+        // Populate already avaiable data. We do this after subscribing because
+        // viewEdges will be automatically populated if there's already data
+        // avaiable (and we want that set first before rendering all of fullData)
+        lineSeries.appendSamples({
+            xValues: fullDataRef.current[":Time"] ?? [],
+            yValues: fullDataRef.current[keyName] ?? [],
+        });
+
         return () => {
-            detach1();
-            detach2();
-            detach3();
+            unsub1();
+            unsub2();
+            unsub3();
         };
-    }, [id, lc]);
+    }, [id, lc]); // todo: is having `id` here necessary?
 
     // useEffect(() => {
     //     if (!chartState || chartState.chart.isDisposed()) {
@@ -87,5 +115,5 @@ export default function LineChartLightning({}: LineChartLightningProps) {
     //     console.log("appendSamples lkasdjflkasjdfkl");
     // }, [data]);
 
-    return <div id={id} ref={containerRef} style={{ width: "100%", height: "100%" }}></div>;
+    return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

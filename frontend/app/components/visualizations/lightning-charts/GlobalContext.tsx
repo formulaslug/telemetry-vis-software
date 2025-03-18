@@ -10,6 +10,9 @@ export const LightningChartsContext = createContext<LightningChart | null>(null)
 export function LightningChartsProvider(props: PropsWithChildren) {
     const lcRef = useRef<LightningChart | null>(null);
     const [lcState, setLcState] = useState<LightningChart | null>(null);
+    // todo: add something to the state here to enable auto-synchronization of
+    // newly created chart axis. (maybe try just removing 2/3 first? also
+    // stacked axis in one chart?)
 
     useEffect(() => {
         if (lcRef.current) return;

@@ -97,6 +97,9 @@ const columnDataTypes = fs3dataSchema;
 // };
 export const columnNames = Object.keys(fs3dataSchema) as ColumnName[];
 
+// TODO: This needs to not be hardcoded (along with the rest of the schema!)
+export const timeColumnName: ColumnName = ":Time";
+
 // columnDataTypes and columnNames are for use at runtime; everything with a
 // PascalCase name is purely for type-checking at compile time
 

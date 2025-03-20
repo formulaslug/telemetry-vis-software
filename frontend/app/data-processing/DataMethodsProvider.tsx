@@ -15,9 +15,12 @@ import {
     columnNames,
     DataArrays,
     DataArraysTyped,
+    DataSetsXY,
     DataValues,
     emptyDataArrays,
+    emptyDataSets,
     nullDataArrays,
+    nullDataSets,
     timeColumnName,
 } from "./datatypes";
 import { getRecording } from "./http";
@@ -89,6 +92,8 @@ type DataMethods = DataSubscribers & DataControllers & DataGetters;
 const DataMethodsContext = createContext<DataMethods | null>(null);
 
 export function DataMethodsProvider({ children }: PropsWithChildren) {
+    const dataSets = useRef<DataSetsXY>(nullDataSets());
+
     // All data that we've recieved is stored here
     const fullArrays = useRef<DataArrays>(nullDataArrays());
     // Length of fullArrays
@@ -199,7 +204,6 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
             fullArrays.current = nullDataArrays();
             viewableArrays.current = nullDataArrays();
             // setDataSourceType(DataSourceType.NONE);
-            // todo: close any websocket connections?
             closeWebSocketConnection();
 
             subscriptionsReset.current.forEach((s) => s());
@@ -214,8 +218,9 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
             // setDataSourceType(DataSourceType.LIVE);
 
             // TODO: MAKE THIS USE WEBSOCKET STREAM's SCHEMA!!
-            fullArrays.current = emptyDataArrays();
-            viewableArrays.current = emptyDataArrays();
+            // fullArrays.current = emptyDataArrays();
+            // viewableArrays.current = emptyDataArrays();
+            dataSets.current = emptyDataSets();
 
             const processRecordBatch = (batch: RecordBatch) => {
                 let arraysTyped = {} as DataArraysTyped;
@@ -226,17 +231,33 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
                     if (vector) {
                         const arr = vector.toArray();
                         arraysTyped[key] = arr;
-                        fullArrays.current[key]!.push(arr);
-                        viewableArrays.current[key]!.push(arr);
+                        // fullArrays.current[key]!.push(arr);
+                        // viewableArrays.current[key]!.push(arr);
                     }
                 }
-                subscriptionsLatestArraysTyped.current.forEach((s) => s(arraysTyped));
-                // subscriptionsLatestArrays.current.forEach((s) => s(arrays));
-                subscriptionsFullArrays.current.forEach((s) => s(fullArrays.current));
-                subscriptionsViewableArrays.current.forEach((s) => s(viewableArrays.current));
+                for (const key of Object.keys(arraysTyped) as ColumnName[]) {
+                    dataSets.current[key]!.appendSamples({
+                        xValues: arraysTyped[timeColumnName]!,
+                        yValues: arraysTyped[key]!,
+                    });
+                }
+                // subscriptionsLatestArraysTyped.current.forEach((s) => s(arraysTyped));
+                // // subscriptionsLatestArrays.current.forEach((s) => s(arrays));
+                // subscriptionsFullArrays.current.forEach((s) => s(fullArrays.current));
+                // subscriptionsViewableArrays.current.forEach((s) => s(viewableArrays.current));
 
                 numRows.current += batch.numRows;
                 subscriptionsNumRows.current.forEach((s) => s(numRows.current));
+
+                // TODO: Note that the solveNearest functionality is part of
+                // PointLineAreaSeries which is exclusively tied to ChartXY.
+                // So, we will simply not support having a cursor and cursorRow
+                // unless there is a ChartXY in view (multiple charts will be
+                // all be synchronized so it's equivalent to no-cursor or
+                // one-cursor). However, we _will_ still support having
+                // viewEdges / viewWidth, because DataSetXY supports readBack
+                // with a range, and that range DOES support taking in decimal
+                // values of the dataset and calculating the range for us.
 
                 // When new data arrives, if we the timeline is in "synced
                 // mode", we shift over the viewWidth by setting start/end to

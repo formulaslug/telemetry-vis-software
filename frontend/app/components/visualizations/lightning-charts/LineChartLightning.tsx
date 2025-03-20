@@ -1,7 +1,6 @@
 "use client";
 import React, { useContext, useEffect, useId, useRef, useState } from "react";
 import {
-    lightningChart,
     emptyFill,
     PointLineAreaSeries,
     ChartXY,
@@ -59,13 +58,17 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
                     wheel: {},
                 },
                 restoreDefault: { doubleClick: true },
-            })
-            .addEventListener("intervalchange", ({ start, end }) => {
-                setViewEdges([start, end], id);
-                setCursorTimestamp(end); // assume cursor is always latest / far right
             });
 
-        synchronizeAxisIntervals
+        // TODO: synchronizeAxisIntervals
+
+        chart.getDefaultAxisX().addEventListener("intervalchange", ({ start, end }) => {
+            // TODO: maybe only set the main viewEdges interval if we have
+            // pointer focus and the viewWidth itself changed?
+
+            // setViewEdges([start, end], "lcjs");
+            // setCursorTimestamp(end); // assume cursor is always latest / far right
+        });
 
         const fullDataRef = getFullArraysRef();
 
@@ -73,10 +76,20 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
             lineSeries.clear();
         });
         const unsub2 = subscribeViewEdges(([left, right], setterID) => {
-            if (setterID === id) return;
+            // console.log( // intervals
+            //     "ours:", 
+            //     left,
+            //     right,
+            //     "lcs:",
+            //     lineSeries.axisX.getInterval().start,
+            //     lineSeries.axisX.getInterval().end,
+            // );
+            // ATM we simply ignore updates to viewEdges from dataProvider
+            // because lcjs automatically updates its interval on data changes
+            if (setterID === "lcjs" || setterID === "dataProvider") return;
             lineSeries.axisX.setInterval({
-                start: left, // (fullDataRef.current[":Time"] ?? [])[left],
-                end: right, // (fullDataRef.current[":Time"] ?? [])[right + 1],
+                start: left,
+                end: right,
                 stopAxisAfter: false,
             });
             // lineSeries.axisX.setIntervalRestrictions({ startMin: left, endMax: right + 1 });
@@ -90,7 +103,8 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
 
         // Populate already avaiable data. We do this after subscribing because
         // viewEdges will be automatically populated if there's already data
-        // avaiable (and we want that set first before rendering all of fullData)
+        // avaiable, and we want that set first before rendering all of fullData
+        // to avoid jarring jumps/flashes
         lineSeries.appendSamples({
             xValues: fullDataRef.current[":Time"] ?? [],
             yValues: fullDataRef.current[keyName] ?? [],

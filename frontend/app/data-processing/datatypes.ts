@@ -125,13 +125,20 @@ export type DataValues = {
 };
 // Use LCJS's DataSetXY type
 export type DataSetsXY = {
-    [K in keyof DataRow]: DataSetXY | null;
+    // LCJS components need to have empty datasets if no data is available so they can still render. So we don't use `| null` for this
+    [K in keyof DataRow]: DataSetXY;
 };
 
 // Generate a dictionary with keys for each column name that are mapped to empty TypedArrays
 export function emptyDataArraysTyped(rows: number): DataArraysTyped {
     return columnNames.reduce((acc, key) => {
         acc[key] = new columnDataTypes[key].ArrayType(rows);
+        return acc;
+    }, {} as DataArraysTyped);
+}
+export function nullDataArraysTyped(): DataArraysTyped {
+    return columnNames.reduce((acc, key) => {
+        acc[key] = null;
         return acc;
     }, {} as DataArraysTyped);
 }
@@ -149,16 +156,16 @@ export function emptyDataArrays(): DataArrays {
         return acc;
     }, {} as DataArrays);
 }
-export function nullDataSets(): DataSetsXY {
+export function nullDataValues(): DataValues {
     return columnNames.reduce((acc, key) => {
         acc[key] = null;
         return acc;
-    }, {} as DataSetsXY);
+    }, {} as DataValues);
 }
 export function emptyDataSets(): DataSetsXY {
     return columnNames.reduce((acc, key) => {
         acc[key] = new DataSetXY({ dataPattern: "ProgressiveX", dataStorage: Float32Array });
-        acc[key].setMaxSampleCount({mode: 'auto', max: 5_000_000, initial: 100_000});
+        acc[key].setMaxSampleCount({ mode: "auto", max: 5_000_000, initial: 100_000 });
         return acc;
     }, {} as DataSetsXY);
 }

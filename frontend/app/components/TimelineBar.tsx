@@ -1,9 +1,9 @@
-import { ActionIcon, Box, RangeSlider, RangeSliderValue } from "@mantine/core";
+import { Box, RangeSlider, RangeSliderValue } from "@mantine/core";
 import { ArrowFatLinesRight, Pause, Play } from "@phosphor-icons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import DataSourceType from "@/models/DataSourceType";
-import { timeColumnName } from "../data-processing/datatypes";
+import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
 
 export default function TimelineBar() {
     const [paused, setPaused] = useState(true);
@@ -49,18 +49,18 @@ function MainSlider() {
     const [disabled, setDisabled] = useState<boolean>(false);
     const [minMax, setMinMax] = useState<RangeSliderValue>([0, 10]); // timestamp (seconds)
     const [value, setValue] = useState<RangeSliderValue>([0, 10]);
-    const debouncedSetValue = useGreedyDebounce((value) => setValue(value), 10);
+    const debouncedSetValue = useDebounceCallbackGreedy((value) => setValue(value), 10);
     const ref = useRef<HTMLDivElement>(null);
     // id is only used to differentiate between who set viewEdges (avoid infinite recursion)
     const id = "timelineBar";
 
     const {
-        setViewEdges,
-        subscribeFullArrays,
+        setViewInterval,
         subscribeDataSource,
         subscribeNumRows,
-        subscribeViewEdges,
-        getViewEdgesRef,
+        subscribeViewInterval,
+        subscribeDataInterval,
+        viewIntervalRef,
         // setCursorPosition, // eventually?
     } = useDataMethods();
 
@@ -69,19 +69,22 @@ function MainSlider() {
     // }, [minMax]); // Runs whenever minMax updates
 
     useEffect(() => {
-        const unsub1 = subscribeFullArrays((fullArrays) => {
-            const timeCol = fullArrays[timeColumnName];
-            // Need at least one point to set min/max!
-            if (timeCol && timeCol.length > 0) {
-                // Give 0.5s padding on either side
-                setMinMax([timeCol[0] - 0.5, timeCol[timeCol.length - 1] + 0.5]);
-                // console.log([timeCol[0] - 0.5, timeCol[timeCol.length - 1] + 0.5]);
-            }
+        // const unsub1 = subscribeFullArrays((fullArrays) => {
+        //     const timeCol = fullArrays[timeColumnName];
+        //     // Need at least one point to set min/max!
+        //     if (timeCol && timeCol.length > 0) {
+        //         // Give 0.5s padding on either side
+        //         setMinMax([timeCol[0] - 0.5, timeCol[timeCol.length - 1] + 0.5]);
+        //         // console.log([timeCol[0] - 0.5, timeCol[timeCol.length - 1] + 0.5]);
+        //     }
+        // });
+        const unsub1 = subscribeDataInterval(([left, right]) => {
+            setMinMax([left, right]);
         });
         const unsub2 = subscribeDataSource((dataSource: DataSourceType) => {
             // setDisabled(dataSource == DataSourceType.NONE);
         });
-        const unsub3 = subscribeViewEdges((range, setterID) => {
+        const unsub3 = subscribeViewInterval((range, setterID) => {
             // console.log(range, setterID, minMax);
             if (setterID === id) return;
             // New data shouldn't come in fast enough to warrant debouncing
@@ -101,14 +104,13 @@ function MainSlider() {
     }, []);
 
     const onChange = useCallback((range: RangeSliderValue) => {
-        const viewEdgesRef = getViewEdgesRef();
-        if (range[1] == viewEdgesRef.current[1]) {
-            console.log("range[1] ==", range[1], "== value[1] ==", viewEdgesRef.current[1]);
+        if (range[1] == viewIntervalRef.current[1]) {
+            console.log("range[1] ==", range[1], "== value[1] ==", viewIntervalRef.current[1]);
         } else {
-            console.log("range[1] ==", range[1], "=/= value[1] ==", viewEdgesRef.current[1]);
+            console.log("range[1] ==", range[1], "=/= value[1] ==", viewIntervalRef.current[1]);
         }
         setValue(range);
-        setViewEdges(range, id);
+        setViewInterval(range, id);
     }, []);
 
     const sliderStyles = useMemo(
@@ -146,30 +148,4 @@ function MainSlider() {
             {/* /> */}
         </>
     );
-}
-
-function useGreedyDebounce<T extends (...args: any[]) => any>(func: T, delay: number) {
-    const timeoutRef = useRef<number>();
-    const isCooldownRef = useRef(false);
-
-    const debouncedFunc = useCallback(
-        (...args: Parameters<T>) => {
-            if (!isCooldownRef.current) {
-                func(...args);
-                isCooldownRef.current = true;
-                timeoutRef.current = window.setTimeout(() => {
-                    isCooldownRef.current = false;
-                }, delay);
-            }
-        },
-        [func, delay],
-    );
-
-    useEffect(() => {
-        return () => {
-            window.clearTimeout(timeoutRef.current);
-        };
-    }, []);
-
-    return debouncedFunc;
 }

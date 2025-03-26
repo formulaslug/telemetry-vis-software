@@ -6,11 +6,13 @@ import {
     ChartXY,
     AxisScrollStrategies,
     synchronizeAxisIntervals,
+    SolveResultSampleXY,
+    CursorTargetChangedEvent,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
 import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
-import { ColumnName, DataArraysTyped } from "@/app/data-processing/datatypes";
+import { ColumnName } from "@/app/data-processing/datatypes";
 
 interface LineChartLightningProps {
     keyName: ColumnName;
@@ -19,31 +21,29 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
     const id = useId();
     const lc = useContext(LightningChartsContext);
     const {
-        subscribeReset,
-        subscribeLatestArraysTyped,
-        subscribeViewEdges,
-        getFullArraysRef,
-        setCursorTimestamp,
-        setViewEdges,
+        subscribeViewInterval,
+        setCursor,
+        setViewInterval,
+        dataSetsRef,
+        viewIntervalRef,
+        setIsTimelineSynced,
+        isTimelineSyncedRef,
     } = useDataMethods();
     const containerRef = useRef(null);
-    const [chartState, setChartState] = useState<{
-        chart: ChartXY;
-        lineSeries: PointLineAreaSeries;
-    }>();
 
     useEffect(() => {
         const container = containerRef.current;
+
         if (!container || !lc) return;
 
-        const chart = lc.ChartXY({ container, theme: globalTheme });
-        const lineSeries = chart
+        let chart = lc.ChartXY({ container, theme: globalTheme });
+        let lineSeries = chart
             .addPointLineAreaSeries({
                 dataPattern: "ProgressiveX",
             })
+            .setDataSet(dataSetsRef.current[keyName])
             .setAreaFillStyle(emptyFill);
 
-        setChartState({ chart, lineSeries });
         chart
             .getDefaultAxisX()
             .setScrollStrategy(AxisScrollStrategies.progressive)
@@ -65,19 +65,28 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
         chart.getDefaultAxisX().addEventListener("intervalchange", ({ start, end }) => {
             // TODO: maybe only set the main viewEdges interval if we have
             // pointer focus and the viewWidth itself changed?
-
-            // setViewEdges([start, end], "lcjs");
-            // setCursorTimestamp(end); // assume cursor is always latest / far right
+            const [oldStart, oldEnd] = viewIntervalRef.current;
+            if (!isTimelineSyncedRef.current || (start-end == oldStart-oldEnd)) {
+                
+            }
+            setViewInterval([start, end], "lcjs");
         });
+        chart.getSeries().forEach((s) => s.addEventListener("dblclick", (e) => {
+            setIsTimelineSynced(true);
+        }));
+        chart.addEventListener("cursortargetchange", (event) => {
+            const { hit, hits, mouseLocation } =
+                event as CursorTargetChangedEvent<SolveResultSampleXY>;
+            // const axisCoordinates = chart.translateCoordinate(mouseLocation, chart.coordsAxis);
+            // chart.getSeries()[0].solveNearest(mouseLocation, );
 
-        const fullDataRef = getFullArraysRef();
-
-        const unsub1 = subscribeReset(() => {
-            lineSeries.clear();
+            // In live data mode, this will be replaced with the latest data row by dataProvider.
+            // In recording mode, cursorRow should be valid only when there's a cursor hit, so we make it null here.
+            setCursor(hit ? hit.iSample : null);
         });
-        const unsub2 = subscribeViewEdges(([left, right], setterID) => {
+        const unsub = subscribeViewInterval(([left, right], setterID) => {
             // console.log( // intervals
-            //     "ours:", 
+            //     "ours:",
             //     left,
             //     right,
             //     "lcs:",
@@ -94,40 +103,17 @@ export default function LineChartLightning({ keyName }: LineChartLightningProps)
             });
             // lineSeries.axisX.setIntervalRestrictions({ startMin: left, endMax: right + 1 });
         });
-        const unsub3 = subscribeLatestArraysTyped((latest: DataArraysTyped) => {
-            lineSeries.appendSamples({
-                xValues: latest[":Time"]!,
-                yValues: latest[keyName]!,
-            });
-        });
-
-        // Populate already avaiable data. We do this after subscribing because
-        // viewEdges will be automatically populated if there's already data
-        // avaiable, and we want that set first before rendering all of fullData
-        // to avoid jarring jumps/flashes
-        lineSeries.appendSamples({
-            xValues: fullDataRef.current[":Time"] ?? [],
-            yValues: fullDataRef.current[keyName] ?? [],
-        });
 
         return () => {
-            unsub1();
-            unsub2();
-            unsub3();
+            unsub();
+            chart.dispose();
+            lineSeries.dispose();
+            // @ts-ignore: for GC
+            chart = undefined;
+            // @ts-ignore: for GC
+            lineSeries = undefined;
         };
-    }, [id, lc]); // todo: is having `id` here necessary?
-
-    // useEffect(() => {
-    //     if (!chartState || chartState.chart.isDisposed()) {
-    //         return;
-    //     }
-    //     const { lineSeries } = chartState;
-    //     lineSeries.appendSamples({
-    //         xValues: Array.from({ length: 1000000 }, (_, i) => i as number),
-    //         yValues: Array.from({ length: 1000000 }, (_, i) => Math.random() * i * i),
-    //     });
-    //     console.log("appendSamples lkasdjflkasjdfkl");
-    // }, [data]);
+    }, [id, lc, keyName]); // todo: is having `id` here necessary?
 
     return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

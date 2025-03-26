@@ -15,40 +15,37 @@ import {
     columnNames,
     DataArrays,
     DataArraysTyped,
+    DataRow,
     DataSetsXY,
     DataValues,
     emptyDataArrays,
+    emptyDataArraysTyped,
     emptyDataSets,
     nullDataArrays,
-    nullDataSets,
+    nullDataArraysTyped,
+    nullDataValues,
     timeColumnName,
 } from "./datatypes";
 import { getRecording } from "./http";
 import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
 import { RecordBatch } from "apache-arrow";
 import DataSourceType from "@/models/DataSourceType";
+import { FloatArray } from "apache-arrow/type";
+import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
 
 type SubscriptionReset = () => void; // possibly remove in favor of additional arg?
-type SubscriptionViewEdges = (
-    viewEdges: [left: number, right: number],
-    setterID: string,
-) => void;
-type SubscriptionLatestArraysTyped = (latest: DataArraysTyped) => void;
-type SubscriptionLatestArrays = (latest: DataArrays) => void;
-type SubscriptionFullArrays = (fullArrays: DataArrays) => void;
-type SubscriptionViewableArrays = (viewableArrays: DataArrays) => void;
-type SubscriptionCursorTimestamp = (cursorTimestamp: number) => void;
-type SubscriptionCursorRow = (cursorRow: DataValues) => void;
+type SubscriptionViewInterval = (viewInterval: [left: number, right: number], setterID: string) => void; // prettier-ignore
+type SubscriptionDataInterval = (dataInterval: [left: number, right: number]) => void;
+type SubscriptionViewableArrays = (viewableArrays: DataArraysTyped) => void;
+type SubscriptionCursorTimestamp = (cursorTimestamp: number | null) => void;
+type SubscriptionCursorRow = (cursorRow: DataValues | null) => void;
 type SubscriptionNumRows = (numRows: number) => void;
 type SubscriptionDataSource = (dataSourceType: DataSourceType) => void;
 type SubscriptionIsTimelineSynced = (isTimelineSynced: boolean) => void;
 
 type Subscription =
     | SubscriptionReset
-    | SubscriptionViewEdges
-    | SubscriptionLatestArraysTyped
-    | SubscriptionLatestArrays
-    | SubscriptionFullArrays
+    | SubscriptionViewInterval
     | SubscriptionViewableArrays
     | SubscriptionCursorTimestamp
     | SubscriptionCursorRow
@@ -58,10 +55,8 @@ type Subscription =
 
 type DataSubscribers = {
     subscribeReset: (clbk: SubscriptionReset) => () => void;
-    subscribeViewEdges: (clbk: SubscriptionViewEdges) => () => void;
-    subscribeLatestArraysTyped: (clbk: SubscriptionLatestArraysTyped) => () => void;
-    subscribeLatestArrays: (clbk: SubscriptionLatestArrays) => () => void;
-    subscribeFullArrays: (clbk: SubscriptionFullArrays) => () => void; // will probably be used by GPS?
+    subscribeViewInterval: (clbk: SubscriptionViewInterval) => () => void;
+    subscribeDataInterval: (clbk: SubscriptionDataInterval) => () => void;
     subscribeViewableArrays: (clbk: SubscriptionViewableArrays) => () => void;
     subscribeCursorTimestamp: (clbk: SubscriptionCursorTimestamp) => () => void;
     subscribeCursorRow: (clbk: SubscriptionCursorRow) => () => void;
@@ -71,58 +66,55 @@ type DataSubscribers = {
 };
 type DataControllers = {
     // timestamp should be an *decimal timestamp*
-    setCursorTimestamp: (timestamp: number) => void;
+    setCursor: (sampleIndex: number | null) => void;
     // *decimal timestamps* referring to *seconds* since car started
-    // TODO: should setterID be removed and instead use Set<subscription + ID> below?
-    setViewEdges: (viewEdges: [left: number, right: number], setterID: string) => void;
+    setViewInterval: (viewInterval: [left: number, right: number], setterID: string) => void;
     reset: () => void;
-    setIsTimelineSynced: () => void;
+    setIsTimelineSynced: (isTimelineSynced: boolean) => void;
 
     switchToLiveData: (setIsConnected?: Dispatch<SetStateAction<boolean>>) => void;
     switchToRecording: (filename: string) => void;
 };
-type DataGetters = {
-    getFullArraysRef: () => MutableRefObject<DataArrays>;
-    getViewableArraysRef: () => MutableRefObject<DataArrays>;
-    getViewEdgesRef: () => MutableRefObject<[left: number, right: number]>;
-    getNumRowsRef: () => MutableRefObject<number>;
+type DataRefs = {
+    dataSetsRef: MutableRefObject<DataSetsXY>;
+    viewableArraysRef: MutableRefObject<DataArraysTyped>;
+    viewIntervalRef: MutableRefObject<[left: number, right: number]>;
+    numRowsRef: MutableRefObject<number>;
+    isTimelineSyncedRef: MutableRefObject<boolean>;
 };
-type DataMethods = DataSubscribers & DataControllers & DataGetters;
+type DataMethods = DataSubscribers & DataControllers & DataRefs;
 
 const DataMethodsContext = createContext<DataMethods | null>(null);
 
 export function DataMethodsProvider({ children }: PropsWithChildren) {
-    const dataSets = useRef<DataSetsXY>(nullDataSets());
-
     // All data that we've recieved is stored here
-    const fullArrays = useRef<DataArrays>(nullDataArrays());
-    // Length of fullArrays
-    const numRows = useRef<number>(0);
-    // What's currently visible (rangeslider)
-    const viewableArrays = useRef<DataArrays>(nullDataArrays());
+    const dataSetsRef = useRef<DataSetsXY>(emptyDataSets());
+    // Length of each dataSet (currently each is same length; subject to change)
+    const numRowsRef = useRef<number>(0);
+    // Data that's currently visible
+    const viewableArraysRef = useRef<DataArraysTyped>(emptyDataArraysTyped(10));
     // These are *decimal timestamps* referring to *seconds* since car started
-    const viewEdges = useRef<[left: number, right: number]>([0, 10]);
-    // Timestamp value of current cursor position
-    const cursorTimestamp = useRef<number>(0);
-    // The nearest row of data to the current cursor timestamp
-    const cursorRow = useRef<DataValues | null>(null);
+    const viewIntervalRef = useRef<[left: number, right: number]>([0, 10]); // only visible data
+    const dataIntervalRef = useRef<[left: number, right: number]>([0, 10]); // all data
+    // Timestamp value of current cursor position (or null if no
+    // lightningcharts are currently open)
+    const cursorTimestampRef = useRef<number | null>(null); // to be set by a lcjs chart
+    // The nearest row of data to the current cursor timestamp (or null if no
+    // lightningcharts are currently open)
+    const cursorRowRef = useRef<DataValues | null>(null);
+    // The currently highlighted data column (i.e. series in lcjs or acc
+    // segment), used solely for visual emphasis (todo)
+    const highlightedColumnRef = useRef<ColumnName | null>(null);
     // true means that new data pushes viewEdges over so it stays on the right.
     // Any interaction with the timeline or lcjs zooming should set it to false.
-    const isTimelineSynced = useRef<boolean>(true);
+    const isTimelineSyncedRef = useRef<boolean>(true);
 
-    const dataSource = useRef<DataSourceType>(DataSourceType.NONE);
-
-    // const [numRows, setNumRows] = useState<number>(0);
-    // const [viewEdges, setViewEdges] = useState<{ left: number; right: number } | null>(null);
-    // const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-    // const [dataSourceType, setDataSourceType] = useState<DataSourceType>(DataSourceType.NONE);
+    const dataSourceRef = useRef<DataSourceType>(DataSourceType.NONE);
 
     // Keep track of callbacks to call for each type of data when it arrives/changes
     const subscriptionsReset = useRef<Set<SubscriptionReset>>(new Set());
-    const subscriptionsViewEdges = useRef<Set<SubscriptionViewEdges>>(new Set());
-    const subscriptionsLatestArraysTyped = useRef<Set<SubscriptionLatestArraysTyped>>(new Set()); // prettier-ignore
-    const subscriptionsLatestArrays = useRef<Set<SubscriptionLatestArrays>>(new Set());
-    const subscriptionsFullArrays = useRef<Set<SubscriptionFullArrays>>(new Set());
+    const subscriptionsViewInterval = useRef<Set<SubscriptionViewInterval>>(new Set());
+    const subscriptionsDataInterval = useRef<Set<SubscriptionDataInterval>>(new Set());
     const subscriptionsViewableArrays = useRef<Set<SubscriptionViewableArrays>>(new Set());
     const subscriptionsCursorTimestamp = useRef<Set<SubscriptionCursorTimestamp>>(new Set());
     const subscriptionsCursorRow = useRef<Set<SubscriptionCursorRow>>(new Set());
@@ -153,74 +145,88 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         }
 
         const subscribeReset = makeSubscriber(subscriptionsReset);
-        const subscribeViewEdges = makeSubscriber(subscriptionsViewEdges, viewEdges);
-        const subscribeLatestArraysTyped = makeSubscriber(subscriptionsLatestArraysTyped);
-        const subscribeLatestArrays = makeSubscriber(subscriptionsLatestArrays);
-        const subscribeFullArrays = makeSubscriber(subscriptionsViewableArrays, fullArrays);
-        const subscribeViewableArrays = makeSubscriber(subscriptionsViewableArrays, viewableArrays); // prettier-ignore
-        const subscribeCursorTimestamp = makeSubscriber(subscriptionsCursorTimestamp, cursorTimestamp); // prettier-ignore
-        const subscribeCursorRow = makeSubscriber(subscriptionsCursorRow, cursorRow);
-        const subscribeNumRows = makeSubscriber(subscriptionsNumRows, numRows);
-        const subscribeDataSource = makeSubscriber(subscriptionsDataSource, dataSource);
-        const subscribeIsTimelineSynced = makeSubscriber(
-            subscriptionsIsTimelineSynced,
-            isTimelineSynced,
+        const subscribeViewInterval = makeSubscriber(
+            subscriptionsViewInterval,
+            viewIntervalRef,
         );
+        const subscribeDataInterval = makeSubscriber(
+            subscriptionsDataInterval,
+            dataIntervalRef,
+        );
+        const subscribeViewableArrays = makeSubscriber(subscriptionsViewableArrays, viewableArraysRef); // prettier-ignore
+        const subscribeCursorTimestamp = makeSubscriber(subscriptionsCursorTimestamp, cursorTimestampRef); // prettier-ignore
+        const subscribeCursorRow = makeSubscriber(subscriptionsCursorRow, cursorRowRef);
+        const subscribeNumRows = makeSubscriber(subscriptionsNumRows, numRowsRef);
+        const subscribeDataSource = makeSubscriber(subscriptionsDataSource, dataSourceRef);
+        const subscribeIsTimelineSynced = makeSubscriber(subscriptionsIsTimelineSynced, isTimelineSyncedRef); // prettier-ignore
 
-        // Only used when components are first being creating and need to
-        // populate already-present data instead of waiting for new changes
-        const getFullArraysRef = () => fullArrays;
-        const getViewableArraysRef = () => viewableArrays;
-        const getViewEdgesRef = () => viewEdges;
-        const getNumRowsRef = () => numRows;
+        const setCursor = (sampleIndex: number | null, ignoreTimestamp?: boolean) => {
+            if (!ignoreTimestamp) {
+                cursorTimestampRef.current = sampleIndex
+                    ? viewableArraysRef.current[timeColumnName]![sampleIndex]
+                    : null;
+                subscriptionsCursorTimestamp.current.forEach((s) =>
+                    s(cursorTimestampRef.current),
+                );
+            }
 
-        const setCursorTimestamp = (pos: number) => {
-            // TODO(urgent): Write an algorith to get the nearest row to the left and right timestamps!
-            // let row = {} as DataValues;
-            // for (let [k, v] of Object.entries(fullArrays.current)) {
-            //     if (v) row[k as ColumnName] = v[pos];
-            // }
-            // subscriptionsCursorRow.current.forEach((s) => s(row));
-            subscriptionsCursorTimestamp.current.forEach((s) => s(pos));
+            if (sampleIndex) {
+                let newCursorRow = {} as DataValues;
+                for (const [name, arr] of Object.entries(viewableArraysRef.current).filter(
+                    ([_, a]) => a !== null,
+                )) {
+                    newCursorRow[name as ColumnName] = arr![sampleIndex];
+                }
+
+                cursorRowRef.current = newCursorRow;
+                subscriptionsCursorRow.current.forEach((s) => s(newCursorRow));
+            } else {
+                cursorRowRef.current = null;
+                subscriptionsCursorRow.current.forEach((s) => s(cursorRowRef.current));
+            }
         };
-        const setViewEdges = (
-            newViewEdges: [left: number, right: number],
+        const setViewInterval = (
+            newViewInterval: [left: number, right: number],
             setterID: string,
         ) => {
-            // Set viewableArrays to the correct subset of fullArrays
-            // todo: this is unoptimized (every time view edges changes we re-copy from fullArrays)
-            // TODO(urgent): Write an algorith to get the nearest row to the left and right timestamps!
-            // viewableArrays.current = nullDataArrays();
-            // let arrays = {} as DataArrays;
-            // for (let [k, v] of Object.entries(fullArrays.current)) {
-            //     if (v) arrays[k as ColumnName] = v.slice(newViewEdges[0], newViewEdges[1] + 1);
-            // }
-            // viewableArrays.current = arrays;
+            const [left, right] = newViewInterval;
+            console.log(left, right);
+            
+            for (const [name, dataSet] of Object.entries(dataSetsRef.current).filter(
+                ([_, ds]) => ds !== null,
+            )) {
+                // TODO: consider replacing viewableArrays with typed arrays
+                viewableArraysRef.current[name as ColumnName] = dataSet!.readBack({
+                    onlyInRange: { start: left, end: right },
+                }).yValues as FloatArray;
+            }
+            subscriptionsViewableArrays.current.forEach((s) => s(viewableArraysRef.current));
 
-            viewEdges.current = newViewEdges;
-            subscriptionsViewEdges.current.forEach((s) => s(newViewEdges, setterID));
+            viewIntervalRef.current = newViewInterval;
+            subscriptionsViewInterval.current.forEach((s) => s(newViewInterval, setterID));
         };
         const reset = () => {
-            fullArrays.current = nullDataArrays();
-            viewableArrays.current = nullDataArrays();
-            // setDataSourceType(DataSourceType.NONE);
+            for (const [_, dataSet] of Object.entries(dataSetsRef.current)) {
+                if (dataSet) dataSet.clear();
+            }
+            viewableArraysRef.current = nullDataArraysTyped();
+            dataSourceRef.current = DataSourceType.NONE;
+            cursorTimestampRef.current = null;
+            cursorRowRef.current = null;
+
             closeWebSocketConnection();
 
             subscriptionsReset.current.forEach((s) => s());
         };
-        const setIsTimelineSynced = () => {
-            isTimelineSynced.current = !isTimelineSynced.current;
+        const setIsTimelineSynced = (isTimelineSynced: boolean) => {
+            isTimelineSyncedRef.current = isTimelineSynced;
         };
 
         const switchToLiveData = (setIsConnected?: Dispatch<SetStateAction<boolean>>) => {
-            fullArrays.current = nullDataArrays();
-            viewableArrays.current = nullDataArrays();
-            // setDataSourceType(DataSourceType.LIVE);
+            reset();
 
             // TODO: MAKE THIS USE WEBSOCKET STREAM's SCHEMA!!
-            // fullArrays.current = emptyDataArrays();
-            // viewableArrays.current = emptyDataArrays();
-            dataSets.current = emptyDataSets();
+            viewableArraysRef.current = emptyDataArraysTyped(0);
 
             const processRecordBatch = (batch: RecordBatch) => {
                 let arraysTyped = {} as DataArraysTyped;
@@ -236,18 +242,19 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
                     }
                 }
                 for (const key of Object.keys(arraysTyped) as ColumnName[]) {
-                    dataSets.current[key]!.appendSamples({
+                    dataSetsRef.current[key]!.appendSamples({
                         xValues: arraysTyped[timeColumnName]!,
                         yValues: arraysTyped[key]!,
                     });
                 }
+
                 // subscriptionsLatestArraysTyped.current.forEach((s) => s(arraysTyped));
                 // // subscriptionsLatestArrays.current.forEach((s) => s(arrays));
                 // subscriptionsFullArrays.current.forEach((s) => s(fullArrays.current));
                 // subscriptionsViewableArrays.current.forEach((s) => s(viewableArrays.current));
 
-                numRows.current += batch.numRows;
-                subscriptionsNumRows.current.forEach((s) => s(numRows.current));
+                numRowsRef.current += batch.numRows;
+                subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
 
                 // TODO: Note that the solveNearest functionality is part of
                 // PointLineAreaSeries which is exclusively tied to ChartXY.
@@ -263,38 +270,44 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
                 // mode", we shift over the viewWidth by setting start/end to
                 // have the same width as before but now ending at the latest
                 // timestamp
-                if (isTimelineSynced) {
-                    const timeCol = arraysTyped[timeColumnName]!;
-                    const viewWidth = viewEdges.current[1] - viewEdges.current[0];
-                    // console.log("col:", timeCol, "deltaTime", deltaTime);
-                    viewEdges.current[1] = timeCol[timeCol.length - 1];
-                    viewEdges.current[0] = timeCol[timeCol.length - 1] - viewWidth;
-                    subscriptionsViewEdges.current.forEach((s) =>
-                        s(viewEdges.current, "dataProvider"),
-                    );
+                const timeCol = dataSetsRef.current[timeColumnName]!.readBack().yValues;
+                if (isTimelineSyncedRef) {
+                    const viewWidth = viewIntervalRef.current[1] - viewIntervalRef.current[0];
+                    
+                    const left = timeCol[timeCol.length - 1];
+                    const right = timeCol[timeCol.length - 1] - viewWidth;
+                    setViewInterval([left, right], "dataProvider");
+                }
+                subscriptionsDataInterval.current.forEach((s) =>
+                    s([timeCol[0], timeCol[timeCol.length - 1]]),
+                );
+
+                // If one of the charts/visualizations isn't dictating where the
+                // cursor timestamp is, we just default the cursorRow to be the
+                // latest row.
+                if (!cursorTimestampRef.current) {
+                    setCursor(dataSetsRef.current[timeColumnName].getSampleCount() - 1, true);
                 }
             };
 
             initWebSocketConnection(processRecordBatch, setIsConnected);
-            dataSource.current = DataSourceType.LIVE;
+            dataSourceRef.current = DataSourceType.LIVE;
             subscriptionsDataSource.current.forEach((s) => s(DataSourceType.LIVE));
         };
         const switchToRecording = async (filename: string) => {
-            fullArrays.current = nullDataArrays();
-            viewableArrays.current = nullDataArrays();
+            reset();
+
             const table = await getRecording(filename);
 
-            dataSource.current = DataSourceType.RECORDED;
+            dataSourceRef.current = DataSourceType.RECORDED;
             subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));
         };
 
         return {
             // Subscribers
             subscribeReset,
-            subscribeViewEdges,
-            subscribeLatestArraysTyped,
-            subscribeLatestArrays,
-            subscribeFullArrays,
+            subscribeViewInterval,
+            subscribeDataInterval,
             subscribeViewableArrays,
             subscribeCursorTimestamp,
             subscribeCursorRow,
@@ -303,18 +316,19 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
             subscribeIsTimelineSynced,
 
             // Controllers
-            setCursorTimestamp,
-            setViewEdges,
+            setCursor,
+            setViewInterval,
             reset,
             setIsTimelineSynced,
             switchToLiveData,
             switchToRecording,
 
-            // Getters
-            getFullArraysRef,
-            getViewableArraysRef,
-            getViewEdgesRef,
-            getNumRowsRef,
+            // Refs
+            dataSetsRef,
+            viewableArraysRef,
+            viewIntervalRef,
+            numRowsRef,
+            isTimelineSyncedRef,
         };
     }, []);
 

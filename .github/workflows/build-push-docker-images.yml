@@ -6,6 +6,7 @@ on:
 
 env:
   REGISTRY_URL: "${{ secrets.CONTAINER_REGISTRY_URL }}"
+  ENV_PRODUCTION_FILE: "${{ secrets.ENV_PRODUCTION_FILE }}"
   
 jobs:
   build:

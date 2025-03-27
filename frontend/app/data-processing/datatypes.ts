@@ -162,13 +162,8 @@ export function nullDataValues(): DataValues {
         return acc;
     }, {} as DataValues);
 }
-export function emptyDataSets(): DataSetsXY {
-    return columnNames.reduce((acc, key) => {
-        acc[key] = new DataSetXY({ dataPattern: "ProgressiveX", dataStorage: Float32Array });
-        acc[key].setMaxSampleCount({ mode: "auto", max: 5_000_000, initial: 100_000 });
-        return acc;
-    }, {} as DataSetsXY);
-}
+
+export const MAX_DATA_ROWS = 1_000_000;
 
 // list of Field objects for Table's Schema (basically just (keyname,type) pairs)
 const fields = columnNames.map((key) =>

@@ -1,12 +1,14 @@
-import { Box, RangeSlider, RangeSliderValue } from "@mantine/core";
-import { ArrowFatLinesRight, Pause, Play } from "@phosphor-icons/react";
+import { Box, Button, RangeSlider, RangeSliderValue } from "@mantine/core";
+import { ArrowFatLinesRight, CaretDoubleRight, Pause, Play } from "@phosphor-icons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import DataSourceType from "@/models/DataSourceType";
 import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
+import { timeColumnName } from "../data-processing/datatypes";
 
 export default function TimelineBar() {
     const [paused, setPaused] = useState(true);
+    const { switchToRecording } = useDataMethods();
 
     return (
         <>
@@ -23,36 +25,60 @@ export default function TimelineBar() {
                     <MainSlider />
                 </div>
                 <SyncButton />
+                <Button
+                    onClick={() =>
+                        switchToRecording("fs-data/FS-2/2025-03-06-BrakingTests1.parquet")
+                    }
+                />
             </div>
         </>
     );
 }
 
 function SyncButton() {
-    const [isTimelineSynced, setIsTimelineSynced] = useState(false);
-    const { subscribeIsTimelineSynced } = useDataMethods();
+    const [enabled, setEnabled] = useState(false);
+    const [visible, setVisible] = useState(false);
+    const { subscribeIsTimelineSynced, setIsTimelineSynced, subscribeDataSource } =
+        useDataMethods();
     useEffect(() => {
-        return subscribeIsTimelineSynced((isTimelineSynced: boolean) => {
-            setIsTimelineSynced(isTimelineSynced);
+        const unsub1 = subscribeIsTimelineSynced((isTimelineSynced: boolean) => {
+            setEnabled(isTimelineSynced);
         });
+        const unsub2 = subscribeDataSource((dataSourceType) => {
+            setVisible(dataSourceType == DataSourceType.LIVE);
+        });
+        return () => {
+            unsub1();
+            unsub2();
+        }
     }, []);
-    const toggleIsTimelineSynced = useCallback(() => setIsTimelineSynced(!isTimelineSynced), []);
+    const setTimelineSynced = useCallback(() => {
+        setEnabled(true);
+        setIsTimelineSynced(true, "timelineBar");
+    }, []);
 
-    return (
-        <Box c={isTimelineSynced ? "neutral.8" : "neutral.5"}>
-            <ArrowFatLinesRight color="currentColor" weight="fill" onClick={toggleIsTimelineSynced} />
+    return visible ? (
+        <Box c={enabled ? "neutral.9" : "neutral.4"}>
+            <CaretDoubleRight
+                color="currentColor"
+                weight="fill"
+                size={24}
+                onClick={enabled ? undefined : setTimelineSynced}
+            />
         </Box>
-    );
+    ) : null;
 }
 
 function MainSlider() {
     const [disabled, setDisabled] = useState<boolean>(false);
-    const [minMax, setMinMax] = useState<RangeSliderValue>([0, 10]); // timestamp (seconds)
+    const [minMax, setMinMax] = useState<RangeSliderValue>([0, 10]);
     const [value, setValue] = useState<RangeSliderValue>([0, 10]);
     const debouncedSetValue = useDebounceCallbackGreedy((value) => setValue(value), 10);
     const ref = useRef<HTMLDivElement>(null);
-    // id is only used to differentiate between who set viewEdges (avoid infinite recursion)
+    // id is only used to differentiate between who set viewInterval (avoid infinite recursion)
     const id = "timelineBar";
+
+    useEffect(() => console.log("value:", value), [value]);
 
     const {
         setViewInterval,
@@ -61,23 +87,11 @@ function MainSlider() {
         subscribeViewInterval,
         subscribeDataInterval,
         viewIntervalRef,
+        dataArraysRef,
         // setCursorPosition, // eventually?
     } = useDataMethods();
 
-    // useEffect(() => {
-    //     console.log("Updated minMax:", minMax);
-    // }, [minMax]); // Runs whenever minMax updates
-
     useEffect(() => {
-        // const unsub1 = subscribeFullArrays((fullArrays) => {
-        //     const timeCol = fullArrays[timeColumnName];
-        //     // Need at least one point to set min/max!
-        //     if (timeCol && timeCol.length > 0) {
-        //         // Give 0.5s padding on either side
-        //         setMinMax([timeCol[0] - 0.5, timeCol[timeCol.length - 1] + 0.5]);
-        //         // console.log([timeCol[0] - 0.5, timeCol[timeCol.length - 1] + 0.5]);
-        //     }
-        // });
         const unsub1 = subscribeDataInterval(([left, right]) => {
             setMinMax([left, right]);
         });
@@ -105,12 +119,22 @@ function MainSlider() {
 
     const onChange = useCallback((range: RangeSliderValue) => {
         if (range[1] == viewIntervalRef.current[1]) {
-            console.log("range[1] ==", range[1], "== value[1] ==", viewIntervalRef.current[1]);
+            // console.log("range[1] ==", range[1], "== value[1] ==", viewIntervalRef.current[1]);
         } else {
-            console.log("range[1] ==", range[1], "=/= value[1] ==", viewIntervalRef.current[1]);
+            // console.log(
+            //     "range[1] ==",
+            //     range[1],
+            //     "=/= value[1] ==",
+            //     viewIntervalRef.current[1],
+            // );
         }
         setValue(range);
-        setViewInterval(range, id);
+        // setViewInterval(range, id);
+
+        const val = dataArraysRef.current[timeColumnName]![range[0]];
+        console.log("idx:", range[0], val, dataArraysRef.current[":Time"]);
+        console.log("timeline setting range:", range);
+        
     }, []);
 
     const sliderStyles = useMemo(
@@ -122,20 +146,29 @@ function MainSlider() {
         [],
     );
 
+    const formatLabel = (idx: number) => {
+        const val = dataArraysRef.current[timeColumnName]![idx];
+
+        // console.log("idx:", idx, val, dataArraysRef.current[":Time"]);
+        return val !== undefined ? val.toFixed(2) : "???";
+        
+    };
+
     return (
         <>
             <RangeSlider
                 ref={ref}
-                step={0.01} // 100Hz == 0.01s per point
+                step={1} // timeline _only_ refers to indexes into data arrays, so must be integers only
                 disabled={disabled}
                 onChange={onChange}
                 // it's right around the corner I can feel it...
-                min={55000} // min={minMax[0]}
-                max={58000} // max={minMax[1]}
-                minRange={10}
-                // maxRange ??
+                min={minMax[0]}
+                max={minMax[1]}
+                minRange={1}
+                maxRange={minMax[1] - minMax[0]}
                 value={value}
                 styles={sliderStyles}
+                label={formatLabel}
             />
             {/* <DraggableRangeSlider */}
             {/*     value={sliderRange} */}

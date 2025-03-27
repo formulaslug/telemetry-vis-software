@@ -6,13 +6,16 @@ on:
 
 env:
   REGISTRY_URL: "${{ secrets.CONTAINER_REGISTRY_URL }}"
+  NEXT_PUBLIC_LIGHTNING_CHART_LICENSE_INFORMATION_APP_TITLE: "${{ secrets.NEXT_PUBLIC_LIGHTNING_CHART_LICENSE_INFORMATION_APP_TITLE }}"
+  NEXT_PUBLIC_LIGHTNING_CHART_LICENSE_INFORMATION_COMPANY: "${{ secrets.NEXT_PUBLIC_LIGHTNING_CHART_LICENSE_INFORMATION_COMPANY }}"
+  NEXT_PUBLIC_LIGHTNING_CHART_LICENSE_KEY: "${{ secrets.NEXT_PUBLIC_LIGHTNING_CHART_LICENSE_KEY }}"
   
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
     steps:
     - uses: actions/checkout@v4
-    - name: Login to GitHub Package Registry
-      run: echo "${{ secrets.CONTAINER_REGISTRY_PASSWORD }}" | docker login $REGISTRY_URL -u "${{ secrets.CONTAINER_REGISTRY_USERNAME }}" --password-stdin
+    - run: echo "${{ secrets.CONTAINER_REGISTRY_PASSWORD }}" | docker login $REGISTRY_URL -u "${{ secrets.CONTAINER_REGISTRY_USERNAME }}" --password-stdin
     - run: docker compose build
     - run: docker compose push
+    - run: docker logout $REGISTRY_URL

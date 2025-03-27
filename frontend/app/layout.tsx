@@ -100,7 +100,7 @@ export default function RootLayout({
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
-                <ReactScan />
+                {process.env.NODE_ENV === "development" ? <ReactScan /> : null}
                 <ColorSchemeScript forceColorScheme="dark" />
             </head>
             {/* using .variable here allows us to choose the font based on

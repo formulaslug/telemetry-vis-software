@@ -4,7 +4,7 @@ import wasmInit, { readParquet, wasmMemory } from "parquet-wasm/esm";
 import * as arrowJSFFI from "arrow-js-ffi";
 
 import { DataArrays, DataRow, nullDataArrays, schema } from "./datatypes";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { Dispatch, RefObject, SetStateAction } from "react";
 
 // TODO(jack): this setup is kinda bad cuz every time the function is called it
 // tried all URLs, including bad ones, which cause Network Errors to be thrown
@@ -85,8 +85,8 @@ export async function getRecording(filepath: string) {
 
 export async function initRecordingSource(
   filepath: string,
-  data: MutableRefObject<DataArrays>,
-  dataTrimmed: MutableRefObject<DataArrays>,
+  data: RefObject<DataArrays>,
+  dataTrimmed: RefObject<DataArrays>,
   setNumRows: Dispatch<SetStateAction<number>>,
   viewLength: number,
 ) {

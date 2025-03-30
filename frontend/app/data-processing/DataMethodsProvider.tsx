@@ -3,7 +3,7 @@
 import {
     createContext,
     Dispatch,
-    MutableRefObject,
+    RefObject,
     PropsWithChildren,
     SetStateAction,
     useContext,
@@ -71,12 +71,12 @@ type DataControllers = {
     switchToRecording: (filename: string) => void;
 };
 type DataRefs = {
-    dataArraysRef: MutableRefObject<DataArraysTyped>;
-    viewableArraysRef: MutableRefObject<DataArraysTyped>;
-    viewIntervalRef: MutableRefObject<[left: number, right: number]>;
-    numRowsRef: MutableRefObject<number>;
-    isTimelineSyncedRef: MutableRefObject<boolean>;
-    dataSourceRef: MutableRefObject<DataSourceType>;
+    dataArraysRef: RefObject<DataArraysTyped>;
+    viewableArraysRef: RefObject<DataArraysTyped>;
+    viewIntervalRef: RefObject<[left: number, right: number]>;
+    numRowsRef: RefObject<number>;
+    isTimelineSyncedRef: RefObject<boolean>;
+    dataSourceRef: RefObject<DataSourceType>;
 };
 type DataMethods = DataSubscribers & DataControllers & DataRefs;
 
@@ -122,8 +122,8 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
     // TODO: try going back to the old useMemo arrangement
     function makeSubscriber<T extends Subscription>(
-        setRef: MutableRefObject<Set<T>>,
-        initialTriggerData?: MutableRefObject<Parameters<T>[0] | null>,
+        setRef: RefObject<Set<T>>,
+        initialTriggerData?: RefObject<Parameters<T>[0] | null>,
     ) {
         return (clbk: T) => {
             setRef.current.add(clbk);
@@ -302,21 +302,27 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
                 arraysTyped[key] = arr;
             }
         }
+        // some basic manual data processing. TODO: make somthing extremely
+        // generic / extensible for arbitrary data processing
+        arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
+            n == 0.0 ? NaN : n,
+        );
+        arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
+            n == 0.0 ? NaN : n,
+        );
 
         numRowsRef.current = table.numRows;
         subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
 
         dataArraysRef.current = arraysTyped;
-        dataIntervalRef.current = [0, numRowsRef.current - 1];
-        viewableArraysRef.current = arraysTyped;
-        viewIntervalRef.current = [0, numRowsRef.current - 1];
-
         subscriptionsLatestArrays.current.forEach((s) => s(dataArraysRef.current));
+        viewableArraysRef.current = arraysTyped;
         subscriptionsViewableArrays.current.forEach((s) => s(viewableArraysRef.current));
-        subscriptionsViewInterval.current.forEach((s) =>
-            s(viewIntervalRef.current, "dataProvider"),
-        );
+
+        dataIntervalRef.current = [0, numRowsRef.current - 1];
         subscriptionsDataInterval.current.forEach((s) => s(dataIntervalRef.current));
+        viewIntervalRef.current = [0, numRowsRef.current - 1];
+        subscriptionsViewInterval.current.forEach((s) => s(viewIntervalRef.current, "dataProvider")); // prettier-ignore
 
         dataSourceRef.current = DataSourceType.RECORDED;
         subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));

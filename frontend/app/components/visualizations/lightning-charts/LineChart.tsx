@@ -26,18 +26,28 @@ import {
 } from "@/app/data-processing/datatypes";
 import DataSourceType from "@/models/DataSourceType";
 
-interface LineChartLightningProps {
+interface LineChartProps {
     yAxisColumns: ColumnName[];
     yAxisTitle?: string;
+    yAxisUnits?: string; // todo: get this from some server http api that uses CAN dbc
+
     xAxisColumn?: ColumnName;
+    xAxisTitle?: string;
+    xAxisUnits?: string; // todo: get this from some server http api that uses CAN dbc
+
     title?: string;
 }
-export default function LineChartLightning({
+export default function LineChart({
     yAxisColumns,
     yAxisTitle = yAxisColumns.join(", "),
+    yAxisUnits,
+
     xAxisColumn = timeColumnName,
-    title,
-}: LineChartLightningProps) {
+    xAxisTitle = xAxisColumn,
+    xAxisUnits,
+
+    title = yAxisTitle,
+}: LineChartProps) {
     const id = useId();
     const {
         subscribeDataSource,
@@ -58,24 +68,23 @@ export default function LineChartLightning({
     const lc = useContext(LightningChartsContext);
 
     useEffect(() => {
-        const container = containerRef.current;
+        if (!containerRef.current || !lc) return;
 
-        if (!container || !lc) return;
-
-        let chart = lc.ChartXY({ container, theme: globalTheme });
+        let chart = lc.ChartXY({ container: containerRef.current, theme: globalTheme });
         let lineSeriesMap = yAxisColumns.reduce(
             (acc, colName) => {
                 acc[colName] = chart
                     .addPointLineAreaSeries({
                         dataPattern: "ProgressiveX",
                         dataStorage: Float32Array,
+                        // allowInputModification: false
                     })
                     .setName(colName)
                     .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
                     .setAreaFillStyle(emptyFill);
                 // Populate with already available data if there is any
                 if (numRowsRef.current > 0) {
-                    acc[colName].appendSamples({
+                    acc[colName].setSamples({
                         xValues: dataArraysRef.current[xAxisColumn]!,
                         yValues: dataArraysRef.current[colName]!,
                     });
@@ -99,11 +108,14 @@ export default function LineChartLightning({
             });
         });
 
-        chart.setTitle(title ?? yAxisColumns.join(", ") + "  /  " + xAxisColumn);
+        chart.setTitle(title);
+
+        if (xAxisUnits) chart.getDefaultAxisX().setUnits(xAxisUnits);
+        if (yAxisUnits) chart.getDefaultAxisY().setUnits(yAxisUnits);
 
         chart
             .getDefaultAxisX()
-            .setTitle(xAxisColumn)
+            .setTitle(xAxisTitle)
             .setScrollStrategy(
                 isTimelineSyncedRef.current
                     ? AxisScrollStrategies.progressive
@@ -168,6 +180,7 @@ export default function LineChartLightning({
 
                 // TODO: maybe only set the main viewInterval if we have pointer
                 // focus and the viewWidth itself changed?
+                // also, maybe chart.seriesBackground.addEventListener("") ?
                 const [oldStart, oldEnd] = viewIntervalRef.current;
                 if (!isTimelineSyncedRef.current || start - end == oldStart - oldEnd) {
                 }
@@ -191,8 +204,7 @@ export default function LineChartLightning({
         });
 
         chart.addEventListener("cursortargetchange", (event) => {
-            const { hit, hits, mouseLocation } =
-                event as CursorTargetChangedEvent<SolveResultSampleXY>;
+            const { hit } = event as CursorTargetChangedEvent<SolveResultSampleXY>;
 
             // In live data mode, this will be replaced with the latest data row by dataProvider.
             // In recording mode, cursorRow should be valid only when there's a cursor hit, so we make it null here.
@@ -298,7 +310,7 @@ export default function LineChartLightning({
                 lineSeries = undefined;
             });
         };
-    }, [id, lc, xAxisColumn, yAxisColumns, yAxisTitle]);
+    }, [lc, xAxisColumn, ...yAxisColumns, yAxisTitle]);
 
     return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

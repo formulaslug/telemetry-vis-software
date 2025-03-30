@@ -1,10 +1,11 @@
 import { Layout, Model, TabNode } from "flexlayout-react";
-import { useEffect, useState } from "react";
 import SuspensionGauge from "./visualizations/SuspensionGauge";
 import CarWireframe from "./visualizations/CarWireframe";
 import GForceGauge from "./visualizations/GForceGauge";
-import LineChartLightning from "./visualizations/lightning-charts/LineChartLightning";
+import LineChart from "./visualizations/lightning-charts/LineChart";
 import TextBox from "./visualizations/TextBox";
+import { CornersOut, X } from "@phosphor-icons/react";
+import GPSInternal from "./visualizations/GPS/GPS";
 
 const model = Model.fromJson({
     global: {},
@@ -57,8 +58,8 @@ const model = Model.fromJson({
                         children: [
                             {
                                 type: "tab",
-                                name: "Chart 1",
-                                component: "acc-seg-0-voltage-linegraph",
+                                name: "GPS",
+                                component: "gps",
                             },
                         ],
                     },
@@ -133,7 +134,7 @@ export default function FlexLayoutComponent() {
             "car-wireframe": <CarWireframe />,
             "g-force-gauge": <GForceGauge x={1} y={1} z={1} />,
             "acc-seg-0-voltage-linegraph": (
-                <LineChartLightning
+                <LineChart
                     title={"Acc Seg 0 Voltage"}
                     yAxisTitle="Voltage"
                     yAxisColumns={[
@@ -144,29 +145,27 @@ export default function FlexLayoutComponent() {
                         "Seg0_VOLT_4",
                         "Seg0_VOLT_5",
                     ]}
+                    yAxisUnits="volts"
                 />
             ),
             "timings-box": (
                 <div className="p-0">
-                    <TextBox 
-                        title="Lap Time"
-                        keyName=":LapTime"
-                    />
-                    <TextBox 
-                        title="Lap Number"
-                        keyName=":Lap"
-                    />
+                    <TextBox title="Lap Time" keyName=":LapTime" />
+                    <TextBox title="Lap Number" keyName=":Lap" /> {/*TODO: lcjs datagrid*/}
+                    <TextBox title="Speed" keyName="VDM_GPS_SPEED" />{" "}
+                    {/*TODO: lcjs guage chart*/}
                 </div>
             ),
             "brake-pressure-linegraph": (
-                <LineChartLightning
+                <LineChart
                     // title={""}
-                    yAxisTitle="Brake Pressure (psi)"
+                    yAxisTitle="Brake Pressure"
                     yAxisColumns={["TELEM_STEERBRAKE_BRAKEF", "TELEM_STEERBRAKE_BRAKER"]}
+                    yAxisUnits="psi(?)"
                 />
             ),
             "long-accel-linegraph": (
-                <LineChartLightning
+                <LineChart
                     // title={""}
                     yAxisTitle="Longitudinal Acceleration"
                     yAxisColumns={[
@@ -176,6 +175,7 @@ export default function FlexLayoutComponent() {
                     ]}
                 />
             ),
+            "gps": <GPSInternal />,
             skeleton: <div className="w-full h-full bg-neutral-500"></div>,
         };
 
@@ -188,5 +188,15 @@ export default function FlexLayoutComponent() {
         ];
     }
 
-    return <Layout realtimeResize={true} model={model} factory={factory} />;
+    return (
+        <Layout
+            realtimeResize={true}
+            model={model}
+            factory={factory}
+            icons={{
+                close: <X color="gray" weight="bold" />,
+                maximize: <CornersOut color="gray" weight="bold" />,
+            }}
+        />
+    );
 }

@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
     // Required for self hosting in a docker container
     output: "standalone",
 
+    // Annoying UI popup that gets in the way 99% of the time
+    devIndicators: false,
+
     // Required for parquet-wasm to work
     webpack: (config, _) => {
         config.experiments = {

@@ -1,6 +1,6 @@
 import { AsyncByteStream, AsyncRecordBatchStreamReader, RecordBatch } from "apache-arrow";
 import { ColumnName, columnNames, DataArrays, DataRow, nullDataArrays } from "./datatypes";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { Dispatch, RefObject, SetStateAction } from "react";
 import { AsyncQueue } from "apache-arrow/io/interfaces";
 
 let socket: WebSocket | null;
@@ -8,8 +8,8 @@ let messageQueue = new AsyncQueue<ArrayBuffer>();
 // let recordBatches: RecordBatch[] = []; // not needed atm
 
 async function processData_OLD(
-    data: MutableRefObject<DataArrays>,
-    dataTrimmed: MutableRefObject<DataArrays>,
+    data: RefObject<DataArrays>,
+    dataTrimmed: RefObject<DataArrays>,
     setNumRows: Dispatch<SetStateAction<number>>,
     viewLength: number,
 ) {
@@ -73,8 +73,8 @@ export function initWebSocketConnection(
     onRecordBatch: (batch: RecordBatch) => void,
 
     setIsConnected?: Dispatch<SetStateAction<boolean>>,
-    // data: MutableRefObject<DataArrays>,
-    // dataTrimmed: MutableRefObject<DataArrays>,
+    // data: RefObject<DataArrays>,
+    // dataTrimmed: RefObject<DataArrays>,
     // setNumRows: Dispatch<SetStateAction<number>>,
     // viewLength: number,
 ) {

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 
-export default function useDebounceCallbackGreedy<T extends (...args: any[]) => any>(func: T, delay: number) {
-    const timeoutRef = useRef<number>();
+export default function useDebounceCallbackGreedy<T extends (...args: any[]) => any>(
+    func: T,
+    delay: number,
+) {
+    const timeoutRef = useRef<number>(null);
     const isCooldownRef = useRef(false);
 
     const debouncedFunc = useCallback(
@@ -19,7 +22,7 @@ export default function useDebounceCallbackGreedy<T extends (...args: any[]) => 
 
     useEffect(() => {
         return () => {
-            window.clearTimeout(timeoutRef.current);
+            if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
         };
     }, []);
 

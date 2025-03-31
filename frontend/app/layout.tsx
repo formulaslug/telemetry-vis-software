@@ -97,18 +97,17 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const className = `${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`;
     return (
-        <html lang="en" {...mantineHtmlProps}>
+        <html lang={"en"} {...mantineHtmlProps}>
             <head>
-                {process.env.NODE_ENV === "development" ? <ReactScan /> : null}
-                <ColorSchemeScript forceColorScheme="dark" />
+                {process.env.NODE_ENV === "development" && false ? <ReactScan /> : null}
+                <ColorSchemeScript forceColorScheme={"dark"} />
             </head>
             {/* using .variable here allows us to choose the font based on
             tailwind italic/no-italic classes in globals.css */}
-            <body
-                className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}
-            >
-                <MantineProvider forceColorScheme="dark" theme={theme}>
+            <body className={className}>
+                <MantineProvider forceColorScheme={"dark"} theme={theme}>
                     <DataMethodsProvider>
                         <LightningChartsProvider>{children}</LightningChartsProvider>
                     </DataMethodsProvider>

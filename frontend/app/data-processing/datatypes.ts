@@ -132,7 +132,7 @@ export type DataSetsXY = {
 // Generate a dictionary with keys for each column name that are mapped to empty TypedArrays
 export function emptyDataArraysTyped(rows: number): DataArraysTyped {
     return columnNames.reduce((acc, key) => {
-        acc[key] = new columnDataTypes[key].ArrayType(rows);
+        acc[key] = new columnDataTypes[key].ArrayType(rows).fill(NaN);
         return acc;
     }, {} as DataArraysTyped);
 }

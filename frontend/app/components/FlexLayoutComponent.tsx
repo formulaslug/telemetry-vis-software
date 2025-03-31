@@ -18,14 +18,25 @@ const model = Model.fromJson({
                 type: "row",
                 weight: 30,
                 children: [
+                    // {
+                    //     type: "tabset",
+                    //     weight: 30,
+                    //     children: [
+                    //         {
+                    //             type: "tab",
+                    //             name: "Suspension",
+                    //             component: "suspension-gauge",
+                    //         },
+                    //     ],
+                    // },
                     {
                         type: "tabset",
-                        weight: 30,
+                        weight: 33,
                         children: [
                             {
                                 type: "tab",
-                                name: "Suspension",
-                                component: "suspension-gauge",
+                                name: "GPS",
+                                component: "gps",
                             },
                         ],
                     },
@@ -52,17 +63,6 @@ const model = Model.fromJson({
                 type: "row",
                 weight: 70,
                 children: [
-                    {
-                        type: "tabset",
-                        weight: 33,
-                        children: [
-                            {
-                                type: "tab",
-                                name: "GPS",
-                                component: "gps",
-                            },
-                        ],
-                    },
                     {
                         type: "tabset",
                         weight: 33,
@@ -175,7 +175,7 @@ export default function FlexLayoutComponent() {
                     ]}
                 />
             ),
-            "gps": <GPSInternal />,
+            gps: <GPSInternal />,
             skeleton: <div className="w-full h-full bg-neutral-500"></div>,
         };
 

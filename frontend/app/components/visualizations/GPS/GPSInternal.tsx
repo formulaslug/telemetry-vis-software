@@ -13,6 +13,7 @@ import {
     transparentFill,
     emptyLine,
     ChartXY,
+    PointLineAreaSeries,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "../lightning-charts/GlobalContext";
 import globalTheme from "../lightning-charts/GlobalTheme";
@@ -26,11 +27,24 @@ const Leaflet = dynamic(() => import("./Leaflet").then((o) => o), { ssr: false }
 const LAT_COLNAME = "VDM_GPS_Latitude"; // "GPSi_Latitude";
 const LNG_COLNAME = "VDM_GPS_Longitude"; // "GPSi_Longitude";
 
+const defaultBgSeriesStrokeStyle = new SolidLine({
+    // this is just the default; its set again below
+    thickness: 25,
+    fillStyle: new SolidFill({ color: ColorHEX("#808080") }),
+});
+
 interface GPSInternalProps {
     useLeaflet: boolean;
     useBgSeries: boolean;
+    trackThickness: number;
+    carLineThickness: number;
 }
-export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProps) {
+export default function GPSInternal({
+    useLeaflet,
+    useBgSeries,
+    trackThickness,
+    carLineThickness,
+}: GPSInternalProps) {
     const {
         subscribeViewInterval,
         subscribeLatestArrays,
@@ -43,10 +57,13 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
     const containerRef = useRef(null);
     const lc = useContext(LightningChartsContext);
     const chartRef = useRef<ChartXY>(null);
-    // const previousViewIntervalRef = useRef<[left: number, right: number]>([0, 0]);
+
     // referenced in multiple places bellow. Only for avoiding frequent allocation
     const allZeroArray = useMemo(() => new Float32Array(MAX_DATA_ROWS).fill(0), []);
-    // const allOneArray = useMemo(() => new Float32Array(MAX_DATA_ROWS).fill(1), []);
+    const allOneArray = useMemo(() => new Float32Array(MAX_DATA_ROWS).fill(1), []);
+
+    const bgSeriesRef = useRef<PointLineAreaSeries | null>(null);
+    const visibleSeriesRef = useRef<PointLineAreaSeries | null>(null);
 
     // Based on https://lightningchart.com/js-charts/docs/features/xy/freeform-line/
     useEffect(() => {
@@ -62,7 +79,8 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
                 defaultAxisX: { type: "linear-highPrecision" },
                 defaultAxisY: { type: "linear-highPrecision" },
             })
-            .setCursorMode(undefined) // "show-pointed"
+            // afaik you can't easily share pointer events between two overlapping divs
+            .setCursorMode(useLeaflet ? undefined : "show-pointed")
             .setPadding(0)
             .setSeriesBackgroundFillStyle(transparentFill)
             .setSeriesBackgroundStrokeStyle(emptyLine);
@@ -74,7 +92,6 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
             .addPointLineAreaSeries({
                 dataPattern: null,
                 dataStorage: Float32Array,
-                automaticColorIndex: 0,
                 lookupValues: true,
                 // todo: enable an LUT for color based on lap #???
             })
@@ -82,16 +99,17 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
             .setSamples({
                 xValues: viewableArraysRef.current[LNG_COLNAME]!,
                 yValues: viewableArraysRef.current[LAT_COLNAME]!,
-                lookupValues: allZeroArray.subarray(0, viewableArraysRef.current[timeColumnName]!.length + 1),
+                lookupValues: allOneArray.subarray(
+                    0,
+                    viewableArraysRef.current[timeColumnName]?.length ?? 0 + 1,
+                ),
             })
             .setAreaFillStyle(emptyFill)
             .setPointFillStyle(emptyFill)
-            .setPointSize(0)
-            // .setPointFillStyle(new SolidFill({ color: ColorRGBA(0, 200, 0, 100) })) // TODO: some sort of LUT gradient
-            // .setPointSize(2)
+            // .setPointSize(0)
             .setStrokeStyle(
                 new SolidLine({
-                    thickness: 5,
+                    thickness: carLineThickness,
                     fillStyle: new PalettedFill({
                         lookUpProperty: "value",
                         lut: new LUT({
@@ -104,12 +122,14 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
                     }),
                 }),
             )
-            .setCurvePreprocessing({ type: "spline" });
+            // splines aren't supported for freeform (non-progressive) data :/
+            // .setCurvePreprocessing({ type: "spline" });
+        visibleSeriesRef.current = visibleSeries;
+
         let bgSeries = chart
             .addPointLineAreaSeries({
                 dataPattern: null,
                 dataStorage: Float32Array,
-                automaticColorIndex: 0,
             })
             .setDrawOrder({ seriesDrawOrderIndex: 1 })
             .setSamples({
@@ -117,18 +137,18 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
                 yValues: dataArraysRef.current[LAT_COLNAME]!,
             })
             .setAreaFillStyle(emptyFill)
-            .setPointFillStyle(emptyFill)
-            .setStrokeStyle(
-                new SolidLine({
-                    thickness: 25,
-                    fillStyle: new SolidFill({ color: ColorHEX("#808080") }),
-                }),
-            );
+            .setPointFillStyle(emptyFill);
+        bgSeriesRef.current = bgSeries;
 
         chart.forEachAxis((a) => {
             a.setIntervalRestrictions(undefined);
             a.setThickness(0);
             a.setTickStrategy(AxisTickStrategies.Empty);
+            // todo: instead of this, we need logic within Leaflet.tsx
+            // a.setDefaultInterval((state) => ({
+            //     start: state.dataMin,
+            //     end: state.dataMax,
+            // }));
         });
 
         chart.setTitle("");
@@ -145,8 +165,8 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
 
         const unsub1 = subscribeLatestArrays((latest) => {
             bgSeries.appendSamples({
-                xValues: latest[LAT_COLNAME]!,
-                yValues: latest[LNG_COLNAME]!,
+                xValues: latest[LNG_COLNAME]!,
+                yValues: latest[LAT_COLNAME]!,
             });
             visibleSeries.appendSamples({
                 xValues: latest[LNG_COLNAME]!,
@@ -156,11 +176,12 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
             });
         });
         const unsub2 = subscribeViewInterval(([left, right]) => {
+            // console.log(left, right);
+
             // visibleSeries.setSamples({
             //     xValues: viewableArraysRef.current[LAT_COLNAME]!,
             //     yValues: viewableArraysRef.current[LONG_COLNAME]!,
             // });
-            // TODO: modify `sizes` in dataset
             visibleSeries.fill({ lookupValue: 0 });
 
             // We need +1 as left and right from dataProvider are both inclusive
@@ -172,7 +193,6 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
             // channel starting at the correct index
             visibleSeries.alterSamples(left, {
                 // todo: this doesn't work with data cleaning
-                // lookupValues: allOneArray.subarray(0, right - left + 1 + 1),
                 lookupValues: gradient,
             });
         });
@@ -199,21 +219,40 @@ export default function GPSInternal({ useLeaflet, useBgSeries }: GPSInternalProp
     }, [lc]);
 
     useEffect(() => {
-        
+        if (bgSeriesRef.current) {
+            bgSeriesRef.current.setStrokeStyle(
+                useBgSeries
+                    ? defaultBgSeriesStrokeStyle.setThickness(trackThickness)
+                    : emptyLine,
+            );
+        }
     }, [useBgSeries]);
 
-    return useLeaflet ? (
+    useEffect(() => {
+        if (bgSeriesRef.current) {
+            bgSeriesRef.current.setStrokeStyle((style) => style.setThickness(trackThickness));
+        }
+    }, [trackThickness]);
+    useEffect(() => {
+        if (visibleSeriesRef.current) {
+            visibleSeriesRef.current.setStrokeStyle((style) =>
+                style.setThickness(carLineThickness),
+            );
+        }
+    }, [carLineThickness]);
+
+    return (
         <>
-            <div className="absolute w-[100%] h-[100%] z-0">
-                <Leaflet chartRef={chartRef} />
-            </div>
+            {useLeaflet ? (
+                <div className="absolute w-[100%] h-[100%] z-0">
+                    <Leaflet chartRef={chartRef} />
+                </div>
+            ) : null}
             <div
                 id={id}
                 ref={containerRef}
-                className="absolute pointer-events-none w-[100%] h-[100%] z-40,"
+                className="absolute pointer-events-none w-[100%] h-[100%] z-40"
             ></div>
         </>
-    ) : (
-        <div id={id} ref={containerRef} className="w-[100%] h-[100%] z-40"></div>
     );
 }

@@ -1,13 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
-import { ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
+import { Text, Button, ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
 import { Gear, GlobeHemisphereWest, LineVertical } from "@phosphor-icons/react";
 import GPSInternal from "./GPSInternal";
 
 export default function GPS() {
     const [useLeaflet, setUseLeaflet] = useState(true);
     const [useBgSeries, setUseBgSeries] = useState(false);
+    const [trackThickness, setTrackThickness] = useState(25);
+    const [carLineThickness, setCarLineThickness] = useState(5);
+    const reset = useCallback(() => {
+        setUseBgSeries(false);
+        setUseLeaflet(true);
+        setTrackThickness(25);
+        setCarLineThickness(5);
+    }, []);
 
     return (
         <>
@@ -37,17 +45,40 @@ export default function GPS() {
                             // {<LineVertical size={14} weight="bold" />}
                         />
                     </Menu.Item>
+                    <Menu.Divider />
                     <Menu.Item>
-                        <Slider step={1} min={10} max={50} value={25} label="Track thickness" />
+                        <Text>Track Thickness</Text>
+                        <Slider
+                            step={1}
+                            min={10}
+                            max={50}
+                            value={trackThickness}
+                            onChange={setTrackThickness}
+                        />
                     </Menu.Item>
                     <Menu.Item>
-                        <Slider step={1} min={10} max={50} value={25} label="Line thickness" />
+                        <Text>Car Line Thickness</Text>
+                        <Slider
+                            step={1}
+                            min={1}
+                            max={15}
+                            value={carLineThickness}
+                            onChange={setCarLineThickness}
+                        />
                     </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item onClick={reset}>Reset</Menu.Item>
+
                     {/* todo: configure gradient keynames via dropdown */}
                 </Menu.Dropdown>
             </Menu>
             <div>
-                <GPSInternal useLeaflet={useLeaflet} useBgSeries={useBgSeries} />
+                <GPSInternal
+                    useLeaflet={useLeaflet}
+                    useBgSeries={useBgSeries}
+                    trackThickness={trackThickness}
+                    carLineThickness={carLineThickness}
+                />
             </div>
         </>
     );

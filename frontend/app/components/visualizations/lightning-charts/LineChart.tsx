@@ -222,12 +222,12 @@ export default function LineChart({
             // ATM we simply ignore updates to viewEdges from dataProvider
             // because lcjs automatically updates its interval on data changes
             if (setterID === "lcjs" || setterID === "dataProvider") return;
-            console.log(
-                "lcjs setting interval:",
-                dataArraysRef.current[timeColumnName]![left],
-                dataArraysRef.current[timeColumnName]![right - 1],
-                numRowsRef.current,
-            );
+            // console.log(
+            //     "lcjs setting interval:",
+            //     dataArraysRef.current[timeColumnName]![left],
+            //     dataArraysRef.current[timeColumnName]![right - 1],
+            //     numRowsRef.current,
+            // );
 
             chart.getDefaultAxisX().setInterval({
                 start: dataArraysRef.current[timeColumnName]![left],
@@ -285,7 +285,7 @@ export default function LineChart({
         const unsub5 = subscribeIsTimelineSynced(
             (isTimelineSynced: boolean, setterID: string) => {
                 if (setterID === "lcjs") return;
-                console.log(isTimelineSynced, setterID);
+                // console.log(isTimelineSynced, setterID);
                 chart.getDefaultAxisX().setStopped(!isTimelineSynced);
                 chart.setUserInteractions({
                     zoom: {

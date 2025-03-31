@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 
-export default function getTextSize({ ref }: { ref: RefObject<HTMLDivElement> }) {
+export default function getTextSize({ ref }: { ref: RefObject<HTMLDivElement | null> }) {
     const [textSize, setTextSize] = useState(1);
 
     useEffect(() => {

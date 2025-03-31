@@ -193,7 +193,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
         isTimelineSyncedRef.current = isSynced;
         subscriptionsIsTimelineSynced.current.forEach((s) => s(isSynced, setterID));
-        console.log(isSynced, setterID, dataSourceRef.current);
+        // console.log(isSynced, setterID, dataSourceRef.current);
     };
     const reset = () => {
         dataArraysRef.current = emptyDataArraysTyped(MAX_DATA_ROWS);
@@ -316,13 +316,11 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
         dataArraysRef.current = arraysTyped;
         subscriptionsLatestArrays.current.forEach((s) => s(dataArraysRef.current));
-        viewableArraysRef.current = arraysTyped;
-        subscriptionsViewableArrays.current.forEach((s) => s(viewableArraysRef.current));
 
         dataIntervalRef.current = [0, numRowsRef.current - 1];
         subscriptionsDataInterval.current.forEach((s) => s(dataIntervalRef.current));
-        viewIntervalRef.current = [0, numRowsRef.current - 1];
-        subscriptionsViewInterval.current.forEach((s) => s(viewIntervalRef.current, "dataProvider")); // prettier-ignore
+
+        setViewInterval([0, numRowsRef.current], "dataProvider");
 
         dataSourceRef.current = DataSourceType.RECORDED;
         subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));

@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
     output: "standalone",
 
     // Annoying UI popup that gets in the way 99% of the time
-    devIndicators: false,
+    devIndicators: {
+        buildActivity: false,
+        appIsrStatus: false,
+    },
 
     // Required for parquet-wasm to work
     webpack: (config, _) => {

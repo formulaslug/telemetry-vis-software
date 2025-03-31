@@ -2,8 +2,9 @@ import * as THREE from "three";
 import { OrbitControls, Plane, useGLTF } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import getTextSize from "@/app/utils/getTextSize";
+import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 
 interface rotation {
     x: number;
@@ -58,7 +59,22 @@ function Car({ rotation }: { rotation: rotation }) {
     );
 }
 
-export default function CarWireframe({ x, y, z }: { x: number; y: number; z: number }) {
+export default function CarWireframe() {
+    const [values, setValues] = useState<{ x: number; y: number; z: number }>({
+        x: 0,
+        y: 0,
+        z: 0,
+    });
+    const { subscribeCursorRow } = useDataMethods();
+    useEffect(() => {
+        return subscribeCursorRow((cursorRow) => {
+            setValues({
+                x: cursorRow?.VDM_X_AXIS_ACCELERATION ?? 0,
+                y: cursorRow?.VDM_Y_AXIS_ACCELERATION ?? 0,
+                z: cursorRow?.VDM_Z_AXIS_ACCELERATION ?? 0,
+            });
+        });
+    }, []);
     const containerRef = useRef<HTMLDivElement>(null);
     const textSize = getTextSize({ ref: containerRef });
 
@@ -68,15 +84,15 @@ export default function CarWireframe({ x, y, z }: { x: number; y: number; z: num
             className="w-full h-full bg-white/10 overflow-hidden flex flex-col"
         >
             <div className="h-[90%]">
-                <Scene rotation={{ x: x, y: y, z: z }} />
+                <Scene rotation={{ x: values.x, y: values.y, z: values.z }} />
             </div>
             <div
                 className="h-[10%] w-full bg-neutral-900 flex flex-row justify-evenly items-center"
                 style={{ fontSize: textSize }}
             >
-                <p>x: {x.toFixed(2)}</p>
-                <p>y: {y.toFixed(2)}</p>
-                <p>z: {z.toFixed(2)}</p>
+                <p>x: {values.x.toFixed(2)}</p>
+                <p>y: {values.y.toFixed(2)}</p>
+                <p>z: {values.z.toFixed(2)}</p>
             </div>
         </div>
     );

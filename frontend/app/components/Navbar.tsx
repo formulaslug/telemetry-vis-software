@@ -4,10 +4,11 @@ import { useDisclosure } from "@mantine/hooks";
 import { CaretDown } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
 import { availableRecordings } from "../data-processing/http";
+import { useDataMethods } from "../data-processing/DataMethodsProvider";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {
@@ -51,6 +52,19 @@ export default function Navbar() {
     const [recordings, setRecordings] = useState<string[] | null>(null);
     const displayedName = fileName.split("/")[fileName.split("/").length - 1];
 
+    const { switchToRecording, switchToLiveData, subscribeNumRows } = useDataMethods();
+    const myRowsPRef = useRef<HTMLParagraphElement | null>(null);
+    useEffect(() => {
+        return subscribeNumRows((numRows: number) => {
+            if (myRowsPRef.current) {
+                myRowsPRef.current.innerText = numRows.toString();
+            }
+        });
+    }, []);
+    {/* <p>{myNumRows}</p> */}
+    {/* <button onClick={() => switchToLiveData()}>blah</button> */}
+
+
     useEffect(() => {
         availableRecordings().then((r) => setRecordings(r ?? []));
     }, []);
@@ -78,9 +92,14 @@ export default function Navbar() {
         );
     }
 
-    function StreamPicker() {
+    function DataSourcePicker() {
         function onPickerChanged(value: string) {
-            setLive(value === "live");
+            if (value === "recording") {
+                switchToRecording(fileName)
+            } else {
+                switchToLiveData()
+            }
+            // setLive(value === "live");
         }
 
         function FileTree() {
@@ -118,8 +137,11 @@ export default function Navbar() {
                                             close();
                                         }
                                     }}
-                                    className={hasChildren ? "text-foreground" : `text-[--mantine-color-primary-5]`}
-
+                                    className={
+                                        hasChildren
+                                            ? "text-foreground"
+                                            : `text-[--mantine-color-primary-5]`
+                                    }
                                 >
                                     {node.label}
                                 </span>
@@ -132,7 +154,12 @@ export default function Navbar() {
 
         return (
             <>
-                <Modal opened={opened} onClose={close} title="Select Stream Type" centered>
+                <Modal
+                    opened={opened}
+                    onClose={close}
+                    title="Select Data Source Type"
+                    centered
+                >
                     <div className="m-3">
                         <SegmentedControl
                             fullWidth
@@ -159,13 +186,22 @@ export default function Navbar() {
                 <div className="flex flex-row items-center">
                     {/* Logo */}
                     <div className="m-3">
-                        <Image src="/fs_logo.png" alt="fs-logo" width={100} height={40} className="w-auto" priority={true} />
+                        <Image
+                            src="/fs_logo.png"
+                            alt="fs-logo"
+                            width={100}
+                            height={40}
+                            className="w-auto"
+                            priority={true}
+                        />
                     </div>
 
                     {/* Modal */}
                     <div className="m-3">
                         <SystemSelector />
                     </div>
+
+                    <p ref={myRowsPRef}>?</p>
                 </div>
                 {/* Right Side */}
                 <div className="m-3">
@@ -177,7 +213,7 @@ export default function Navbar() {
                     >
                         {live ? "Live" : displayedName}
                     </Button>
-                    <StreamPicker />
+                    <DataSourcePicker />
                 </div>
             </div>
         </>

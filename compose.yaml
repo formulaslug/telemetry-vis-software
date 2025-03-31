@@ -17,6 +17,8 @@ services:
   # Nodejs process hosts react frontend
   nodejs:
     image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
+    # NOTE: in order for the build to produce a working output, .env.production
+    # needs to be present in the build context dir with lcjs license information.
     build: ./frontend
     expose:
       - "3000"

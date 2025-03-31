@@ -1,23 +1,24 @@
 import os
 from aiohttp import web
 import aiohttp_cors
+import cantools
 
-dirs = list(filter(None, os.environ.get("RECORDING_DIRS", "").split(":")))
+data_dir = os.environ.get("DATA_DIR", "")
 parquet_files = set()
-for toplevel_dir in dirs:
-    if not os.path.isdir(toplevel_dir):
-        print("Invalid recording dir: ", toplevel_dir)
-        continue
+if not os.path.isdir(data_dir):
+    raise ValueError("Invalid recording dir: ", data_dir)
 
-    def check_subdir(d):
-        for f in os.listdir(d):
-            path = os.path.join(d, f)
-            if os.path.isdir(path):
-                check_subdir(path)
-            elif f.endswith(".pq") or f.endswith(".parquet"):
-                parquet_files.add(os.path.relpath(path, toplevel_dir))
 
-    check_subdir(toplevel_dir)
+def check_subdir(d):
+    for f in os.listdir(d):
+        path = os.path.join(d, f)
+        if os.path.isdir(path):
+            check_subdir(path)
+        elif f.endswith(".pq") or f.endswith(".parquet"):
+            parquet_files.add(os.path.relpath(path, data_dir))
+
+
+check_subdir(data_dir)
 
 
 routes = web.RouteTableDef()
@@ -27,16 +28,17 @@ routes = web.RouteTableDef()
 async def available_recordings(request):
     return web.json_response(list(parquet_files))
 
-if len(dirs) > 0:
-    # TODO: decide on multuple dirs
-    routes.static("/api/get-recording", dirs[0], show_index=True)
-# @routes.get("/api/get-recording/{filename}")
-# async def get_recording(request: web.Request):
-#     f = request.match_info.get("filename")
-#     if not f:
-#         return web.Response(status=404, body="Unkown / incorrect recording filename!")
-#     # return web.Response(content_type="application/vnd.apache.arrow.stream", body=)
-#     return web.json_response({"you asked for": f})
+
+# This serves the parquet data directly as static files
+routes.static("/api/get-recording", data_dir, show_index=True)
+
+
+@routes.get("/api/get-dbc/{car}")
+async def get_dbc(request: web.Request):
+    car = request.match_info.get("car")
+    db = cantools.db.database.Database()
+    
+    return web.json_response(response_obj)
 
 
 app = web.Application()

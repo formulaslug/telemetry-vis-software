@@ -6,7 +6,7 @@ import polars as pl
 import pyarrow as pa
 import random
 
-import sim
+import util.sim as sim
 
 # List of WebSocket connections with their corresponding Arrow Stream (IPC)
 # Writers and BytesIO buffers

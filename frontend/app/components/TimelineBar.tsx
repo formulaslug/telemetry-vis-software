@@ -1,116 +1,184 @@
-import { RangeSlider } from "@mantine/core";
-import { Pause, Play } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { Box, Button, RangeSlider, RangeSliderValue } from "@mantine/core";
+import { ArrowFatLinesRight, CaretDoubleRight, Pause, Play } from "@phosphor-icons/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDataMethods } from "../data-processing/DataMethodsProvider";
+import DataSourceType from "@/models/DataSourceType";
+import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
+import { timeColumnName } from "../data-processing/datatypes";
 
 export default function TimelineBar() {
     const [paused, setPaused] = useState(true);
-
-    function DraggableRangeSlider() {
-        const [range, setRange] = useState<[number, number]>([30, 70]); // Initial range
-        const draggingRef = useRef(false);
-        const lastMouseX = useRef(0);
-        const sliderRef = useRef<HTMLDivElement | null>(null);
-        const width = range[1] - range[0];
-
-        const handleMouseDown = (event: React.MouseEvent) => {
-            draggingRef.current = true;
-            lastMouseX.current = event.clientX;
-        };
-
-        const handleMouseUp = () => {
-            draggingRef.current = false;
-        };
-
-        const handleMouseMove = (event: MouseEvent) => {
-            if (!draggingRef.current || !sliderRef.current) return;
-
-            const deltaX = event.clientX - lastMouseX.current;
-            lastMouseX.current = event.clientX;
-
-            // Convert pixels to range values proportionally
-            const sliderWidth = sliderRef.current.clientWidth;
-            const rangeWidth = 100; // Assuming the slider goes from 0 to 100
-            const scaleFactor = rangeWidth / sliderWidth; // Converts pixels to value change
-
-            const deltaValue = deltaX * scaleFactor; // Smooth movement
-
-            setRange(([start, end]) => {
-                let newStart = start + deltaValue;
-                let newEnd = end + deltaValue;
-
-                // Prevent exceeding min/max limits
-                if (newStart < 0) {
-                    newStart = 0;
-                    newEnd = end - start; // Maintain width
-                }
-                if (newEnd > 100) {
-                    newEnd = 100;
-                    newStart = newEnd - (end - start); // Maintain width
-                }
-
-                return [newStart, newEnd];
-            });
-        };
-
-        useEffect(() => {
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
-            return () => {
-                document.removeEventListener("mousemove", handleMouseMove);
-                document.removeEventListener("mouseup", handleMouseUp);
-            };
-        }, []);
-
-        return (
-            <div ref={sliderRef} className="relative w-full">
-                <RangeSlider
-                    value={range}
-                    onChange={setRange}
-                    min={0}
-                    max={100}
-                    step={1}
-                    size={8}
-                    thumbSize={6}
-                    styles={{
-                        track: { cursor: "pointer" },
-                        bar: { cursor: "pointer" },
-                    }}
-                />
-                {/* Invisible overlay to detect middle drag */}
-                <div
-                    className="absolute top-0 left-0 h-full bg-red-300"
-                    style={{
-                        cursor: "grab",
-                        width: `${width - width * 0.1}%`,
-                        left: `${range[0] + width * 0.05}%`,
-                        height: "20px", // Make it easy to grab
-                        backgroundColor: "transparent",
-                        zIndex: 10,
-                        top:
-                            -(20 - (sliderRef.current ? sliderRef.current.offsetHeight : 0)) /
-                            2,
-                    }}
-                    onMouseDown={handleMouseDown}
-                />
-            </div>
-        );
-    }
+    const { switchToRecording } = useDataMethods();
 
     return (
         <>
-            <div className="flex flex-row w-full items-center">
+            <div className="flex flex-row w-full items-center bg-background-2 p-5 gap-x-3">
                 <div
-                    className="p-2 hover:cursor-pointer"
+                    className="hover:cursor-pointer"
                     onClick={() => {
                         setPaused(!paused);
                     }}
                 >
-                    {paused ? <Play /> : <Pause />}
+                    {paused ? <Play weight="fill" /> : <Pause weight="fill" />}
                 </div>
                 <div className="grow">
-                    <DraggableRangeSlider />
+                    <MainSlider />
                 </div>
+                <SyncButton />
+                <Button
+                    onClick={() =>
+                        switchToRecording("fs-data/FS-2/2025-03-06-BrakingTests1.parquet")
+                    }
+                />
             </div>
+        </>
+    );
+}
+
+function SyncButton() {
+    const [enabled, setEnabled] = useState(false);
+    const [visible, setVisible] = useState(false);
+    const { subscribeIsTimelineSynced, setIsTimelineSynced, subscribeDataSource } =
+        useDataMethods();
+    useEffect(() => {
+        const unsub1 = subscribeIsTimelineSynced((isTimelineSynced: boolean) => {
+            setEnabled(isTimelineSynced);
+        });
+        const unsub2 = subscribeDataSource((dataSourceType) => {
+            setVisible(dataSourceType == DataSourceType.LIVE);
+        });
+        return () => {
+            unsub1();
+            unsub2();
+        }
+    }, []);
+    const setTimelineSynced = useCallback(() => {
+        setEnabled(true);
+        setIsTimelineSynced(true, "timelineBar");
+    }, []);
+
+    return visible ? (
+        <Box c={enabled ? "neutral.9" : "neutral.4"}>
+            <CaretDoubleRight
+                color="currentColor"
+                weight="fill"
+                size={24}
+                onClick={enabled ? undefined : setTimelineSynced}
+            />
+        </Box>
+    ) : null;
+}
+
+function MainSlider() {
+    const [disabled, setDisabled] = useState<boolean>(false);
+    const [minMax, setMinMax] = useState<RangeSliderValue>([0, 10]);
+    const [value, setValue] = useState<RangeSliderValue>([0, 10]);
+    const debouncedSetValue = useDebounceCallbackGreedy((value) => setValue(value), 10);
+    const ref = useRef<HTMLDivElement>(null);
+    // id is only used to differentiate between who set viewInterval (avoid infinite recursion)
+    const id = "timelineBar";
+
+    useEffect(() => console.log("value:", value), [value]);
+
+    const {
+        setViewInterval,
+        subscribeDataSource,
+        subscribeNumRows,
+        subscribeViewInterval,
+        subscribeDataInterval,
+        viewIntervalRef,
+        dataArraysRef,
+        // setCursorPosition, // eventually?
+    } = useDataMethods();
+
+    useEffect(() => {
+        const unsub1 = subscribeDataInterval(([left, right]) => {
+            setMinMax([left, right]);
+        });
+        const unsub2 = subscribeDataSource((dataSource: DataSourceType) => {
+            // setDisabled(dataSource == DataSourceType.NONE);
+        });
+        const unsub3 = subscribeViewInterval((range, setterID) => {
+            // console.log(range, setterID, minMax);
+            if (setterID === id) return;
+            // New data shouldn't come in fast enough to warrant debouncing
+            if (setterID === "dataProvider") setValue(range);
+            // TODO: this debouncing is a very acceptable compromise between
+            // choppy-looking synchronization and performance penalties. But I
+            // wonder if it's possible to hack in some native CSS animations
+            // between values (using Mantine's Styles API) to smoothen out lower
+            // update frequencies? (Future investigation maybe)
+            debouncedSetValue(range);
+        });
+        return () => {
+            unsub1();
+            unsub2();
+            unsub3();
+        };
+    }, []);
+
+    const onChange = useCallback((range: RangeSliderValue) => {
+        if (range[1] == viewIntervalRef.current[1]) {
+            // console.log("range[1] ==", range[1], "== value[1] ==", viewIntervalRef.current[1]);
+        } else {
+            // console.log(
+            //     "range[1] ==",
+            //     range[1],
+            //     "=/= value[1] ==",
+            //     viewIntervalRef.current[1],
+            // );
+        }
+        setValue(range);
+        // setViewInterval(range, id);
+
+        const val = dataArraysRef.current[timeColumnName]![range[0]];
+        console.log("idx:", range[0], val, dataArraysRef.current[":Time"]);
+        console.log("timeline setting range:", range);
+        
+    }, []);
+
+    const sliderStyles = useMemo(
+        () => ({
+            bar: {
+                width: "calc(var(--slider-bar-width) + var(--slider-size))",
+            },
+        }),
+        [],
+    );
+
+    const formatLabel = (idx: number) => {
+        const val = dataArraysRef.current[timeColumnName]![idx];
+
+        // console.log("idx:", idx, val, dataArraysRef.current[":Time"]);
+        return val !== undefined ? val.toFixed(2) : "???";
+        
+    };
+
+    return (
+        <>
+            <RangeSlider
+                ref={ref}
+                step={1} // timeline _only_ refers to indexes into data arrays, so must be integers only
+                disabled={disabled}
+                onChange={onChange}
+                // it's right around the corner I can feel it...
+                min={minMax[0]}
+                max={minMax[1]}
+                minRange={1}
+                maxRange={minMax[1] - minMax[0]}
+                value={value}
+                styles={sliderStyles}
+                label={formatLabel}
+            />
+            {/* <DraggableRangeSlider */}
+            {/*     value={sliderRange} */}
+            {/*     onChange={setSliderRange} */}
+            {/*     min={0} */}
+            {/*     max={100} */}
+            {/*     step={1} */}
+            {/*     size={8} */}
+            {/*     thumbSize={6} */}
+            {/* /> */}
         </>
     );
 }

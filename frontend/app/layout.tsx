@@ -1,3 +1,6 @@
+// must be the top-most import!!
+import { ReactScan } from "./utils/ReactScan";
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
@@ -10,6 +13,8 @@ import {
     mantineHtmlProps,
     MantineProvider,
 } from "@mantine/core";
+import { DataMethodsProvider } from "./data-processing/DataMethodsProvider";
+import { LightningChartsProvider } from "./components/visualizations/lightning-charts/GlobalContext";
 const theme = createTheme({
     defaultRadius: "md",
 
@@ -92,16 +97,20 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const className = `${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`;
     return (
-        <html lang="en" {...mantineHtmlProps}>
+        <html lang={"en"} {...mantineHtmlProps}>
             <head>
-                <ColorSchemeScript forceColorScheme="dark" />
+                {process.env.NODE_ENV === "development" && false ? <ReactScan /> : null}
+                <ColorSchemeScript forceColorScheme={"dark"} />
             </head>
             {/* using .variable here allows us to choose the font based on
             tailwind italic/no-italic classes in globals.css */}
-            <body className={`${interItalic.variable} ${inter.variable} antialiased bg-background text-foreground`}>
-                <MantineProvider forceColorScheme="dark" theme={theme}>
-                    {children}
+            <body className={className}>
+                <MantineProvider forceColorScheme={"dark"} theme={theme}>
+                    <DataMethodsProvider>
+                        <LightningChartsProvider>{children}</LightningChartsProvider>
+                    </DataMethodsProvider>
                 </MantineProvider>
             </body>
         </html>

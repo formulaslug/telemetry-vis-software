@@ -1,6 +1,7 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import colors from "tailwindcss/colors";
 import getTextSize from "@/app/utils/getTextSize";
+import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 
 interface SuspensionInfo {
     s1: number;
@@ -55,10 +56,10 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
             const values = [s1, s2, s3, s4];
             values.forEach((value, i) => {
                 context.fillRect(
-                    (canvas.width / 8) * i,
-                    canvas.height / 2,
-                    canvas.width / 8,
-                    (Math.abs(value) * -scaleFactor) / 2,
+                    (canvas.width / 4) * i,
+                    canvas.height,
+                    canvas.width / 4,
+                    (Math.abs(value) * -scaleFactor),
                 );
             });
         },
@@ -122,9 +123,26 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
     return <canvas ref={canvasRef} className="w-full h-full" />;
 }
 
-export default function SuspensionGauge({ s1, s2, s3, s4, min, max }: SuspensionInfo) {
+export default function SuspensionGauge() {
     const containerRef = useRef<HTMLDivElement>(null);
     const textSize = getTextSize({ ref: containerRef });
+    const [values, setValues] = useState<{ s1: number; s2: number; s3: number; s4: number }>({
+        s1: 0,
+        s2: 0,
+        s3: 0,
+        s4: 0,
+    });
+    const { subscribeCursorRow } = useDataMethods();
+    useEffect(() => {
+        return subscribeCursorRow((cursorRow) => {
+            setValues({
+                s1: cursorRow?.TELEM_BL_SUSTRAVEL ?? 0,
+                s2: cursorRow?.TELEM_BR_SUSTRAVEL ?? 0,
+                s3: cursorRow?.TELEM_FL_SUSTRAVEL ?? 0,
+                s4: cursorRow?.TELEM_FR_SUSTRAVEL ?? 0,
+            });
+        });
+    }, []);
 
     return (
         <div
@@ -144,13 +162,13 @@ export default function SuspensionGauge({ s1, s2, s3, s4, min, max }: Suspension
                 </div>
                 <div className="flex flex-col justify-center items-center w-full h-full">
                     <div className="w-[90%] h-[90%] rounded-[4%] overflow-hidden">
-                        <SuspensionCanvas s1={s1} s2={s2} s3={s3} s4={s4} />
+                        <SuspensionCanvas s1={values.s1} s2={values.s2} s3={values.s3} s4={values.s4} />
                     </div>
                     <div
                         className="w-[90%] h-[5%] flex flex-row justify-evenly"
                         style={{ fontSize: textSize }}
                     >
-                        {[s1, s2, s3, s4].map((value, index) => (
+                        {[values.s1, values.s2, values.s3, values.s4].map((value, index) => (
                             <p key={index} className="w-[25%] text-center">
                                 {value.toFixed(2)}
                             </p>

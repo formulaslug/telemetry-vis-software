@@ -1,6 +1,7 @@
 import { Field, Precision, Schema } from "apache-arrow";
 import { Float, Float32, Int64, Timestamp, Utf8 } from "apache-arrow/type";
 import { fs3dataSchema } from "./schema";
+import { DataSetXY } from "@lightningchart/lcjs";
 
 // (just a shorter alias)
 // const float32 = new Float(Precision.SINGLE);
@@ -97,6 +98,9 @@ const columnDataTypes = fs3dataSchema;
 // };
 export const columnNames = Object.keys(fs3dataSchema) as ColumnName[];
 
+// TODO: This needs to not be hardcoded (along with the rest of the schema!)
+export const timeColumnName: ColumnName = ":Time";
+
 // columnDataTypes and columnNames are for use at runtime; everything with a
 // PascalCase name is purely for type-checking at compile time
 
@@ -110,34 +114,61 @@ export type ColumnName = keyof DataRow;
 // arrays". Importantly values can also be null, as not every schema has all
 // known keys (eg. old recordings)! This forces consumers to do error handling
 export type DataArrays = {
-  // [K in keyof DataRow]: DataRow[K]["TArray"] | null; // for typed arrays
-  [K in keyof DataRow]: DataRow[K]["TValue"][] | null; // for regular arrays
+    [K in keyof DataRow]: DataRow[K]["TValue"][] | null; // for regular arrays
+};
+export type DataArraysTyped = {
+    [K in keyof DataRow]: DataRow[K]["TArray"] | null; // for typed arrays
+};
+export type DataValues = {
+    // intended for getting the current row of cursor
+    [K in keyof DataRow]: DataRow[K]["TValue"] | null;
+};
+// Use LCJS's DataSetXY type
+export type DataSetsXY = {
+    // LCJS components need to have empty datasets if no data is available so they can still render. So we don't use `| null` for this
+    [K in keyof DataRow]: DataSetXY;
 };
 
-// Generate a dictionary with keys for each column name that are mapped to empty
-// arrays
-// export function emptyDataArrays(/*rows: number*/): DataArrays {
-//   return columnNames.reduce((acc, key) => {
-//     // for typed arrays:
-//     acc[key] = new columnDataTypes[key].ArrayType(rows);
-//     // for regular arrays:
-//     // acc[key] = new Array();
-//     return acc;
-//   }, {} as DataArrays);
-// }
+// Generate a dictionary with keys for each column name that are mapped to empty TypedArrays
+export function emptyDataArraysTyped(rows: number): DataArraysTyped {
+    return columnNames.reduce((acc, key) => {
+        acc[key] = new columnDataTypes[key].ArrayType(rows).fill(NaN);
+        return acc;
+    }, {} as DataArraysTyped);
+}
+export function nullDataArraysTyped(): DataArraysTyped {
+    return columnNames.reduce((acc, key) => {
+        acc[key] = null;
+        return acc;
+    }, {} as DataArraysTyped);
+}
 // Generate a dictionary with keys for each column name that are mapped to null.
 // This forces initializers (websocket, recordings) to initialize to real arrays
 export function nullDataArrays(): DataArrays {
-  return columnNames.reduce((acc, key) => {
-    acc[key] = null
-    return acc;
-  }, {} as DataArrays);
+    return columnNames.reduce((acc, key) => {
+        acc[key] = null;
+        return acc;
+    }, {} as DataArrays);
 }
+export function emptyDataArrays(): DataArrays {
+    return columnNames.reduce((acc, key) => {
+        acc[key] = [];
+        return acc;
+    }, {} as DataArrays);
+}
+export function nullDataValues(): DataValues {
+    return columnNames.reduce((acc, key) => {
+        acc[key] = null;
+        return acc;
+    }, {} as DataValues);
+}
+
+export const MAX_DATA_ROWS = 1_000_000;
 
 // list of Field objects for Table's Schema (basically just (keyname,type) pairs)
 const fields = columnNames.map((key) =>
-  // for now we use nullabe: true. Eventually the backend should alleviate this
-  Field.new({ name: key, type: fs3dataSchema[key], nullable: true }),
+    // for now we use nullabe: true. Eventually the backend should alleviate this
+    Field.new({ name: key, type: fs3dataSchema[key], nullable: true }),
 );
 
 // This schema is only used for initial instantiation of the empty arrow Table.

@@ -14,6 +14,7 @@ import {
     LegendBoxBuilders,
     UIDraggingModes,
     UIOrigins,
+    Axis,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
@@ -26,28 +27,23 @@ import {
 } from "@/app/data-processing/datatypes";
 import DataSourceType from "@/models/DataSourceType";
 
-interface LineChartProps {
-    yAxisColumnNames: ColumnName[];
-    yAxisTitle?: string;
-    yAxisUnits?: string; // todo: get this from some server http api that uses CAN dbc
+type AxisInfo = {
+    columnNames: ColumnName[];
+    label?: string;
+    units?: string;
+};
 
-    xAxisColumnName?: ColumnName;
-    xAxisTitle?: string;
-    xAxisUnits?: string; // todo: get this from some server http api that uses CAN dbc
+interface StackedLineChartInternalProps {
+    yAxesInfo: AxisInfo[];
+    xAxisInfo: AxisInfo;
 
     title?: string;
 }
-export default function LineChart({
-    yAxisColumnNames,
-    yAxisTitle = yAxisColumnNames.join(", "),
-    yAxisUnits,
-
-    xAxisColumnName = timeColumnName,
-    xAxisTitle = xAxisColumnName,
-    xAxisUnits,
-
-    title = yAxisTitle,
-}: LineChartProps) {
+export default function StackedLineChartInternal({
+    yAxesInfo,
+    xAxisInfo,
+    title = yAxesInfo.map((a) => a.label).join(", "),
+}: StackedLineChartInternalProps) {
     const id = useId();
     const {
         subscribeDataSource,
@@ -67,32 +63,54 @@ export default function LineChart({
     const containerRef = useRef(null);
     const lc = useContext(LightningChartsContext);
 
+    if (xAxisInfo.columnNames.length > 1) console.error("xAxis can only have one column name");
+
     useEffect(() => {
         if (!containerRef.current || !lc) return;
 
+        // based on https://lightningchart.com/js-charts/docs/features/axis/#stacked-axes
+
         let chart = lc.ChartXY({ container: containerRef.current, theme: globalTheme });
-        let lineSeriesMap = yAxisColumnNames.reduce(
-            (acc, colName) => {
-                acc[colName] = chart
-                    .addPointLineAreaSeries({
-                        dataPattern: "ProgressiveX",
-                        dataStorage: Float32Array,
-                        // allowInputModification: false
-                    })
-                    .setName(colName)
-                    .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
-                    .setAreaFillStyle(emptyFill);
-                // Populate with already available data if there is any
-                if (numRowsRef.current > 0) {
-                    acc[colName].setSamples({
-                        xValues: dataArraysRef.current[xAxisColumnName]!,
-                        yValues: dataArraysRef.current[colName]!,
-                    });
-                }
-                return acc;
-            },
-            {} as Record<ColumnName, PointLineAreaSeries>,
-        );
+        // Remove the default y axis (we add ours below)
+        chart.yAxis.dispose();
+
+        // List of objects containing Y Axes and their respective
+        // columns-to-lineseries mappings (there can be multiple stacked yAxes,
+        // and each on can have multiple series attached).
+        let yAxisSeriesMapList: {
+            axis: Axis;
+            seriesMap: Record<ColumnName, PointLineAreaSeries>;
+        }[] = [];
+        for (const [i, axisInfo] of yAxesInfo.entries()) {
+            const axisY = chart
+                .addAxisY({ iStack: i })
+                .setMargins(i > 0 ? 15 : 0, i < yAxesInfo.length - 1 ? 15 : 0);
+
+            let lineSeriesMap = axisInfo.columnNames.reduce(
+                (acc, colName) => {
+                    acc[colName] = chart
+                        .addPointLineAreaSeries({
+                            dataPattern: "ProgressiveX",
+                            dataStorage: Float32Array,
+                            // allowInputModification: false
+                            axisY,
+                        })
+                        .setName(colName)
+                        .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
+                        .setAreaFillStyle(emptyFill);
+                    // Populate with already available data if there is any
+                    if (numRowsRef.current > 0) {
+                        acc[colName].setSamples({
+                            xValues: dataArraysRef.current[xAxisInfo.columnNames[0]]!,
+                            yValues: dataArraysRef.current[colName]!,
+                        });
+                    }
+                    return acc;
+                },
+                {} as Record<ColumnName, PointLineAreaSeries>,
+            );
+            yAxisSeriesMapList.push({ axis: axisY, seriesMap: lineSeriesMap });
+        }
 
         // Adds a legend that always stays in the top left corner but is also draggable
         let legend = chart
@@ -110,12 +128,19 @@ export default function LineChart({
 
         chart.setTitle(title);
 
-        if (xAxisUnits) chart.getDefaultAxisX().setUnits(xAxisUnits);
-        if (yAxisUnits) chart.getDefaultAxisY().setUnits(yAxisUnits);
+        chart
+            .getDefaultAxisX()
+            .setUnits(xAxisInfo.units)
+            .setTitle(xAxisInfo.label ?? xAxisInfo.columnNames[0]);
+        yAxesInfo.forEach((aInfo, i) =>
+            yAxisSeriesMapList[i].axis
+                .setUnits(aInfo.units)
+                .setTitle(aInfo.label ?? aInfo.columnNames.join(", "))
+                .setScrollStrategy(AxisScrollStrategies.fitting),
+        );
 
         chart
             .getDefaultAxisX()
-            .setTitle(xAxisTitle)
             .setScrollStrategy(
                 isTimelineSyncedRef.current
                     ? AxisScrollStrategies.progressive
@@ -130,10 +155,6 @@ export default function LineChart({
                 startMin: state.dataMin,
                 endMax: state.dataMax,
             }));
-        chart
-            .getDefaultAxisY()
-            .setTitle(yAxisTitle)
-            .setScrollStrategy(AxisScrollStrategies.fitting);
 
         const defaultUserInteractions: Partial<AxisXYUserInteractions> = {
             // pan: {
@@ -168,10 +189,11 @@ export default function LineChart({
             const startClientCoords = xAxisCoordToClientCoord(start);
             const endClientCoords = xAxisCoordToClientCoord(end);
 
-            // Ask the chart where the nearest points are to those client coords
-            const startSample =
-                lineSeriesMap[yAxisColumnNames[0]].solveNearest(startClientCoords);
-            const endSample = lineSeriesMap[yAxisColumnNames[0]].solveNearest(endClientCoords);
+            // Ask the chart where the nearest points are to the client coords.
+            // We simply get the first series of the first Y-axis and ask that.
+            const series = Object.values(yAxisSeriesMapList[0].seriesMap)[0];
+            const startSample = series.solveNearest(startClientCoords);
+            const endSample = series.solveNearest(endClientCoords);
 
             if (startSample && endSample) {
                 const dataIndexes: [left: number, right: number] = [
@@ -238,12 +260,20 @@ export default function LineChart({
             });
         });
         const unsub2 = subscribeLatestArrays((latest: DataArraysTyped) => {
-            Object.entries(lineSeriesMap).forEach(([colName, lineSeries]) => {
-                lineSeries.appendSamples({
-                    xValues: latest[xAxisColumnName]!,
-                    yValues: latest[colName as ColumnName]!,
-                });
-            });
+            for (const { seriesMap } of yAxisSeriesMapList) {
+                for (const [colName, series] of Object.entries(seriesMap)) {
+                    series.appendSamples({
+                        xValues: latest[xAxisInfo.columnNames[0]]!,
+                        yValues: latest[colName as ColumnName]!,
+                    });
+                }
+            }
+            // Object.entries(lineSeriesMap).forEach(([colName, lineSeries]) => {
+            //     lineSeries.appendSamples({
+            //         xValues: latest[xAxisColumn]!,
+            //         yValues: latest[colName as ColumnName]!,
+            //     });
+            // });
 
             chart.getDefaultAxisX().setIntervalRestrictions((state) => ({
                 startMin: state.dataMin,
@@ -251,7 +281,9 @@ export default function LineChart({
             }));
         });
         const unsub3 = subscribeReset(() => {
-            Object.entries(lineSeriesMap).forEach(([_, lineSeries]) => lineSeries.clear());
+            yAxisSeriesMapList.forEach(({ seriesMap }) => {
+                Object.values(seriesMap).forEach((s) => s.clear());
+            });
         });
         const unsub4 = subscribeDataSource((dataSource: DataSourceType) => {
             if (dataSource == DataSourceType.NONE) {
@@ -303,13 +335,15 @@ export default function LineChart({
             chart.dispose();
             // @ts-ignore: for GC
             chart = undefined;
-            Object.entries(lineSeriesMap).forEach(([_, lineSeries]) => {
-                lineSeries.dispose();
-                // @ts-ignore: for GC
-                lineSeries = undefined;
+            yAxisSeriesMapList.forEach(({ seriesMap }) => {
+                Object.values(seriesMap).forEach((series) => {
+                    series.dispose();
+                    // @ts-ignore: for GC
+                    series = undefined;
+                });
             });
         };
-    }, [lc, xAxisColumnName, yAxisColumnNames, yAxisTitle]);
+    }, [lc, xAxisInfo, yAxesInfo]);
 
     return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

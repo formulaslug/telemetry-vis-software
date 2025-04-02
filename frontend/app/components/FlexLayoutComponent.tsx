@@ -137,7 +137,7 @@ export default function FlexLayoutComponent() {
                 <LineChart
                     title={"Acc Seg 0 Voltage"}
                     yAxisTitle="Voltage"
-                    yAxisColumns={[
+                    yAxisColumnNames={[
                         "Seg0_VOLT_0",
                         "Seg0_VOLT_1",
                         "Seg0_VOLT_2",
@@ -160,7 +160,7 @@ export default function FlexLayoutComponent() {
                 <LineChart
                     // title={""}
                     yAxisTitle="Brake Pressure"
-                    yAxisColumns={["TELEM_STEERBRAKE_BRAKEF", "TELEM_STEERBRAKE_BRAKER"]}
+                    yAxisColumnNames={["TELEM_STEERBRAKE_BRAKEF", "TELEM_STEERBRAKE_BRAKER"]}
                     yAxisUnits="psi(?)"
                 />
             ),
@@ -168,7 +168,7 @@ export default function FlexLayoutComponent() {
                 <LineChart
                     // title={""}
                     yAxisTitle="Longitudinal Acceleration"
-                    yAxisColumns={[
+                    yAxisColumnNames={[
                         "VDM_X_AXIS_ACCELERATION",
                         "VDM_Y_AXIS_ACCELERATION",
                         "VDM_Z_AXIS_ACCELERATION",

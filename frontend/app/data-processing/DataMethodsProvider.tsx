@@ -179,8 +179,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
         for (const [name, arr] of Object.entries(dataArraysRef.current)) {
             if (arr) {
-                viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1);
-            }
+                viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1); }
         }
         subscriptionsViewableArrays.current.forEach((s) => s(viewableArraysRef.current));
 

@@ -1,17 +1,11 @@
 #!/bin/sh
 set -e
 
-# Styling
-BOLD="\033[1m"
-GREEN="\033[0;32m"
-NC="\033[0m"
-
 # Header
-printf "${BOLD}${GREEN}\n"
+printf "\n"
 printf "=====================================\n"
 printf "      FS-3 Telemetry Code Checks     \n"
 printf "=====================================\n"
-printf "${NC}"
 
 # Get staged files
 FILES=$(git diff --cached --name-only --diff-filter=ACM)
@@ -19,7 +13,7 @@ FORMATTABLE_FILES=$(printf "%s\n" "$FILES" | grep -E '\.(js|ts|jsx|tsx|html|css|
 
 # Check if there are any files to format
 if [ -z "$FORMATTABLE_FILES" ]; then
-    echo "${GREEN}✅ No files to format. You're good to go!${NC}\n"
+    printf "✅ No files to format. You're good to go!\n\n"
     exit 0
 fi
 
@@ -36,4 +30,4 @@ printf "%s\n" "$FORMATTABLE_FILES" | while IFS= read -r FILE; do
 done
 
 # Final message
-echo "\n${BOLD}${GREEN}✅ All formatted! Pre-commit complete.\n"
+printf "\n✅ All formatted! Pre-commit complete.\n"

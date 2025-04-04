@@ -30,4 +30,4 @@ printf "%s\n" "$FORMATTABLE_FILES" | while IFS= read -r FILE; do
 done
 
 # Final message
-printf "\n✅ All formatted! Pre-commit complete.\n"
+echo "\n✅ All formatted! Pre-commit complete.\n"

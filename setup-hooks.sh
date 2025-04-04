@@ -4,7 +4,7 @@ set -e
 HOOK_SOURCE=".githooks/pre-commit"
 HOOK_TARGET=".git/hooks/pre-commit"
 
-echo "🛠️  FS-3 Telemetry: Pre-Commit Hook Setup"
+echo "\n🛠️  FS-3 Telemetry: Pre-Commit Hook Setup"
 
 # Does source hook exist?
 if [ ! -f "$HOOK_SOURCE" ]; then
@@ -28,4 +28,4 @@ chmod +x "$HOOK_TARGET"
 
 # Finish up
 echo "✅ Pre-commit hook installed!"
-echo "🚦 Try staging files and committing changes!"
+echo "🚦 Try staging files and committing changes!\n"

@@ -26,6 +26,13 @@ frontend/ and backend/ also both provide instructions on how to setup and run
 each respective part _without_ using docker, which can be nicer for local
 development.
 
+## Pre-commit Hook Setup
+
+1. `chmod +x setup-hooks.sh`
+2. `./setup-hooks.sh`
+
+Now code formatting checks will run when you commit!
+
 ---
 
 ## Notes to self:

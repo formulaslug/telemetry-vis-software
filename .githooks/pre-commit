@@ -19,7 +19,7 @@ FORMATTABLE_FILES=$(printf "%s\n" "$FILES" | grep -E '\.(js|ts|jsx|tsx|html|css|
 
 # Check if there are any files to format
 if [ -z "$FORMATTABLE_FILES" ]; then
-    echo "${GREEN}✅ No files to format. You're good to go!${NC}"
+    echo "${GREEN}✅ No files to format. You're good to go!${NC}\n"
     exit 0
 fi
 

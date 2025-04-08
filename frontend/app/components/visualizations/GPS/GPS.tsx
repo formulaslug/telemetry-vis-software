@@ -1,21 +1,25 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 
 import { Text, Button, ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
-import { Gear, GlobeHemisphereWest, LineVertical } from "@phosphor-icons/react";
+import { Gear } from "@phosphor-icons/react";
 import GPSInternal from "./GPSInternal";
+import GPSConfig from "./GPSConfig";
+import { UpdateNodeConfig } from "../../FlexLayoutComponent";
 
-export default function GPS() {
-    const [useLeaflet, setUseLeaflet] = useState(true);
-    const [useBgSeries, setUseBgSeries] = useState(false);
-    const [trackThickness, setTrackThickness] = useState(25);
-    const [carLineThickness, setCarLineThickness] = useState(5);
-    const reset = useCallback(() => {
-        setUseBgSeries(false);
-        setUseLeaflet(true);
-        setTrackThickness(25);
-        setCarLineThickness(5);
-    }, []);
+export default function GPS(config: GPSConfig, updateNodeConfig: UpdateNodeConfig<GPSConfig>) {
+    const [config, setConfig] = useState<GPSConfig>(defaultConfig);
+    // const [useLeaflet, setUseLeaflet] = useState(config.useLeaflet true);
+    // const [useBgSeries, setUseBgSeries] = useState(false);
+    // const [trackThickness, setTrackThickness] = useState(25);
+    // const [carLineThickness, setCarLineThickness] = useState(5);
+    const reset = () => {
+        setConfig(defaultConfig);
+        // setUseBgSeries(false);
+        // setUseLeaflet(true);
+        // setTrackThickness(25);
+        // setCarLineThickness(5);
+    };
 
     return (
         <>
@@ -31,15 +35,21 @@ export default function GPS() {
                     <Menu.Label>Configure GPS</Menu.Label>
                     <Menu.Item>
                         <Checkbox
-                            checked={useLeaflet}
-                            onChange={(e) => setUseLeaflet(e.currentTarget.checked)}
+                            checked={config.useLeaflet}
+                            // onChange={(e) => setUseLeaflet(e.currentTarget.checked)}
+                            onChange={(e) =>
+                                setConfig((prev) => ({
+                                    ...prev,
+                                    useLeaflet: e.currentTarget.checked,
+                                }))
+                            }
                             label="Toggle Map"
                             // {<GlobeHemisphereWest size={14} />}
                         />
                     </Menu.Item>
                     <Menu.Item>
                         <Checkbox
-                            checked={useBgSeries}
+                            checked={config.useBgSeries}
                             onChange={(e) => setUseBgSeries(e.currentTarget.checked)}
                             label="Toggle Track"
                             // {<LineVertical size={14} weight="bold" />}
@@ -52,7 +62,7 @@ export default function GPS() {
                             step={1}
                             min={10}
                             max={50}
-                            value={trackThickness}
+                            value={config.trackThickness}
                             onChange={setTrackThickness}
                         />
                     </Menu.Item>
@@ -62,7 +72,7 @@ export default function GPS() {
                             step={1}
                             min={1}
                             max={15}
-                            value={carLineThickness}
+                            value={config.carLineThickness}
                             onChange={setCarLineThickness}
                         />
                     </Menu.Item>
@@ -73,12 +83,7 @@ export default function GPS() {
                 </Menu.Dropdown>
             </Menu>
             <div>
-                <GPSInternal
-                    useLeaflet={useLeaflet}
-                    useBgSeries={useBgSeries}
-                    trackThickness={trackThickness}
-                    carLineThickness={carLineThickness}
-                />
+                <GPSInternal {...config} />
             </div>
         </>
     );

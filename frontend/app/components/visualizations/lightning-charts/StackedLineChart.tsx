@@ -1,8 +1,9 @@
 import { ActionIcon, Menu } from "@mantine/core";
 import StackedLineChartInternal from "./StackedLineChartInternal";
 import { Gear } from "@phosphor-icons/react";
+import StackedLineChartConfig from "./StackedLineChartConfig";
 
-export default function StackedLineChart() {
+export function StackedLineChart(config: StackedLineChartConfig) {
     return (
         <>
         
@@ -20,7 +21,7 @@ export default function StackedLineChart() {
                     </Menu.Item>
                 </Menu.Dropdown>
             </Menu>
-            <StackedLineChartInternal />
+            <StackedLineChartInternal {...config} />
         </>
     );
 }

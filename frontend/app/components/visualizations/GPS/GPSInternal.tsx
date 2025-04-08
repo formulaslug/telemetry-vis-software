@@ -21,6 +21,7 @@ import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 import { MAX_DATA_ROWS, timeColumnName } from "@/app/data-processing/datatypes";
 
 import dynamic from "next/dynamic";
+import GPSConfig from "./GPSConfig";
 const Leaflet = dynamic(() => import("./Leaflet").then((o) => o), { ssr: false });
 
 // IMPORTANT: in Leaflet, LAT is vertical (y) and LNG is horizontal (x)
@@ -33,18 +34,12 @@ const defaultBgSeriesStrokeStyle = new SolidLine({
     fillStyle: new SolidFill({ color: ColorHEX("#808080") }),
 });
 
-interface GPSInternalProps {
-    useLeaflet: boolean;
-    useBgSeries: boolean;
-    trackThickness: number;
-    carLineThickness: number;
-}
 export default function GPSInternal({
     useLeaflet,
     useBgSeries,
     trackThickness,
     carLineThickness,
-}: GPSInternalProps) {
+}: GPSConfig) {
     const {
         subscribeViewInterval,
         subscribeLatestArrays,

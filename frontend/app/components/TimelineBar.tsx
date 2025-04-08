@@ -1,6 +1,6 @@
 import { Box, Button, RangeSlider, RangeSliderValue } from "@mantine/core";
 import { ArrowFatLinesRight, CaretDoubleRight, Pause, Play } from "@phosphor-icons/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import DataSourceType from "@/models/DataSourceType";
 import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
@@ -52,10 +52,10 @@ function SyncButton() {
             unsub2();
         }
     }, []);
-    const setTimelineSynced = useCallback(() => {
+    const setTimelineSynced = () => {
         setEnabled(true);
         setIsTimelineSynced(true, "timelineBar");
-    }, []);
+    };
 
     return visible ? (
         <Box c={enabled ? "neutral.9" : "neutral.4"}>
@@ -117,7 +117,7 @@ function MainSlider() {
         };
     }, []);
 
-    const onChange = useCallback((range: RangeSliderValue) => {
+    const onChange = (range: RangeSliderValue) => {
         if (range[1] == viewIntervalRef.current[1]) {
             // console.log("range[1] ==", range[1], "== value[1] ==", viewIntervalRef.current[1]);
         } else {
@@ -135,7 +135,7 @@ function MainSlider() {
         console.log("idx:", range[0], val, dataArraysRef.current[":Time"]);
         console.log("timeline setting range:", range);
         
-    }, []);
+    };
 
     const sliderStyles = useMemo(
         () => ({

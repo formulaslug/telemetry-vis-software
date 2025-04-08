@@ -26,24 +26,13 @@ import {
     timeColumnName,
 } from "@/app/data-processing/datatypes";
 import DataSourceType from "@/models/DataSourceType";
+import StackedLineChartConfig from "./StackedLineChartConfig";
 
-type AxisInfo = {
-    columnNames: ColumnName[];
-    label?: string;
-    units?: string;
-};
-
-interface StackedLineChartInternalProps {
-    yAxesInfo: AxisInfo[];
-    xAxisInfo: AxisInfo;
-
-    title?: string;
-}
 export default function StackedLineChartInternal({
     yAxesInfo,
     xAxisInfo,
-    title = yAxesInfo.map((a) => a.label).join(", "),
-}: StackedLineChartInternalProps) {
+    title,
+}: StackedLineChartConfig) {
     const id = useId();
     const {
         subscribeDataSource,
@@ -63,7 +52,7 @@ export default function StackedLineChartInternal({
     const containerRef = useRef(null);
     const lc = useContext(LightningChartsContext);
 
-    if (xAxisInfo.columnNames.length > 1) console.error("xAxis can only have one column name");
+    if (xAxisInfo.columnName.length > 1) console.error("xAxis can only have one column name");
 
     useEffect(() => {
         if (!containerRef.current || !lc) return;
@@ -101,7 +90,7 @@ export default function StackedLineChartInternal({
                     // Populate with already available data if there is any
                     if (numRowsRef.current > 0) {
                         acc[colName].setSamples({
-                            xValues: dataArraysRef.current[xAxisInfo.columnNames[0]]!,
+                            xValues: dataArraysRef.current[xAxisInfo.columnName]!,
                             yValues: dataArraysRef.current[colName]!,
                         });
                     }
@@ -126,12 +115,12 @@ export default function StackedLineChartInternal({
             });
         });
 
-        chart.setTitle(title);
+        chart.setTitle(title ?? "");
 
         chart
             .getDefaultAxisX()
             .setUnits(xAxisInfo.units)
-            .setTitle(xAxisInfo.label ?? xAxisInfo.columnNames[0]);
+            .setTitle(xAxisInfo.label ?? xAxisInfo.columnName[0]);
         yAxesInfo.forEach((aInfo, i) =>
             yAxisSeriesMapList[i].axis
                 .setUnits(aInfo.units)
@@ -263,7 +252,7 @@ export default function StackedLineChartInternal({
             for (const { seriesMap } of yAxisSeriesMapList) {
                 for (const [colName, series] of Object.entries(seriesMap)) {
                     series.appendSamples({
-                        xValues: latest[xAxisInfo.columnNames[0]]!,
+                        xValues: latest[xAxisInfo.columnName]!,
                         yValues: latest[colName as ColumnName]!,
                     });
                 }

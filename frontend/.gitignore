@@ -43,4 +43,4 @@ jspm_packages
 .vscode
 
 # MacOS Shit
-.DS_Store
+**/.DS_Store

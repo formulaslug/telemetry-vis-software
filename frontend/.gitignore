@@ -41,6 +41,3 @@ jspm_packages
 
 # VSCode
 .vscode
-
-# MacOS Shit
-**/.DS_Store

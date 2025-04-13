@@ -1,24 +1,35 @@
-"use client";
-import React, { useState } from "react";
+import React from "react";
 
-import { Text, Button, ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
+import { Text, ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
 import { Gear } from "@phosphor-icons/react";
 import GPSInternal from "./GPSInternal";
-import GPSConfig from "./GPSConfig";
-import { UpdateNodeConfig } from "../../FlexLayoutComponent";
+import { VisualizationProps } from "../../FlexLayoutComponent";
 
-export default function GPS(config: GPSConfig, updateNodeConfig: UpdateNodeConfig<GPSConfig>) {
-    const [config, setConfig] = useState<GPSConfig>(defaultConfig);
-    // const [useLeaflet, setUseLeaflet] = useState(config.useLeaflet true);
-    // const [useBgSeries, setUseBgSeries] = useState(false);
-    // const [trackThickness, setTrackThickness] = useState(25);
-    // const [carLineThickness, setCarLineThickness] = useState(5);
+export interface GPSConfig {
+    showLeaflet: boolean;
+    showTrack: boolean;
+    trackThickness: number;
+    carLineThickness: number;
+}
+
+export function GPS({ useSavedState }: VisualizationProps<GPSConfig>) {
+    // const [myConfig, setConfig] = useState<GPSConfig>(config);
+
+    const [showLeaflet, setShowLeaflet] = useSavedState("showLeaflet", true);
+    const [showTrack, setShowTrack] = useSavedState("showTrack", false);
+    const [trackThickness, setTrackThickness] = useSavedState("trackThickness", 25);
+    const [carLineThickness, setCarLineThickness] = useSavedState("carLineThickness", 5);
+
+    // useEffect(() => {
+    //     updateNodeConfig({ showLeaflet, showTrack, trackThickness, carLineThickness });
+    // }, [showLeaflet, showTrack, trackThickness, carLineThickness]);
+
     const reset = () => {
-        setConfig(defaultConfig);
-        // setUseBgSeries(false);
-        // setUseLeaflet(true);
-        // setTrackThickness(25);
-        // setCarLineThickness(5);
+        // setConfig(config);
+        setShowLeaflet(true);
+        setShowTrack(false);
+        setTrackThickness(25);
+        setCarLineThickness(5);
     };
 
     return (
@@ -35,22 +46,22 @@ export default function GPS(config: GPSConfig, updateNodeConfig: UpdateNodeConfi
                     <Menu.Label>Configure GPS</Menu.Label>
                     <Menu.Item>
                         <Checkbox
-                            checked={config.useLeaflet}
-                            // onChange={(e) => setUseLeaflet(e.currentTarget.checked)}
-                            onChange={(e) =>
-                                setConfig((prev) => ({
-                                    ...prev,
-                                    useLeaflet: e.currentTarget.checked,
-                                }))
-                            }
+                            checked={showLeaflet}
+                            onChange={(e) => setShowLeaflet(e.currentTarget.checked)}
+                            // onChange={(e) =>
+                            //     setConfig((prev) => ({
+                            //         ...prev,
+                            //         showLeaflet: e.currentTarget.checked,
+                            //     }))
+                            // }
                             label="Toggle Map"
                             // {<GlobeHemisphereWest size={14} />}
                         />
                     </Menu.Item>
                     <Menu.Item>
                         <Checkbox
-                            checked={config.useBgSeries}
-                            onChange={(e) => setUseBgSeries(e.currentTarget.checked)}
+                            checked={showTrack}
+                            onChange={(e) => setShowTrack(e.currentTarget.checked)}
                             label="Toggle Track"
                             // {<LineVertical size={14} weight="bold" />}
                         />
@@ -62,7 +73,7 @@ export default function GPS(config: GPSConfig, updateNodeConfig: UpdateNodeConfi
                             step={1}
                             min={10}
                             max={50}
-                            value={config.trackThickness}
+                            value={trackThickness}
                             onChange={setTrackThickness}
                         />
                     </Menu.Item>
@@ -72,7 +83,7 @@ export default function GPS(config: GPSConfig, updateNodeConfig: UpdateNodeConfi
                             step={1}
                             min={1}
                             max={15}
-                            value={config.carLineThickness}
+                            value={carLineThickness}
                             onChange={setCarLineThickness}
                         />
                     </Menu.Item>
@@ -83,7 +94,9 @@ export default function GPS(config: GPSConfig, updateNodeConfig: UpdateNodeConfi
                 </Menu.Dropdown>
             </Menu>
             <div>
-                <GPSInternal {...config} />
+                <GPSInternal
+                    {...{ showLeaflet, showTrack, trackThickness, carLineThickness }}
+                />
             </div>
         </>
     );

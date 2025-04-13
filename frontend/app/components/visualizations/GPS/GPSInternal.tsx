@@ -21,7 +21,7 @@ import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 import { MAX_DATA_ROWS, timeColumnName } from "@/app/data-processing/datatypes";
 
 import dynamic from "next/dynamic";
-import GPSConfig from "./GPSConfig";
+import { GPSConfig } from "./GPS";
 const Leaflet = dynamic(() => import("./Leaflet").then((o) => o), { ssr: false });
 
 // IMPORTANT: in Leaflet, LAT is vertical (y) and LNG is horizontal (x)
@@ -35,8 +35,8 @@ const defaultBgSeriesStrokeStyle = new SolidLine({
 });
 
 export default function GPSInternal({
-    useLeaflet,
-    useBgSeries,
+    showLeaflet,
+    showTrack,
     trackThickness,
     carLineThickness,
 }: GPSConfig) {
@@ -75,7 +75,7 @@ export default function GPSInternal({
                 defaultAxisY: { type: "linear-highPrecision" },
             })
             // afaik you can't easily share pointer events between two overlapping divs
-            .setCursorMode(useLeaflet ? undefined : "show-pointed")
+            .setCursorMode(showLeaflet ? undefined : "show-pointed")
             .setPadding(0)
             .setSeriesBackgroundFillStyle(transparentFill)
             .setSeriesBackgroundStrokeStyle(emptyLine);
@@ -216,12 +216,12 @@ export default function GPSInternal({
     useEffect(() => {
         if (bgSeriesRef.current) {
             bgSeriesRef.current.setStrokeStyle(
-                useBgSeries
+                showTrack
                     ? defaultBgSeriesStrokeStyle.setThickness(trackThickness)
                     : emptyLine,
             );
         }
-    }, [useBgSeries]);
+    }, [showTrack]);
 
     useEffect(() => {
         if (bgSeriesRef.current) {
@@ -238,7 +238,7 @@ export default function GPSInternal({
 
     return (
         <>
-            {useLeaflet ? (
+            {showLeaflet ? (
                 <div className="absolute w-[100%] h-[100%] z-0">
                     <Leaflet chartRef={chartRef} />
                 </div>

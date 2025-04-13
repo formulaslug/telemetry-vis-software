@@ -26,7 +26,7 @@ import {
     timeColumnName,
 } from "@/app/data-processing/datatypes";
 import DataSourceType from "@/models/DataSourceType";
-import StackedLineChartConfig from "./StackedLineChartConfig";
+import { StackedLineChartConfig } from "./StackedLineChartConfig";
 
 export default function StackedLineChartInternal({
     yAxesInfo,
@@ -52,8 +52,6 @@ export default function StackedLineChartInternal({
     const containerRef = useRef(null);
     const lc = useContext(LightningChartsContext);
 
-    if (xAxisInfo.columnName.length > 1) console.error("xAxis can only have one column name");
-
     useEffect(() => {
         if (!containerRef.current || !lc) return;
 
@@ -65,7 +63,7 @@ export default function StackedLineChartInternal({
 
         // List of objects containing Y Axes and their respective
         // columns-to-lineseries mappings (there can be multiple stacked yAxes,
-        // and each on can have multiple series attached).
+        // and each one can have multiple series attached).
         let yAxisSeriesMapList: {
             axis: Axis;
             seriesMap: Record<ColumnName, PointLineAreaSeries>;

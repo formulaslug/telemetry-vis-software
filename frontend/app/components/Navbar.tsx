@@ -19,7 +19,6 @@ function createFileTree(paths: string[] | undefined) {
         label: string;
         children: pathType[];
     }
-    console.log(paths);
 
     if (typeof paths == "undefined") {
         return { label: "None", value: "none" };
@@ -31,17 +30,25 @@ function createFileTree(paths: string[] | undefined) {
     });
 
     for (let root of newPaths) {
-        let path = tree.children;
-        for (let i = 1; i < root.length; i++) {
-            if (!path.some((child: pathType) => child.value === root[i])) {
-                const value = i == root.length - 1 ? root.join("/") : root[i];
-                path.push({
-                    value: value,
-                    label: root[i],
+        let currentLevel = tree.children;
+        for (let i = 0; i < root.length; i++) {
+            const currentPath = root[i];
+            const isLeaf = i === root.length - 1;
+
+            let existingNode = currentLevel.find(
+                (node: pathType) => node.value === currentPath
+            );
+
+            if (!existingNode) {
+                existingNode = {
+                    value: isLeaf ? root.join("/") : currentPath,
+                    label: currentPath,
                     children: [],
-                });
+                };
+                currentLevel.push(existingNode);
             }
-            path = path[path.length - 1].children;
+
+            currentLevel = existingNode.children;
         }
     }
     return tree.children[0];

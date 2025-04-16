@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from "react";
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
 import { availableRecordings } from "../data-processing/http";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
+import Test from "./Test";
+import AutocompleteSearchbar from "./Autocomplete";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {
@@ -61,9 +63,12 @@ export default function Navbar() {
             }
         });
     }, []);
-    {/* <p>{myNumRows}</p> */}
-    {/* <button onClick={() => switchToLiveData()}>blah</button> */}
-
+    {
+        /* <p>{myNumRows}</p> */
+    }
+    {
+        /* <button onClick={() => switchToLiveData()}>blah</button> */
+    }
 
     useEffect(() => {
         availableRecordings().then((r) => setRecordings(r ?? []));
@@ -95,9 +100,9 @@ export default function Navbar() {
     function DataSourcePicker() {
         function onPickerChanged(value: string) {
             if (value === "recording") {
-                switchToRecording(fileName)
+                switchToRecording(fileName);
             } else {
-                switchToLiveData()
+                switchToLiveData();
             }
             // setLive(value === "live");
         }
@@ -195,12 +200,12 @@ export default function Navbar() {
                             priority={true}
                         />
                     </div>
-
+                    <AutocompleteSearchbar /> {/* Messing around with Mantine components */}{" "}
+                    {/* console.log("This is the component/widget added") */}
                     {/* Modal */}
                     <div className="m-3">
                         <SystemSelector />
                     </div>
-
                     <p ref={myRowsPRef}>?</p>
                 </div>
                 {/* Right Side */}

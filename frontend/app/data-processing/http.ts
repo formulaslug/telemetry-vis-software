@@ -78,7 +78,7 @@ export async function getRecording(filepath: string) {
     await wasmInit();
     const WASM_MEMORY = wasmMemory();
 
-    const parquet = await tryFetch(`/api/get-recording/${filepath}`, false).then((resp) =>
+    const parquet = await tryFetch(`/api/get-recording/${filepath}`, true).then((resp) =>
         resp ? resp.arrayBuffer() : null
     );
     const arrowTableWasm = readParquet(new Uint8Array(parquet!)).intoFFI();

@@ -11,7 +11,7 @@ async function processData_OLD(
     data: RefObject<DataArrays>,
     dataTrimmed: RefObject<DataArrays>,
     setNumRows: Dispatch<SetStateAction<number>>,
-    viewLength: number,
+    viewLength: number
 ) {
     const byteStream = new AsyncByteStream(messageQueue);
     // TODO: this .from() shouldn't have the <DataRow> type param because it's not enforced
@@ -44,7 +44,7 @@ async function processData_OLD(
 
             dataTrimmed.current[key]?.splice(
                 0,
-                Math.max(0, dataTrimmed.current[key].length - viewLength),
+                Math.max(0, dataTrimmed.current[key].length - viewLength)
             );
         }
 
@@ -72,7 +72,7 @@ async function processData_OLD(
 export function initWebSocketConnection(
     onRecordBatch: (batch: RecordBatch) => void,
 
-    setIsConnected?: Dispatch<SetStateAction<boolean>>,
+    setIsConnected?: Dispatch<SetStateAction<boolean>>
     // data: RefObject<DataArrays>,
     // dataTrimmed: RefObject<DataArrays>,
     // setNumRows: Dispatch<SetStateAction<number>>,
@@ -83,8 +83,8 @@ export function initWebSocketConnection(
     // ones are active, and should be able to switch between them
     const urls: string[] =
         hostname == "localhost"
-            ? ["wss://live-vis.bvngee.com", "ws://localhost", "ws://localhost:8000"]
-            : ["wss://live-vis.bvngee.com", `wss://${hostname}`];
+            ? ["wss://telemetry.formulaslug.com", "ws://localhost", "ws://localhost:8000"]
+            : ["wss://telemetry.formulaslug.com", `wss://${hostname}`];
 
     const tryUrl = () => {
         const url = urls.pop();
@@ -103,8 +103,9 @@ export function initWebSocketConnection(
             const byteStream = new AsyncByteStream(messageQueue);
             // TODO: this .from() shouldn't have the <DataRow> type param because it's not enforced
             // that all websocket streams will have data for every key in the default schema.
-            const recordBatchReader =
-                await AsyncRecordBatchStreamReader.from<DataRow>(byteStream);
+            const recordBatchReader = await AsyncRecordBatchStreamReader.from<DataRow>(
+                byteStream
+            );
 
             for await (const batch of recordBatchReader) {
                 onRecordBatch(batch);

@@ -107,6 +107,7 @@ export default function Navbar() {
     function ServerToggle() {
         return (
             <Switch
+                className="px-3"
                 checked={production}
                 onChange={(e) => setProduction(e.currentTarget.checked)}
                 label="production"
@@ -176,28 +177,35 @@ export default function Navbar() {
 
         return (
             <>
-                <Modal
-                    opened={opened}
-                    onClose={close}
-                    title="Select Data Source Type"
-                    centered
-                >
-                    <div className="m-3">
-                        {window.location.hostname == "localhost" ? <ServerToggle /> : <></>}
-                        <SegmentedControl
-                            fullWidth
-                            value={live ? "live" : "recording"}
-                            onChange={onPickerChanged}
-                            size={"lg"}
-                            radius={"md"}
-                            data={[
-                                { label: "Live", value: "live" },
-                                { label: displayedName, value: "recording" },
-                            ]}
-                        />
-                    </div>
-                    <Card>{live ? <></> : <FileTree />}</Card>
-                </Modal>
+                <Modal.Root opened={opened} onClose={close} centered>
+                    <Modal.Content>
+                        <Modal.Header>
+                            <div className="flex justify-between w-full">
+                                <p>Select Data Source Type</p>
+                                {window.location.hostname == "localhost" ? (
+                                    <ServerToggle />
+                                ) : (
+                                    <></>
+                                )}
+                            </div>
+                            <Modal.CloseButton />
+                        </Modal.Header>
+                        <div className="m-3">
+                            <SegmentedControl
+                                fullWidth
+                                value={live ? "live" : "recording"}
+                                onChange={onPickerChanged}
+                                size={"lg"}
+                                radius={"md"}
+                                data={[
+                                    { label: "Live", value: "live" },
+                                    { label: displayedName, value: "recording" },
+                                ]}
+                            />
+                        </div>
+                        <Card>{live ? <></> : <FileTree />}</Card>
+                    </Modal.Content>
+                </Modal.Root>
             </>
         );
     }

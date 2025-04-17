@@ -123,7 +123,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     // TODO: try going back to the old useMemo arrangement
     function makeSubscriber<T extends Subscription>(
         setRef: RefObject<Set<T>>,
-        initialTriggerData?: RefObject<Parameters<T>[0] | null>,
+        initialTriggerData?: RefObject<Parameters<T>[0] | null>
     ) {
         return (clbk: T) => {
             setRef.current.add(clbk);
@@ -173,7 +173,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     };
     const setViewInterval = (
         newViewInterval: [left: number, right: number],
-        setterID: string,
+        setterID: string
     ) => {
         const [left, right] = newViewInterval;
 
@@ -271,7 +271,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
                 setViewInterval([left, right], "dataProvider");
             }
             subscriptionsDataInterval.current.forEach((s) =>
-                s([timeCol[0], timeCol[timeCol.length - 1]]),
+                s([timeCol[0], timeCol[timeCol.length - 1]])
             );
 
             // If none of the charts/visualizations are dictating where the
@@ -305,10 +305,10 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         // some basic manual data processing. TODO: make somthing extremely
         // generic / extensible for arbitrary data processing
         arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
-            n == 0.0 ? NaN : n,
+            n == 0.0 ? NaN : n
         );
         arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
-            n == 0.0 ? NaN : n,
+            n == 0.0 ? NaN : n
         );
 
         numRowsRef.current = table.numRows;

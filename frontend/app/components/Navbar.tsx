@@ -1,5 +1,14 @@
 "use client";
-import { Button, Card, Group, Modal, SegmentedControl, Switch, Tree } from "@mantine/core";
+import {
+    Button,
+    Card,
+    Group,
+    LoadingOverlay,
+    Modal,
+    SegmentedControl,
+    Switch,
+    Tree,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { CaretDown } from "@phosphor-icons/react";
 import Image from "next/image";
@@ -54,6 +63,7 @@ function createFileTree(paths: string[] | undefined) {
 }
 
 export default function Navbar() {
+    const [loading, setLoading] = useState(false);
     const [live, setLive] = useState(false);
     const [opened, { open, close }] = useDisclosure(false);
     const [fileName, setFileName] = useState("No File Selected");
@@ -117,9 +127,11 @@ export default function Navbar() {
 
     function DataSourcePicker() {
         function onPickerChanged(value: string) {
+            console.log(value);
             if (value === "recording") {
-                switchToRecording(fileName);
+                setLive(false);
             } else {
+                setLive(true);
                 switchToLiveData();
             }
             // setLive(value === "live");
@@ -153,10 +165,12 @@ export default function Navbar() {
                                 )}
 
                                 <span
-                                    onClick={() => {
+                                    onClick={async () => {
                                         if (tree.hoveredNode?.includes("/")) {
                                             setFileName(tree.hoveredNode);
-
+                                            setLoading(true);
+                                            await switchToRecording(tree.hoveredNode);
+                                            setLoading(false);
                                             close();
                                         }
                                     }}
@@ -182,7 +196,7 @@ export default function Navbar() {
                         <Modal.Header>
                             <div className="flex justify-between w-full">
                                 <p>Select Data Source Type</p>
-                                {window.location.hostname == "localhost" ? (
+                                {window && window.location.hostname == "localhost" ? (
                                     <ServerToggle />
                                 ) : (
                                     <></>
@@ -212,6 +226,13 @@ export default function Navbar() {
 
     return (
         <>
+            <div className="w-[100vw] h-[100vh] absolute">
+                <LoadingOverlay
+                    visible={loading}
+                    zIndex={10000}
+                    overlayProps={{ radius: "sm", blur: 2 }}
+                />
+            </div>
             <div className="bg-neutral-900 flex flex-row items-center justify-between">
                 {/* Left Side */}
                 <div className="flex flex-row items-center">

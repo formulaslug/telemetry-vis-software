@@ -129,6 +129,8 @@ export default function Navbar() {
         function onPickerChanged(value: string) {
             console.log(value);
             if (value === "recording") {
+                //TODO Make an actual function to stop the live view
+                switchToRecording("");
                 setLive(false);
             } else {
                 setLive(true);

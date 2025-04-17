@@ -196,7 +196,7 @@ export default function Navbar() {
                         <Modal.Header>
                             <div className="flex justify-between w-full">
                                 <p>Select Data Source Type</p>
-                                {window && window.location.hostname == "localhost" ? (
+                                {process.env.NODE_ENV == "development" ? (
                                     <ServerToggle />
                                 ) : (
                                     <></>

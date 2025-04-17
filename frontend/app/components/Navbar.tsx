@@ -190,7 +190,7 @@ export default function Navbar() {
                             </div>
                             <Modal.CloseButton />
                         </Modal.Header>
-                        <div className="m-3">
+                        <div className="m-3 mt-0">
                             <SegmentedControl
                                 fullWidth
                                 value={live ? "live" : "recording"}

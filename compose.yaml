@@ -35,7 +35,7 @@ services:
       RECORDING_DIRS: /recording_dirs
     volumes:
       # ./fs-data is a git submodule, optional
-      - ./fs-data/FS-2/Parquet:/recording_dirs/fs-data/FS-2
+      - ./fs-data/FS-2/Parquet:/recording_dirs/FS-2
 
 volumes:
   caddy_data:

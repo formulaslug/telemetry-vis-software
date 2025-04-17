@@ -1,5 +1,5 @@
 "use client";
-import { Button, Group, Modal, SegmentedControl, Tree } from "@mantine/core";
+import { Button, Card, Group, Modal, SegmentedControl, Switch, Tree } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { CaretDown } from "@phosphor-icons/react";
 import Image from "next/image";
@@ -9,7 +9,6 @@ import { useEffect, useRef, useState } from "react";
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
 import { availableRecordings } from "../data-processing/http";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
-import Test from "./Test";
 import AutocompleteSearchbar from "./Autocomplete";
 
 //takes in the list of files as an array and outputs it in mantine tree format
@@ -59,6 +58,7 @@ export default function Navbar() {
     const [opened, { open, close }] = useDisclosure(false);
     const [fileName, setFileName] = useState("No File Selected");
     const [recordings, setRecordings] = useState<string[] | null>(null);
+    const [production, setProduction] = useState<boolean>(true);
     const displayedName = fileName.split("/")[fileName.split("/").length - 1];
 
     const { switchToRecording, switchToLiveData, subscribeNumRows } = useDataMethods();
@@ -78,8 +78,8 @@ export default function Navbar() {
     }
 
     useEffect(() => {
-        availableRecordings().then((r) => setRecordings(r ?? []));
-    }, []);
+        availableRecordings(production).then((r) => setRecordings(r));
+    }, [production]);
 
     function SystemSelector() {
         const [opened, { open, close }] = useDisclosure(false);
@@ -101,6 +101,16 @@ export default function Navbar() {
                 </Modal>
                 <Button onClick={open}>Open System</Button>
             </>
+        );
+    }
+
+    function ServerToggle() {
+        return (
+            <Switch
+                checked={production}
+                onChange={(e) => setProduction(e.currentTarget.checked)}
+                label="production"
+            />
         );
     }
 
@@ -173,6 +183,7 @@ export default function Navbar() {
                     centered
                 >
                     <div className="m-3">
+                        {window.location.hostname == "localhost" ? <ServerToggle /> : <></>}
                         <SegmentedControl
                             fullWidth
                             value={live ? "live" : "recording"}
@@ -185,7 +196,7 @@ export default function Navbar() {
                             ]}
                         />
                     </div>
-                    {live ? <></> : <FileTree />}
+                    <Card>{live ? <></> : <FileTree />}</Card>
                 </Modal>
             </>
         );

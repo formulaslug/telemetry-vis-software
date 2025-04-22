@@ -1,24 +1,9 @@
 "use client";
-import Components from "@/models/Components";
-import {
-    Button,
-    Group,
-    Modal,
-    SegmentedControl,
-    Tree,
-    Switch,
-    Stack,
-    Textarea,
-    AngleSlider,
-    Center,
-    TextInput,
-    Flex,
-    Autocomplete,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Autocomplete } from "@mantine/core";
 import { useEffect, useState } from "react";
+import { visualizations } from "./visualizations/Visualizations";
 
-const componentArray = Object.keys(Components);
+const componentArray = Object.keys(visualizations);
 
 export default function AutocompleteSearchbar() {
     const [value, setValue] = useState("");

@@ -15,7 +15,7 @@ export default function Leaflet({ chartRef }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
     const id = useId();
 
-    const setLCJSInterval = useCallback((map: L.Map) => {
+    const setLCJSInterval = (map: L.Map) => {
         if (numRowsRef.current > 0) {
             // todo: this isn't right
             // -0.00033131054316 y (lat)
@@ -29,7 +29,7 @@ export default function Leaflet({ chartRef }: Props) {
                 chartRef.current.getDefaultAxisY().setInterval({ start: sw.lat, end: ne.lat });
             }
         }
-    }, []);
+    };
 
     const setInitialLeafletBounds = (map: L.Map) => {
         const series = chartRef.current?.getSeries()[0];

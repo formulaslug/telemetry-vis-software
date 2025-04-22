@@ -3,6 +3,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
 import getTextSize from "@/app/utils/getTextSize";
+import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 
 interface GForceProps {
     x: number;
@@ -88,7 +89,23 @@ function Scene({ polarAngle, azimuthalAngle, setActive, active, position }: Scen
     );
 }
 
-export default function GForceGauge({ x, y, z }: GForceProps) {
+export default function GForceGauge() {
+    const [values, setValues] = useState<{ x: number; y: number; z: number }>({
+        x: 0,
+        y: 0,
+        z: 0,
+    });
+    const { subscribeCursorRow } = useDataMethods();
+    useEffect(() => {
+        return subscribeCursorRow((cursorRow) => {
+            setValues({
+                x: cursorRow?.VDM_X_AXIS_ACCELERATION ?? 0,
+                y: cursorRow?.VDM_Y_AXIS_ACCELERATION ?? 0,
+                z: cursorRow?.VDM_Z_AXIS_ACCELERATION ?? 0,
+            });
+        });
+    }, []);
+
     const [polarAngle, setPolarAngle] = useState(Math.PI / 2);
     const [azimuthalAngle, setAzimuthalAngle] = useState(0);
 
@@ -100,7 +117,7 @@ export default function GForceGauge({ x, y, z }: GForceProps) {
         <div ref={containerRef} className="w-full h-full bg-white/10 overflow-hidden">
             <div className="h-[90%]">
                 <Scene
-                    position={new Vector3(x, y, z)}
+                    position={new Vector3(values.x, values.y, values.z)}
                     polarAngle={polarAngle}
                     azimuthalAngle={azimuthalAngle}
                     setActive={setActive}

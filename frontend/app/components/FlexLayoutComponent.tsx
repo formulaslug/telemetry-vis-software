@@ -1,6 +1,7 @@
-import Components from "@/models/Components";
+import { Actions, Layout, Model, TabNode } from "flexlayout-react";
 import { CornersOut, X } from "@phosphor-icons/react";
-import { Layout, Model, TabNode } from "flexlayout-react";
+import { Dispatch, useCallback, useState } from "react";
+import { visualizations } from "./visualizations/Visualizations";
 
 const model = Model.fromJson({
     global: {},
@@ -26,7 +27,7 @@ const model = Model.fromJson({
                     // },
                     {
                         type: "tabset",
-                        weight: 33,
+                        // weight: 33,
                         children: [
                             {
                                 type: "tab",
@@ -35,23 +36,23 @@ const model = Model.fromJson({
                             },
                         ],
                     },
-                    {
-                        type: "tabset",
-                        weight: 30,
-                        children: [
-                            {
-                                type: "tab",
-                                name: "CarWireframe",
-                                component: "car-wireframe",
-                            },
-                            { type: "tab", name: "G-Force Gauge", component: "g-force-gauge" },
-                        ],
-                    },
-                    {
-                        type: "tabset",
-                        weight: 40,
-                        children: [{ type: "tab", name: "Timings", component: "timings-box" }],
-                    },
+                    // {
+                    //     type: "tabset",
+                    //     weight: 30,
+                    //     children: [
+                    //         {
+                    //             type: "tab",
+                    //             name: "CarWireframe",
+                    //             component: "car-wireframe",
+                    //         },
+                    //         { type: "tab", name: "G-Force Gauge", component: "g-force-gauge" },
+                    //     ],
+                    // },
+                    // {
+                    //     type: "tabset",
+                    //     weight: 40,
+                    //     children: [{ type: "tab", name: "Timings", component: "timings-box" }],
+                    // },
                 ],
             },
             {
@@ -60,78 +61,107 @@ const model = Model.fromJson({
                 children: [
                     {
                         type: "tabset",
-                        weight: 33,
                         children: [
                             {
                                 type: "tab",
-                                name: "Brake Presssure (psi)",
-                                component: "brake-pressure-linegraph",
+                                name: "Stacked Line Chart",
+                                component: "stacked-line-chart",
+                                config: {
+                                    yAxesInfo: [
+                                        {
+                                            columnNames: [
+                                                "Seg0_VOLT_0",
+                                                "Seg0_VOLT_1",
+                                                "Seg0_VOLT_2",
+                                                "Seg0_VOLT_3",
+                                                "Seg0_VOLT_4",
+                                                "Seg0_VOLT_5",
+                                                "Seg0_VOLT_6",
+                                            ],
+                                            label: "Seg0 Temps",
+                                            units: "V",
+                                        },
+                                        {
+                                            columnNames: [
+                                                "Seg0_TEMP_0",
+                                                "Seg0_TEMP_1",
+                                                "Seg0_TEMP_2",
+                                                "Seg0_TEMP_3",
+                                                "Seg0_TEMP_4",
+                                                "Seg0_TEMP_5",
+                                                "Seg0_TEMP_6",
+                                            ],
+                                            label: "Seg0 Voltages",
+                                            units: "°C",
+                                        },
+                                    ],
+                                },
                             },
                         ],
                     },
-                    {
-                        type: "tabset",
-                        weight: 33,
-                        children: [
-                            {
-                                type: "tab",
-                                name: "Longitudinal Acceleration",
-                                component: "long-accel-linegraph",
-                            },
-                        ],
-                    },
+                    // {
+                    //     type: "tabset",
+                    //     weight: 33,
+                    //     children: [
+                    //         {
+                    //             type: "tab",
+                    //             name: "Brake Presssure (psi)",
+                    //             component: "brake-pressure-linegraph",
+                    //         },
+                    //     ],
+                    // },
+                    // {
+                    //     type: "tabset",
+                    //     weight: 33,
+                    //     children: [
+                    //         {
+                    //             type: "tab",
+                    //             name: "Longitudinal Acceleration",
+                    //             component: "long-accel-linegraph",
+                    //         },
+                    //     ],
+                    // },
                 ],
             },
         ],
     },
 });
 
-// const model = Model.fromJson({
-//     global: {},
-//     borders: [],
-//     layout: {
-//         type: "row",
-//         children: [
-//             {
-//                 type: "row",
-//                 children: [
-//                     {
-//                         type: "tabset",
-//                         children: [
-//                             {
-//                                 type: "tab",
-//                                 name: "Brake Presssure (psi)",
-//                                 component: "brake-pressure-linegraph",
-//                             },
-//                         ],
-//                     },
-//                     {
-//                         type: "tabset",
-//                         children: [
-//                             {
-//                                 type: "tab",
-//                                 name: "Longitudinal Acceleration",
-//                                 component: "long-accel-linegraph",
-//                             },
-//                         ],
-//                     },
-//                 ],
-//             },
-//         ],
-//     },
-// });
+// export type UpdateNodeConfig<T> = (config: T) => void;
+export interface VisualizationProps<Config extends Record<string, any>> {
+    useSavedState: <K extends keyof Config>(
+        key: K,
+        initialValue: Config[K],
+    ) => [Config[K], Dispatch<Config[K]>];
+}
 
 export default function FlexLayoutComponent() {
     function factory(node: TabNode) {
-        const components = Components;
+        const componentName =
+            (node.getComponent() as keyof typeof visualizations) ?? "skeleton";
 
-        type ComponentKey = keyof typeof components;
+        const componentConfig = node.getConfig() ?? {};
 
-        const component = node.getComponent();
+        function useSavedState<T>(path: keyof any, initialValue: T): [T, Dispatch<T>] {
+            const [state, setState] = useState<T>(componentConfig[path] ?? initialValue);
 
-        return components[
-            (component && component in components ? component : "skeleton") as ComponentKey
-        ];
+            // TODO: is this running too many times? idk about this function nesting
+            const setStateAndSave = useCallback((newValue: T) => {
+                setState(newValue);
+                model.doAction(
+                    Actions.updateNodeAttributes(node.getId(), {
+                        config: { [path]: newValue },
+                    }),
+                );
+            }, []);
+
+            // console.log(model.toJson());
+
+            return [state, setStateAndSave];
+        }
+
+        const Component = visualizations[componentName];
+        return <Component useSavedState={useSavedState} />;
     }
 
     return (

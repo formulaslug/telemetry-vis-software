@@ -1,21 +1,36 @@
-"use client";
-import React, { useCallback, useState } from "react";
+import React from "react";
 
-import { Text, Button, ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
-import { Gear, GlobeHemisphereWest, LineVertical } from "@phosphor-icons/react";
+import { Text, ActionIcon, Checkbox, Menu, Slider } from "@mantine/core";
+import { Gear } from "@phosphor-icons/react";
 import GPSInternal from "./GPSInternal";
+import { VisualizationProps } from "../../FlexLayoutComponent";
 
-export default function GPS() {
-    const [useLeaflet, setUseLeaflet] = useState(true);
-    const [useBgSeries, setUseBgSeries] = useState(false);
-    const [trackThickness, setTrackThickness] = useState(25);
-    const [carLineThickness, setCarLineThickness] = useState(5);
-    const reset = useCallback(() => {
-        setUseBgSeries(false);
-        setUseLeaflet(true);
+export interface GPSConfig {
+    showLeaflet: boolean;
+    showTrack: boolean;
+    trackThickness: number;
+    carLineThickness: number;
+}
+
+export function GPS({ useSavedState }: VisualizationProps<GPSConfig>) {
+    // const [myConfig, setConfig] = useState<GPSConfig>(config);
+
+    const [showLeaflet, setShowLeaflet] = useSavedState("showLeaflet", true);
+    const [showTrack, setShowTrack] = useSavedState("showTrack", false);
+    const [trackThickness, setTrackThickness] = useSavedState("trackThickness", 25);
+    const [carLineThickness, setCarLineThickness] = useSavedState("carLineThickness", 5);
+
+    // useEffect(() => {
+    //     updateNodeConfig({ showLeaflet, showTrack, trackThickness, carLineThickness });
+    // }, [showLeaflet, showTrack, trackThickness, carLineThickness]);
+
+    const reset = () => {
+        // setConfig(config);
+        setShowLeaflet(true);
+        setShowTrack(false);
         setTrackThickness(25);
         setCarLineThickness(5);
-    }, []);
+    };
 
     return (
         <>
@@ -31,16 +46,22 @@ export default function GPS() {
                     <Menu.Label>Configure GPS</Menu.Label>
                     <Menu.Item>
                         <Checkbox
-                            checked={useLeaflet}
-                            onChange={(e) => setUseLeaflet(e.currentTarget.checked)}
+                            checked={showLeaflet}
+                            onChange={(e) => setShowLeaflet(e.currentTarget.checked)}
+                            // onChange={(e) =>
+                            //     setConfig((prev) => ({
+                            //         ...prev,
+                            //         showLeaflet: e.currentTarget.checked,
+                            //     }))
+                            // }
                             label="Toggle Map"
                             // {<GlobeHemisphereWest size={14} />}
                         />
                     </Menu.Item>
                     <Menu.Item>
                         <Checkbox
-                            checked={useBgSeries}
-                            onChange={(e) => setUseBgSeries(e.currentTarget.checked)}
+                            checked={showTrack}
+                            onChange={(e) => setShowTrack(e.currentTarget.checked)}
                             label="Toggle Track"
                             // {<LineVertical size={14} weight="bold" />}
                         />
@@ -74,10 +95,7 @@ export default function GPS() {
             </Menu>
             <div>
                 <GPSInternal
-                    useLeaflet={useLeaflet}
-                    useBgSeries={useBgSeries}
-                    trackThickness={trackThickness}
-                    carLineThickness={carLineThickness}
+                    {...{ showLeaflet, showTrack, trackThickness, carLineThickness }}
                 />
             </div>
         </>

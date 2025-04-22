@@ -21,6 +21,7 @@ import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 import { MAX_DATA_ROWS, timeColumnName } from "@/app/data-processing/datatypes";
 
 import dynamic from "next/dynamic";
+import { GPSConfig } from "./GPS";
 const Leaflet = dynamic(() => import("./Leaflet").then((o) => o), { ssr: false });
 
 // IMPORTANT: in Leaflet, LAT is vertical (y) and LNG is horizontal (x)
@@ -33,18 +34,12 @@ const defaultBgSeriesStrokeStyle = new SolidLine({
     fillStyle: new SolidFill({ color: ColorHEX("#808080") }),
 });
 
-interface GPSInternalProps {
-    useLeaflet: boolean;
-    useBgSeries: boolean;
-    trackThickness: number;
-    carLineThickness: number;
-}
 export default function GPSInternal({
-    useLeaflet,
-    useBgSeries,
+    showLeaflet,
+    showTrack,
     trackThickness,
     carLineThickness,
-}: GPSInternalProps) {
+}: GPSConfig) {
     const {
         subscribeViewInterval,
         subscribeLatestArrays,
@@ -80,7 +75,7 @@ export default function GPSInternal({
                 defaultAxisY: { type: "linear-highPrecision" },
             })
             // afaik you can't easily share pointer events between two overlapping divs
-            .setCursorMode(useLeaflet ? undefined : "show-pointed")
+            .setCursorMode(showLeaflet ? undefined : "show-pointed")
             .setPadding(0)
             .setSeriesBackgroundFillStyle(transparentFill)
             .setSeriesBackgroundStrokeStyle(emptyLine);
@@ -95,6 +90,7 @@ export default function GPSInternal({
                 lookupValues: true,
                 // todo: enable an LUT for color based on lap #???
             })
+            .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
             .setDrawOrder({ seriesDrawOrderIndex: 2 })
             .setSamples({
                 xValues: viewableArraysRef.current[LNG_COLNAME]!,
@@ -106,7 +102,6 @@ export default function GPSInternal({
             })
             .setAreaFillStyle(emptyFill)
             .setPointFillStyle(emptyFill)
-            // .setPointSize(0)
             .setStrokeStyle(
                 new SolidLine({
                     thickness: carLineThickness,
@@ -121,9 +116,8 @@ export default function GPSInternal({
                         }),
                     }),
                 }),
-            )
-            // splines aren't supported for freeform (non-progressive) data :/
-            // .setCurvePreprocessing({ type: "spline" });
+            );
+        // splines aren't supported for freeform (non-progressive) data :/
         visibleSeriesRef.current = visibleSeries;
 
         let bgSeries = chart
@@ -131,6 +125,7 @@ export default function GPSInternal({
                 dataPattern: null,
                 dataStorage: Float32Array,
             })
+            .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
             .setDrawOrder({ seriesDrawOrderIndex: 1 })
             .setSamples({
                 xValues: dataArraysRef.current[LNG_COLNAME]!,
@@ -144,17 +139,10 @@ export default function GPSInternal({
             a.setIntervalRestrictions(undefined);
             a.setThickness(0);
             a.setTickStrategy(AxisTickStrategies.Empty);
-            // todo: instead of this, we need logic within Leaflet.tsx
-            // a.setDefaultInterval((state) => ({
-            //     start: state.dataMin,
-            //     end: state.dataMax,
-            // }));
         });
 
         chart.setTitle("");
-        // chart.getDefaultAxisX().setTitle("Latitude");
         chart.getDefaultAxisX().setUnits("Lng");
-        // chart.getDefaultAxisY().setTitle("Longitude");
         chart.getDefaultAxisY().setUnits("Lat");
 
         // atm we're just using pointer-events-none on the lcjs div
@@ -176,14 +164,9 @@ export default function GPSInternal({
             });
         });
         const unsub2 = subscribeViewInterval(([left, right]) => {
-            // console.log(left, right);
-
-            // visibleSeries.setSamples({
-            //     xValues: viewableArraysRef.current[LAT_COLNAME]!,
-            //     yValues: viewableArraysRef.current[LONG_COLNAME]!,
-            // });
+            // We reset and regenerate the fillStyle lookupValues each time
+            // viewInterval changes. This seems to be a fairly fast operation
             visibleSeries.fill({ lookupValue: 0 });
-
             // We need +1 as left and right from dataProvider are both inclusive
             const length = right - left + 1;
             // Generates a list of values of length `length` that are evenly
@@ -221,12 +204,12 @@ export default function GPSInternal({
     useEffect(() => {
         if (bgSeriesRef.current) {
             bgSeriesRef.current.setStrokeStyle(
-                useBgSeries
+                showTrack
                     ? defaultBgSeriesStrokeStyle.setThickness(trackThickness)
                     : emptyLine,
             );
         }
-    }, [useBgSeries]);
+    }, [showTrack]);
 
     useEffect(() => {
         if (bgSeriesRef.current) {
@@ -243,7 +226,7 @@ export default function GPSInternal({
 
     return (
         <>
-            {useLeaflet ? (
+            {showLeaflet ? (
                 <div className="absolute w-[100%] h-[100%] z-0">
                     <Leaflet chartRef={chartRef} />
                 </div>

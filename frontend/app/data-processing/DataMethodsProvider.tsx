@@ -24,7 +24,6 @@ import { getRecording } from "./http";
 import { closeWebSocketConnection, initWebSocketConnection } from "./websocket";
 import { RecordBatch } from "apache-arrow";
 import DataSourceType from "@/models/DataSourceType";
-import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
 
 type SubscriptionReset = () => void; // possibly remove in favor of additional arg?
 type SubscriptionViewInterval = (viewInterval: [left: number, right: number], setterID: string) => void; // prettier-ignore
@@ -179,8 +178,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
         for (const [name, arr] of Object.entries(dataArraysRef.current)) {
             if (arr) {
-                viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1);
-            }
+                viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1); }
         }
         subscriptionsViewableArrays.current.forEach((s) => s(viewableArraysRef.current));
 

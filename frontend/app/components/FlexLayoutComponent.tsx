@@ -21,16 +21,8 @@ export const layoutModel = Model.fromJson({
                         children: [
                             {
                                 type: "tab",
-                                name: "Data Grid",
-                                component: "data-grid",
-                                config: {
-                                    columnNames: ["a", "b", "c"],
-                                    data: [
-                                        [1, 2, 3],
-                                        [4, 5, 6],
-                                        [7, 8, 9],
-                                    ],
-                                },
+                                name: "Lap Counter",
+                                component: "lap-counter",
                             },
                         ],
                     },

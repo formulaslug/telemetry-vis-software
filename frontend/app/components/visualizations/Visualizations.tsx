@@ -6,7 +6,7 @@ import CarWireframe from "./CarWireframe";
 import SuspensionGauge from "./SuspensionGauge";
 import { VisualizationProps } from "../FlexLayoutComponent";
 import { JSX } from "react";
-import { DataGrid } from "./DataGrid";
+import { LapCounter } from "./LapCounter";
 
 export const visualizations: Record<string, (props: VisualizationProps<any>) => JSX.Element> =
     {
@@ -16,7 +16,7 @@ export const visualizations: Record<string, (props: VisualizationProps<any>) => 
         "car-wireframe": CarWireframe,
         "g-force-gauge": GForceGauge,
         "timings-box": LapsTable,
-        "data-grid": DataGrid,
+        "lap-counter": LapCounter,
 
         skeleton: () => <div className="w-full h-full bg-neutral-500"></div>,
     };

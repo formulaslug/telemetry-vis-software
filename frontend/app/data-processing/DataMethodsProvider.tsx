@@ -289,6 +289,8 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         reset();
 
         const table = await getRecording(filename);
+        if (!table) return;
+
         let arraysTyped = {} as DataArraysTyped;
         // TODO: Make this actually use the schema of the incoming
         // websocket stream!!! This assumes all columns are present
@@ -308,6 +310,11 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
             n == 0.0 ? NaN : n
         );
+
+        // TODO: somehow some BigInt64Array's are getting passed through to lcjs
+        // even though we have the claude filtering in http.ts?? Try out
+        // "2025-01-21-IMU-Calibration.parquet" which fails every time. Also,
+        // uncommenting the above two lines changes the error?? TODO: investigate.
 
         numRowsRef.current = table.numRows;
         subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));

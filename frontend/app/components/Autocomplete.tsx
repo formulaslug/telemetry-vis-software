@@ -2,6 +2,8 @@
 import { Autocomplete } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { visualizations } from "./visualizations/Visualizations";
+import { layoutModel } from "./FlexLayoutComponent";
+import { Actions, DockLocation } from "flexlayout-react";
 
 const componentArray = Object.keys(visualizations);
 
@@ -9,7 +11,14 @@ export default function AutocompleteSearchbar() {
     const [value, setValue] = useState("");
 
     useEffect(() => {
-        if (componentArray.includes(value)) console.log(value);
+        if (componentArray.includes(value)) {
+            layoutModel.doAction(Actions.addNode({
+                type: "tab",
+                component: value,
+                name: value,
+
+            }, "root", DockLocation.CENTER, 0));
+        }
     }, [value]);
 
     return (

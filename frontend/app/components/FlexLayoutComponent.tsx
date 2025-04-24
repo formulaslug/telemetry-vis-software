@@ -3,11 +3,12 @@ import { CornersOut, X } from "@phosphor-icons/react";
 import { Dispatch, useCallback, useState } from "react";
 import { visualizations } from "./visualizations/Visualizations";
 
-const model = Model.fromJson({
+export const layoutModel = Model.fromJson({
     global: {},
     borders: [],
     layout: {
         type: "row",
+        id: "root",
         weight: 100,
         children: [
             {
@@ -148,7 +149,7 @@ export default function FlexLayoutComponent() {
             // TODO: is this running too many times? idk about this function nesting
             const setStateAndSave = useCallback((newValue: T) => {
                 setState(newValue);
-                model.doAction(
+                layoutModel.doAction(
                     Actions.updateNodeAttributes(node.getId(), {
                         config: { [path]: newValue },
                     }),
@@ -167,7 +168,7 @@ export default function FlexLayoutComponent() {
     return (
         <Layout
             realtimeResize={true}
-            model={model}
+            model={layoutModel}
             factory={factory}
             icons={{
                 close: <X color="gray" weight="bold" />,

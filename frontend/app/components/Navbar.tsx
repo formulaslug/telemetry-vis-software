@@ -68,7 +68,7 @@ export default function Navbar() {
     const [opened, { open, close }] = useDisclosure(false);
     const [fileName, setFileName] = useState("No File Selected");
     const [recordings, setRecordings] = useState<string[] | null>(null);
-    const [production, setProduction] = useState<boolean>(true);
+    const [isProduction, setIsProduction] = useState<boolean>(true);
     const displayedName = fileName.split("/")[fileName.split("/").length - 1];
 
     const { switchToRecording, switchToLiveData, subscribeNumRows } = useDataMethods();
@@ -80,16 +80,10 @@ export default function Navbar() {
             }
         });
     }, []);
-    {
-        /* <p>{myNumRows}</p> */
-    }
-    {
-        /* <button onClick={() => switchToLiveData()}>blah</button> */
-    }
 
     useEffect(() => {
-        availableRecordings(production).then((r) => setRecordings(r));
-    }, [production]);
+        availableRecordings(isProduction).then((r) => setRecordings(r));
+    }, [isProduction]);
 
     function SystemSelector() {
         const [opened, { open, close }] = useDisclosure(false);
@@ -118,8 +112,8 @@ export default function Navbar() {
         return (
             <Switch
                 className="px-3"
-                checked={production}
-                onChange={(e) => setProduction(e.currentTarget.checked)}
+                checked={isProduction}
+                onChange={(e) => setIsProduction(e.currentTarget.checked)}
                 label="production"
             />
         );
@@ -249,8 +243,7 @@ export default function Navbar() {
                             priority={true}
                         />
                     </div>
-                    <AutocompleteSearchbar /> {/* Messing around with Mantine components */}{" "}
-                    {/* console.log("This is the component/widget added") */}
+                    <AutocompleteSearchbar />
                     {/* Modal */}
                     <div className="m-3">
                         <SystemSelector />

@@ -7,13 +7,9 @@ import { VisualizationProps } from "../FlexLayoutComponent";
 import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 
 // data is represented in row, column (y, x)
-export interface DataGridConfig {
-    columnNames: string[];
-    data: any[][];
-}
 
-export function LapCounter({ useSavedState }: VisualizationProps<DataGridConfig>) {
-    const { subscribeViewableArrays } = useDataMethods();
+export function LapCounter() {
+    const { subscribeCursorRow, subscribeReset, dataArraysRef } = useDataMethods();
 
     const lc = useContext(LightningChartsContext);
     const containerRef = useRef(null);
@@ -21,38 +17,67 @@ export function LapCounter({ useSavedState }: VisualizationProps<DataGridConfig>
 
     const columnNames = ["Lap #", "Lap Time (s)"];
 
-    const [data, setData] = useSavedState("data", [["cell 0.0"], ["cell 0.1"]]);
-
     useEffect(() => {
         // checks for invalid ref & context
         if (!containerRef.current || !lc) return;
 
         let dataGrid = lc.DataGrid({ container: containerRef.current, theme: globalTheme });
 
-        dataGrid.setTitle("Lap Times");
+        let lapTimes: number[] = [];
 
-        dataGrid.setTableContent([columnNames]);
+        function calculateLaps() {
+            let lapArray = dataArraysRef.current[":Lap"];
+            let lapTimeArray = dataArraysRef.current[":LapTime"];
+
+            dataGrid.setTitle("Lap Times");
+            dataGrid.setRowContent(0, columnNames);
+
+            if (!lapArray || !lapTimeArray) return;
+
+            console.log("hi");
+            lapTimes = [];
+
+            let previous = lapArray[0];
+
+            for (let i = 0; i < lapArray.length; i++) {
+                if (lapArray[i] > previous) {
+                    lapTimes.push(lapTimeArray[i - 1]);
+                    previous = lapArray[i];
+                }
+            }
+        }
+
+        const unsubReset = subscribeReset(() => {
+            calculateLaps();
+        });
 
         // defines subscribers
-        const unsub = subscribeViewableArrays((viewableArrays) => {
-            const lap = viewableArrays[":Lap"];
-            const lapTime = viewableArrays[":LapTime"];
+        const unsub = subscribeCursorRow((cursorRow) => {
+            const lap = cursorRow ? cursorRow[":Lap"] : 0;
+            const lapTime = cursorRow ? cursorRow[":LapTime"] : 0;
+
+            //TODO Fix this to work better with live
+
+            if (dataGrid.getRowMax() < 1) {
+                calculateLaps();
+            }
 
             if (!lap || !lapTime) return;
-            let previous = 0;
 
-            for (let i = 0; i < lap.length; i++) {
-                if (lap[i] > previous) {
-                    dataGrid.setRowContent(lap[i] + 1, [lap[i], lapTime[i - 1] ?? 0]);
-                    previous = lap[i];
-                }
+            for (let i = dataGrid.getRowMax(); i > lap; i--) {
+                dataGrid.removeRow(i);
+            }
+
+            for (let i = 0; i < lap; i++) {
+                dataGrid.setRowContent(i + 1, [i + 1, lapTimes[i]]);
             }
         });
 
         return () => {
             unsub();
+            unsubReset();
         };
-    }, [columnNames, data]);
+    }, [dataArraysRef.current]);
 
     return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

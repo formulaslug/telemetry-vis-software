@@ -3,6 +3,7 @@ import StackedLineChartInternal from "./StackedLineChartInternal";
 import { Gear, Plus } from "@phosphor-icons/react";
 import { VisualizationProps } from "../../FlexLayoutComponent";
 import { ColumnName, columnNames, timeColumnName } from "@/app/data-processing/datatypes";
+import { useState } from "react";
 
 type YAxisInfo = {
     columnNames: ColumnName[];
@@ -62,9 +63,12 @@ export function StackedLineChart({
         },
     ]);
 
+    const [search, setSearch] = useState("");
+
     // this is just a basic, not-thought-through example of how to modify the
     // state to add new columns
     const tryAddColumn = (key: string) => {
+        setSearch(key);
         if ((columnNames as string[]).includes(key)) {
             setYAxesInfo([
                 {
@@ -109,7 +113,7 @@ export function StackedLineChart({
                         label="Add Columns"
                         placeholder="Seg0_VOLT_0"
                         data={columnNames}
-                        value=""
+                        value={search}
                         onChange={tryAddColumn}
                     />
                 </Menu.Dropdown>

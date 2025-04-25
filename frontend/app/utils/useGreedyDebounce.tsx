@@ -5,16 +5,25 @@ export default function useDebounceCallbackGreedy<T extends (...args: any[]) => 
     delay: number,
 ) {
     const timeoutRef = useRef<number>(null);
-    const isCooldownRef = useRef(false);
+    const isOnCooldownRef = useRef(false);
+    const lastArgsRef = useRef<Parameters<T>>(null);
 
     const debouncedFunc = useCallback(
         (...args: Parameters<T>) => {
-            if (!isCooldownRef.current) {
+            if (!isOnCooldownRef.current) {
                 func(...args);
-                isCooldownRef.current = true;
+                isOnCooldownRef.current = true;
                 timeoutRef.current = window.setTimeout(() => {
-                    isCooldownRef.current = false;
+                    isOnCooldownRef.current = false;
+
+                    if (lastArgsRef.current) {
+                        const args = lastArgsRef.current;
+                        lastArgsRef.current = null;
+                        func(...args);
+                    }
                 }, delay);
+            } else {
+                lastArgsRef.current = args;
             }
         },
         [func, delay],

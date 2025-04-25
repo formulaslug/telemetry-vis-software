@@ -33,7 +33,7 @@ function Car({ rotation }: { rotation: rotation }) {
 
     useEffect(() => {
         group.current?.setRotationFromEuler(
-            new THREE.Euler(rotation.x, rotation.y + Math.PI, rotation.z, "XYZ"),
+            new THREE.Euler(rotation.x, rotation.y, rotation.z, "XYZ"),
         );
     }, [rotation]);
 
@@ -69,9 +69,12 @@ export default function CarWireframe() {
     useEffect(() => {
         return subscribeCursorRow((cursorRow) => {
             setValues({
-                x: cursorRow?.VDM_X_AXIS_ACCELERATION ?? 0,
-                y: cursorRow?.VDM_Y_AXIS_ACCELERATION ?? 0,
-                z: cursorRow?.VDM_Z_AXIS_ACCELERATION ?? 0,
+                // x: cursorRow?.VDM_X_AXIS_ACCELERATION ?? 0,
+                // y: cursorRow?.VDM_Y_AXIS_ACCELERATION ?? 0,
+                // z: cursorRow?.VDM_Z_AXIS_ACCELERATION ?? 0,
+                x: 0,
+                y: (cursorRow?.VDM_GPS_TRUE_COURSE ?? 0) / -180 * Math.PI + Math.PI,
+                z: 0,
             });
         });
     }, []);

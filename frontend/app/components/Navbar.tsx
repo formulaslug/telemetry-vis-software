@@ -124,7 +124,6 @@ export default function Navbar() {
 
     function DataSourcePicker() {
         function onPickerChanged(value: string) {
-            console.log(value);
             if (value === "recording") {
                 //TODO Make an actual function to stop the live view
                 switchToRecording("");

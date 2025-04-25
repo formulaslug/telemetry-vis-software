@@ -50,7 +50,7 @@ function SyncButton() {
         return () => {
             unsub1();
             unsub2();
-        }
+        };
     }, []);
     const setTimelineSynced = () => {
         setEnabled(true);
@@ -73,7 +73,10 @@ function MainSlider() {
     const [disabled, setDisabled] = useState<boolean>(false);
     const [minMax, setMinMax] = useState<RangeSliderValue>([0, 10]);
     const [value, setValue] = useState<RangeSliderValue>([0, 10]);
-    const debouncedSetValue = useDebounceCallbackGreedy((value) => setValue(value), 10);
+    const debouncedSetValue = useDebounceCallbackGreedy((value) => {
+        setValue(value);
+        // console.log(performance.now(), value);
+    }, 10);
     const ref = useRef<HTMLDivElement>(null);
     // id is only used to differentiate between who set viewInterval (avoid infinite recursion)
     const id = "timelineBar";
@@ -94,7 +97,7 @@ function MainSlider() {
             setMinMax([left, right]);
         });
         const unsub2 = subscribeDataSource((dataSource: DataSourceType) => {
-            // setDisabled(dataSource == DataSourceType.NONE);
+            setDisabled(dataSource == DataSourceType.NONE);
         });
         const unsub3 = subscribeViewInterval((range, setterID) => {
             // console.log(range, setterID, minMax);
@@ -126,13 +129,13 @@ function MainSlider() {
             //     viewIntervalRef.current[1],
             // );
         }
-        setValue(range);
-        // setViewInterval(range, id);
 
-        const val = dataArraysRef.current[timeColumnName]![range[0]];
-        console.log("idx:", range[0], val, dataArraysRef.current[":Time"]);
-        console.log("timeline setting range:", range);
-        
+        setValue(range);
+        setViewInterval(range, id);
+
+        // const val = dataArraysRef.current[timeColumnName]![range[0]];
+        // console.log("idx:", range[0], val, dataArraysRef.current[":Time"]);
+        // console.log("timeline setting range:", range);
     };
 
     const sliderStyles = useMemo(
@@ -149,7 +152,6 @@ function MainSlider() {
 
         // console.log("idx:", idx, val, dataArraysRef.current[":Time"]);
         return val !== undefined ? val.toFixed(2) : "???";
-        
     };
 
     return (

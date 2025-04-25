@@ -175,6 +175,7 @@ export default function StackedLineChartInternal({
         //     restoreDefault: { doubleClick: true },
         // };
         // chart.setUserInteractions(defaultUserInteractions);
+        // chart.setAnimationsEnabled(false); // do we like animations?
 
         chart.getDefaultAxisX().addEventListener("intervalchange", ({ start, end }) => {
             // start/end are "axis coordinates" but chart.solveNearest() expects
@@ -203,9 +204,11 @@ export default function StackedLineChartInternal({
                 // TODO: maybe only set the main viewInterval if we have pointer
                 // focus and the viewWidth itself changed?
                 // also, maybe chart.seriesBackground.addEventListener("") ?
-                const [oldStart, oldEnd] = viewIntervalRef.current;
-                if (!isTimelineSyncedRef.current || start - end == oldStart - oldEnd) {
-                }
+                // const [oldStart, oldEnd] = viewIntervalRef.current;
+                // if (!isTimelineSyncedRef.current || start - end == oldStart - oldEnd) {
+                // }
+
+                // console.log("LCJS setting:", dataIndexes);
                 setViewInterval(dataIndexes, `lcjs-${id}`);
             }
         });
@@ -327,7 +330,7 @@ export default function StackedLineChartInternal({
 
     useEffect(() => {
         legendRef.current?.setVisible(showLegend ?? false);
-    }, [showLegend])
+    }, [showLegend]);
 
     return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

@@ -67,7 +67,7 @@ type DataControllers = {
     reset: () => void;
 
     switchToLiveData: (setIsConnected?: Dispatch<SetStateAction<boolean>>) => void;
-    switchToRecording: (filename: string) => void;
+    switchToRecording: (filename: string, file?: File) => void;
 };
 type DataRefs = {
     dataArraysRef: RefObject<DataArraysTyped>;
@@ -286,10 +286,10 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         subscriptionsDataSource.current.forEach((s) => s(DataSourceType.LIVE));
         setIsTimelineSynced(true, "dataProvider");
     };
-    const switchToRecording = async (filename: string) => {
+    const switchToRecording = async (filename: string, file?: File) => {
         reset();
         try {
-            const table = await getRecording(filename);
+            const table = await getRecording(filename, file ?? undefined);
             let arraysTyped = {} as DataArraysTyped;
             // TODO: Make this actually use the schema of the incoming
             // websocket stream!!! This assumes all columns are present

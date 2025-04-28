@@ -73,14 +73,17 @@ export async function availableRecordings(production: boolean): Promise<string[]
     );
 }
 
-export async function getRecording(filepath: string) {
+export async function getRecording(filepath: string, file?: File) {
     // Initializes WebAssembly memory for parquet-wasm, and gets a reference to it
     await wasmInit();
     const WASM_MEMORY = wasmMemory();
 
-    const parquet = await tryFetch(`/api/get-recording/${filepath}`, true).then((resp) =>
+    let parquet = await tryFetch(`/api/get-recording/${filepath}`, true).then((resp) =>
         resp ? resp.arrayBuffer() : null
     );
+
+    parquet = (await file?.arrayBuffer()) ?? parquet;
+
     const arrowTableWasm = readParquet(new Uint8Array(parquet!)).intoFFI();
     const arrowTable = arrowJSFFI.parseTable<DataRow>(
         WASM_MEMORY.buffer,

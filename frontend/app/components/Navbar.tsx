@@ -5,12 +5,14 @@ import {
     Group,
     LoadingOverlay,
     Modal,
+    ScrollArea,
     SegmentedControl,
     Switch,
     Tree,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { CaretDown } from "@phosphor-icons/react";
+import { Dropzone, DropzoneAccept, DropzoneIdle } from "@mantine/dropzone";
+import { CaretDown, Drop, FileArrowUp, FileX } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -19,6 +21,7 @@ const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests
 import { availableRecordings } from "../data-processing/http";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import AutocompleteSearchbar from "./Autocomplete";
+import { File } from "@phosphor-icons/react/dist/ssr";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {
@@ -213,7 +216,39 @@ export default function Navbar() {
                                 ]}
                             />
                         </div>
-                        <Card>{live ? <></> : <FileTree />}</Card>
+                        <Dropzone
+                            activateOnClick={false}
+                            // TODO: Make it only accept .pq / .parquet files
+                            // accept={{
+                            //     "application/octet-stream": [".parquet", ".pq"],
+                            // }}
+                            onDrop={async (files) => {
+                                const file = files[0];
+                                setFileName(file.name);
+                                setLoading(true);
+                                await switchToRecording(file.name, file);
+                                setLoading(false);
+                                close();
+                            }}
+                        >
+                            <Card>
+                                <ScrollArea h={530}>
+                                    <Dropzone.Accept>
+                                        <div className="w-[100%] h-[100%] flex justify-center items-center">
+                                            <FileArrowUp size={32} weight="light" />
+                                        </div>
+                                    </Dropzone.Accept>
+
+                                    {/* <Dropzone.Reject>
+                                        <FileX size={50} />
+                                        Please upload a parquet file
+                                    </Dropzone.Reject> */}
+                                    <Dropzone.Idle>
+                                        {live ? <></> : <FileTree />}
+                                    </Dropzone.Idle>
+                                </ScrollArea>
+                            </Card>
+                        </Dropzone>
                     </Modal.Content>
                 </Modal.Root>
             </>

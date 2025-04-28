@@ -15,20 +15,20 @@ export const layoutModel = Model.fromJson({
                 type: "row",
                 weight: 30,
                 children: [
-                    // {
-                    //     type: "tabset",
-                    //     weight: 30,
-                    //     children: [
-                    //         {
-                    //             type: "tab",
-                    //             name: "Suspension",
-                    //             component: "suspension-gauge",
-                    //         },
-                    //     ],
-                    // },
                     {
                         type: "tabset",
-                        // weight: 33,
+                        weight: 50,
+                        children: [
+                            {
+                                type: "tab",
+                                name: "Lap Counter",
+                                component: "lap-counter",
+                            },
+                        ],
+                    },
+                    {
+                        type: "tabset",
+                        weight: 50,
                         children: [
                             {
                                 type: "tab",
@@ -132,7 +132,7 @@ export const layoutModel = Model.fromJson({
 export interface VisualizationProps<Config extends Record<string, any>> {
     useSavedState: <K extends keyof Config>(
         key: K,
-        initialValue: Config[K],
+        initialValue: Config[K]
     ) => [Config[K], Dispatch<Config[K]>];
 }
 
@@ -152,7 +152,7 @@ export default function FlexLayoutComponent() {
                 layoutModel.doAction(
                     Actions.updateNodeAttributes(node.getId(), {
                         config: { [path]: newValue },
-                    }),
+                    })
                 );
             }, []);
 

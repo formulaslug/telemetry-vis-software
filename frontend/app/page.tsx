@@ -12,7 +12,6 @@ export default function Page() {
         <div className="w-[100vw] h-[100vh] flex flex-col">
             <Navbar />
             <div className="grow w-[100vw] overflow-hidden">
-                {/* TODO: LightningChartsHost doesn't work yet */}
                 <FlexLayoutComponent />
             </div>
             <TimelineBar />

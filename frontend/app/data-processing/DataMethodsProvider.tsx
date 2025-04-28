@@ -178,7 +178,8 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
         for (const [name, arr] of Object.entries(dataArraysRef.current)) {
             if (arr) {
-                viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1); }
+                viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1);
+            }
         }
         subscriptionsViewableArrays.current.forEach((s) => s(viewableArraysRef.current));
 
@@ -287,44 +288,48 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     };
     const switchToRecording = async (filename: string) => {
         reset();
-
-        const table = await getRecording(filename);
-        let arraysTyped = {} as DataArraysTyped;
-        // TODO: Make this actually use the schema of the incoming
-        // websocket stream!!! This assumes all columns are present
-        // (non-present should be null)
-        for (const key of columnNames) {
-            const vector = table.getChild(key);
-            if (vector) {
-                const arr = vector.toArray();
-                arraysTyped[key] = arr;
+        try {
+            const table = await getRecording(filename);
+            let arraysTyped = {} as DataArraysTyped;
+            // TODO: Make this actually use the schema of the incoming
+            // websocket stream!!! This assumes all columns are present
+            // (non-present should be null)
+            for (const key of columnNames) {
+                const vector = table.getChild(key);
+                if (vector) {
+                    const arr = vector.toArray();
+                    arraysTyped[key] = arr;
+                }
             }
+            // some basic manual data processing. TODO: make somthing extremely
+            // generic / extensible for arbitrary data processing
+            arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
+                n == 0.0 ? NaN : n
+            );
+            arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
+                n == 0.0 ? NaN : n
+            );
+
+            numRowsRef.current = table.numRows;
+            subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
+
+            dataArraysRef.current = arraysTyped;
+            subscriptionsLatestArrays.current.forEach((s) => s(dataArraysRef.current));
+
+            dataIntervalRef.current = [0, numRowsRef.current - 1];
+            subscriptionsDataInterval.current.forEach((s) => s(dataIntervalRef.current));
+
+            setViewInterval([0, numRowsRef.current], "dataProvider");
+
+            dataSourceRef.current = DataSourceType.RECORDED;
+            subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));
+
+            isTimelineSyncedRef.current = false;
+            subscriptionsIsTimelineSynced.current.forEach((s) => s(false, "dataProvider"));
+        } catch (error) {
+            console.warn("ERROR:", error);
+            window.alert(`Error fetching data: ${error}`);
         }
-        // some basic manual data processing. TODO: make somthing extremely
-        // generic / extensible for arbitrary data processing
-        arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
-            n == 0.0 ? NaN : n
-        );
-        arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
-            n == 0.0 ? NaN : n
-        );
-
-        numRowsRef.current = table.numRows;
-        subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
-
-        dataArraysRef.current = arraysTyped;
-        subscriptionsLatestArrays.current.forEach((s) => s(dataArraysRef.current));
-
-        dataIntervalRef.current = [0, numRowsRef.current - 1];
-        subscriptionsDataInterval.current.forEach((s) => s(dataIntervalRef.current));
-
-        setViewInterval([0, numRowsRef.current], "dataProvider");
-
-        dataSourceRef.current = DataSourceType.RECORDED;
-        subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));
-
-        isTimelineSyncedRef.current = false;
-        subscriptionsIsTimelineSynced.current.forEach((s) => s(false, "dataProvider"));
     };
 
     const methods: DataMethods = useMemo(() => {

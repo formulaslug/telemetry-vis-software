@@ -212,7 +212,7 @@ export default function Navbar() {
                                 radius={"md"}
                                 data={[
                                     { label: "Live", value: "live" },
-                                    { label: displayedName, value: "recording" },
+                                    { label: "Recording", value: "recording" },
                                 ]}
                             />
                         </div>

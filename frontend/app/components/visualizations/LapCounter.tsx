@@ -53,8 +53,8 @@ export function LapCounter() {
 
         // defines subscribers
         const unsub = subscribeCursorRow((cursorRow) => {
-            const lap = cursorRow ? cursorRow[":Lap"] : 0;
-            const lapTime = cursorRow ? cursorRow[":LapTime"] : 0;
+            const lap = cursorRow ? cursorRow[":Lap"] : null;
+            const lapTime = cursorRow ? cursorRow[":LapTime"] : null;
 
             //TODO Fix this to work better with live
 
@@ -62,15 +62,19 @@ export function LapCounter() {
                 calculateLaps();
             }
 
-            if (!lap || !lapTime) return;
+            if (lap === null || lapTime === null) return;
 
-            for (let i = dataGrid.getRowMax(); i > lap; i--) {
+            for (let i = dataGrid.getRowMax(); i > lap + 1; i--) {
                 dataGrid.removeRow(i);
             }
 
-            for (let i = 0; i < lap; i++) {
+            for (let i = 0; i < lap + 1; i++) {
                 dataGrid.setRowContent(i + 1, [i + 1, lapTimes[i]]);
             }
+
+            console.log(lapTime);
+
+            dataGrid.setRowContent(dataGrid.getRowMax(), [dataGrid.getRowMax(), lapTime]);
         });
 
         return () => {

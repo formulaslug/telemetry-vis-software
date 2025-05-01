@@ -6,6 +6,7 @@ import * as arrowJSFFI from "arrow-js-ffi";
 import { DataArrays, DataRow, nullDataArrays, schema } from "./datatypes";
 import { Dispatch, RefObject, SetStateAction } from "react";
 import { RESPONSE_LIMIT_DEFAULT } from "next/dist/server/api-utils";
+import { Table } from "apache-arrow";
 
 // TODO(jack): this setup is kinda bad cuz every time the function is called it
 // tried all URLs, including bad ones, which cause Network Errors to be thrown
@@ -66,10 +67,12 @@ async function tryFetch(path: string, production: boolean) {
     }
 }
 
-export async function availableRecordings(production: boolean): Promise<string[] | null> {
-    // console.log(process.env.NODE_ENV);
-    return tryFetch("/api/available-recordings", production).then((response) =>
-        response != null ? response.json() : null
+export async function getDBCForRecording(
+    filepath: string,
+    production: boolean,
+): Promise<string[] | null> {
+    return tryFetch(`/api/get-dbc-for-recording/${filepath}`, production).then((resp) =>
+        resp?.json(),
     );
 }
 
@@ -78,17 +81,18 @@ export async function getRecording(filepath: string, file?: File) {
     await wasmInit();
     const WASM_MEMORY = wasmMemory();
 
-    let parquet = await tryFetch(`/api/get-recording/${filepath}`, true).then((resp) =>
-        resp ? resp.arrayBuffer() : null
-    );
+    const resp = await tryFetch(`/api/get-recording/${filepath}`, false)
+    const arrayBuffer = await resp?.arrayBuffer();
+    if (!arrayBuffer) {
+        console.error("Response is not a valid ArrayBuffer!");
+        return;
+    }
 
-    parquet = (await file?.arrayBuffer()) ?? parquet;
-
-    const arrowTableWasm = readParquet(new Uint8Array(parquet!)).intoFFI();
+    const arrowTableWasm = readParquet(new Uint8Array(arrayBuffer)).intoFFI();
     const arrowTable = arrowJSFFI.parseTable<DataRow>(
         WASM_MEMORY.buffer,
         arrowTableWasm.arrayAddrs(),
-        arrowTableWasm.schemaAddr()
+        arrowTableWasm.schemaAddr(),
     );
 
     // Free arrow table in wasm memory
@@ -108,7 +112,7 @@ export async function initRecordingSource(
     data: RefObject<DataArrays>,
     dataTrimmed: RefObject<DataArrays>,
     setNumRows: Dispatch<SetStateAction<number>>,
-    viewLength: number
+    viewLength: number,
 ) {
     const arrowTable = (await getRecording(filepath))!;
 

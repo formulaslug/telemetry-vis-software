@@ -32,10 +32,10 @@ services:
       - "9000"
     environment:
       # Directory where http server will look for parquet files (recursively)
-      RECORDING_DIRS: /recording_dirs
+      DATA_DIR: /data_dir
     volumes:
       # ./fs-data is a git submodule, optional
-      - ./fs-data/FS-2/Parquet:/recording_dirs/FS-2
+      - ./fs-data/FS-2/Parquet:/data_dir/FS-2
 
 volumes:
   caddy_data:

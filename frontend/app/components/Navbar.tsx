@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
-import { availableRecordings } from "../data-processing/http";
+import { availableRecordings, getDBCForRecording } from "../data-processing/http";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import AutocompleteSearchbar from "./Autocomplete";
 import { File } from "@phosphor-icons/react/dist/ssr";
@@ -47,7 +47,7 @@ function createFileTree(paths: string[] | undefined) {
             const isLeaf = i === root.length - 1;
 
             let existingNode = currentLevel.find(
-                (node: pathType) => node.value === currentPath
+                (node: pathType) => node.value === currentPath,
             );
 
             if (!existingNode) {
@@ -168,9 +168,17 @@ export default function Navbar() {
                                         if (tree.hoveredNode?.includes("/")) {
                                             setFileName(tree.hoveredNode);
                                             setLoading(true);
-                                            await switchToRecording(tree.hoveredNode);
+                                            switchToRecording(tree.hoveredNode);
                                             setLoading(false);
                                             close();
+
+                                            console.log(
+                                                `Associated DBC for ${tree.hoveredNode}:`,
+                                                await getDBCForRecording(
+                                                    tree.hoveredNode,
+                                                    isProduction,
+                                                ),
+                                            );
                                         }
                                     }}
                                     className={

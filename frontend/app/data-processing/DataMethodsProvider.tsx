@@ -290,6 +290,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         reset();
         try {
             const table = await getRecording(filename, file ?? undefined);
+            if (!table) return;
             let arraysTyped = {} as DataArraysTyped;
             // TODO: Make this actually use the schema of the incoming
             // websocket stream!!! This assumes all columns are present

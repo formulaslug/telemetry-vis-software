@@ -42,7 +42,6 @@ export default function StackedLineChartInternal({
         subscribeLatestArrays,
         setCursor,
         setViewInterval,
-        viewIntervalRef,
         dataSourceRef,
         dataArraysRef,
         isTimelineSyncedRef,
@@ -208,7 +207,7 @@ export default function StackedLineChartInternal({
                 // if (!isTimelineSyncedRef.current || start - end == oldStart - oldEnd) {
                 // }
 
-                // console.log("LCJS setting:", dataIndexes);
+                // console.log("lcjs setting: ", idRef.current);
                 setViewInterval(dataIndexes, `lcjs-${id}`);
             }
         });
@@ -243,6 +242,8 @@ export default function StackedLineChartInternal({
         const unsub1 = subscribeViewInterval(([left, right], setterID) => {
             // ATM we simply ignore updates to viewEdges from dataProvider
             // because lcjs automatically updates its interval on data changes
+
+            // console.log(`${idRef.current} receiving update: from ${setterID}, updating self? ${!(setterID === `lcjs-${idRef.current}` || setterID === "dataProvider")}`);
             if (setterID === `lcjs-${id}` || setterID === "dataProvider") return;
 
             chart.getDefaultAxisX().setInterval({

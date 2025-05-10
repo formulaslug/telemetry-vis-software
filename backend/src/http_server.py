@@ -57,7 +57,7 @@ async def get_dbc(request: web.Request):
             dir_has_dbc = True
             for dbc in dbcs:
                 db.add_dbc_file(os.path.join(dbc_path_dir, dbc))
-                print(os.path.join(dbc_path_dir, dbc))
+                # print(os.path.join(dbc_path_dir, dbc)) # debug
         else:
             dbc_path_dir = os.path.dirname(dbc_path_dir)
 

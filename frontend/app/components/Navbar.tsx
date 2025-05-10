@@ -233,7 +233,7 @@ export default function Navbar() {
                                 const file = files[0];
                                 setFileName(file.name);
                                 setLoading(true);
-                                await switchToRecording(file.name, file);
+                                switchToRecording(file);
                                 setLoading(false);
                                 close();
                             }}

@@ -67,7 +67,7 @@ type DataControllers = {
     reset: () => void;
 
     switchToLiveData: (setIsConnected?: Dispatch<SetStateAction<boolean>>) => void;
-    switchToRecording: (filename: string, file?: File) => void;
+    switchToRecording: (filename: string | File) => void;
 };
 type DataRefs = {
     dataArraysRef: RefObject<DataArraysTyped>;
@@ -89,7 +89,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     // Currently visible data
     const viewableArraysRef = useRef<DataArraysTyped>(nullDataArraysTyped());
     // These are *integer indexes* into dataArrays/viewableArrays, INCLUSIVE.
-    // 1000*10ms = 10s range default
+    // eg. 1000*10ms = 10s range
     const viewIntervalRef = useRef<[left: number, right: number]>([0, 1000]); // only visible data
     const dataIntervalRef = useRef<[left: number, right: number]>([0, 1000]); // all data
     // Index into data of the current cursor position (or null if no
@@ -122,7 +122,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     // TODO: try going back to the old useMemo arrangement
     function makeSubscriber<T extends Subscription>(
         setRef: RefObject<Set<T>>,
-        initialTriggerData?: RefObject<Parameters<T>[0] | null>
+        initialTriggerData?: RefObject<Parameters<T>[0] | null>,
     ) {
         return (clbk: T) => {
             setRef.current.add(clbk);
@@ -172,9 +172,11 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     };
     const setViewInterval = (
         newViewInterval: [left: number, right: number],
-        setterID: string
+        setterID: string,
     ) => {
         const [left, right] = newViewInterval;
+
+        if (left == viewIntervalRef.current[0] && right == viewIntervalRef.current[1]) return;
 
         for (const [name, arr] of Object.entries(dataArraysRef.current)) {
             if (arr) {
@@ -257,11 +259,11 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
             // assume the precondition that *all rows of data are
             // equidistant from each other temporally.* This way we can
             // assume that shifting a viewInterval to the right by n indexes
-            // maintians the same amount of visible data.
+            // maintains the same amount of visible data.
             // If the timeline is not in "sync mode", we don't bother
             // changing the viewInterval when new data arrives.
             const timeCol = dataArraysRef.current[timeColumnName]!;
-            if (isTimelineSyncedRef) {
+            if (isTimelineSyncedRef.current) {
                 const numRowsViewable =
                     viewIntervalRef.current[1] - viewIntervalRef.current[0];
 
@@ -270,7 +272,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
                 setViewInterval([left, right], "dataProvider");
             }
             subscriptionsDataInterval.current.forEach((s) =>
-                s([timeCol[0], timeCol[timeCol.length - 1]])
+                s([timeCol[0], timeCol[timeCol.length - 1]]),
             );
 
             // If none of the charts/visualizations are dictating where the
@@ -286,51 +288,46 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         subscriptionsDataSource.current.forEach((s) => s(DataSourceType.LIVE));
         setIsTimelineSynced(true, "dataProvider");
     };
-    const switchToRecording = async (filename: string, file?: File) => {
+    const switchToRecording = async (file: string | File) => {
         reset();
-        try {
-            const table = await getRecording(filename, file ?? undefined);
-            if (!table) return;
-            let arraysTyped = {} as DataArraysTyped;
-            // TODO: Make this actually use the schema of the incoming
-            // websocket stream!!! This assumes all columns are present
-            // (non-present should be null)
-            for (const key of columnNames) {
-                const vector = table.getChild(key);
-                if (vector) {
-                    const arr = vector.toArray();
-                    arraysTyped[key] = arr;
-                }
+        const table = await getRecording(file);
+        if (!table) return;
+        let arraysTyped = {} as DataArraysTyped;
+        // TODO: Make this actually use the schema of the incoming
+        // websocket stream!!! This assumes all columns are present
+        // (non-present should be null)
+        for (const key of columnNames) {
+            const vector = table.getChild(key);
+            if (vector) {
+                const arr = vector.toArray();
+                arraysTyped[key] = arr;
             }
-            // some basic manual data processing. TODO: make somthing extremely
-            // generic / extensible for arbitrary data processing
-            arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
-                n == 0.0 ? NaN : n
-            );
-            arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
-                n == 0.0 ? NaN : n
-            );
-
-            numRowsRef.current = table.numRows;
-            subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
-
-            dataArraysRef.current = arraysTyped;
-            subscriptionsLatestArrays.current.forEach((s) => s(dataArraysRef.current));
-
-            dataIntervalRef.current = [0, numRowsRef.current - 1];
-            subscriptionsDataInterval.current.forEach((s) => s(dataIntervalRef.current));
-
-            setViewInterval([0, numRowsRef.current], "dataProvider");
-
-            dataSourceRef.current = DataSourceType.RECORDED;
-            subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));
-
-            isTimelineSyncedRef.current = false;
-            subscriptionsIsTimelineSynced.current.forEach((s) => s(false, "dataProvider"));
-        } catch (error) {
-            console.warn("ERROR:", error);
-            window.alert(`Error fetching data: ${error}`);
         }
+        // some basic manual data processing. TODO: make somthing extremely
+        // generic / extensible for arbitrary data processing
+        arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
+            n == 0.0 ? NaN : n,
+        );
+        arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
+            n == 0.0 ? NaN : n,
+        );
+
+        numRowsRef.current = table.numRows;
+        subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
+
+        dataArraysRef.current = arraysTyped;
+        subscriptionsLatestArrays.current.forEach((s) => s(dataArraysRef.current));
+
+        dataIntervalRef.current = [0, numRowsRef.current - 1];
+        subscriptionsDataInterval.current.forEach((s) => s(dataIntervalRef.current));
+
+        setViewInterval([0, numRowsRef.current], "dataProvider");
+
+        dataSourceRef.current = DataSourceType.RECORDED;
+        subscriptionsDataSource.current.forEach((s) => s(DataSourceType.RECORDED));
+
+        isTimelineSyncedRef.current = false;
+        subscriptionsIsTimelineSynced.current.forEach((s) => s(false, "dataProvider"));
     };
 
     const methods: DataMethods = useMemo(() => {

@@ -51,7 +51,7 @@ export default function Leaflet({ chartRef }: Props) {
         const map = L.map(containerRef.current, {
             zoomDelta: 0.5,
             zoomSnap: 0, // 0.1,
-        }).setView([36.9905, -122.0584], 14);
+        }).setView([36.9905, -122.0584], 14); // default to UCSC coordinates!
         mapRef.current = map;
 
         const unsub = subscribeDataSource(() => setInitialLeafletBounds(map));

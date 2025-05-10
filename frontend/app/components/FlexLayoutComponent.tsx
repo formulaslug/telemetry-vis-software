@@ -79,7 +79,7 @@ export const layoutModel = Model.fromJson({
                                                 "Seg0_VOLT_5",
                                                 "Seg0_VOLT_6",
                                             ],
-                                            label: "Seg0 Temps",
+                                            label: "Seg0 Voltages",
                                             units: "V",
                                         },
                                         {
@@ -92,7 +92,7 @@ export const layoutModel = Model.fromJson({
                                                 "Seg0_TEMP_5",
                                                 "Seg0_TEMP_6",
                                             ],
-                                            label: "Seg0 Voltages",
+                                            label: "Seg0 Temps",
                                             units: "°C",
                                         },
                                     ],

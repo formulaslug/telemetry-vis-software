@@ -14,6 +14,7 @@ import {
     emptyLine,
     ChartXY,
     PointLineAreaSeries,
+    PointShape,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "../lightning-charts/GlobalContext";
 import globalTheme from "../lightning-charts/GlobalTheme";
@@ -43,10 +44,12 @@ export default function GPSInternal({
     const {
         subscribeViewInterval,
         subscribeLatestArrays,
+        subscribeCursorRow,
         subscribeReset,
         setCursor,
         dataArraysRef,
         viewableArraysRef,
+        viewIntervalRef,
     } = useDataMethods();
     const id = useId();
     const containerRef = useRef(null);
@@ -62,8 +65,6 @@ export default function GPSInternal({
 
     // Based on https://lightningchart.com/js-charts/docs/features/xy/freeform-line/
     useEffect(() => {
-        // !dataArraysRef.current[LAT_COLNAME] ||
-        // !dataArraysRef.current[LONG_COLNAME]
         if (!containerRef.current || !lc) return;
 
         let chart = lc
@@ -83,6 +84,7 @@ export default function GPSInternal({
 
         chart.engine.setBackgroundFillStyle(transparentFill);
 
+        // The data series for the green car line
         let visibleSeries = chart
             .addPointLineAreaSeries({
                 dataPattern: null,
@@ -120,6 +122,7 @@ export default function GPSInternal({
         // splines aren't supported for freeform (non-progressive) data :/
         visibleSeriesRef.current = visibleSeries;
 
+        // The data series for the low-accuracy thick gray background track
         let bgSeries = chart
             .addPointLineAreaSeries({
                 dataPattern: null,
@@ -134,6 +137,22 @@ export default function GPSInternal({
             .setAreaFillStyle(emptyFill)
             .setPointFillStyle(emptyFill);
         bgSeriesRef.current = bgSeries;
+
+        let carSeries = chart
+            .addPointLineAreaSeries({
+                dataPattern: null,
+                dataStorage: Float32Array,
+            })
+            .setMaxSampleCount(1)
+            .setDrawOrder({ seriesDrawOrderIndex: 2 })
+            // .setSamples({
+            //     xValues: [viewableArraysRef.current[LNG_COLNAME]![viewIntervalRef.current[1] - 1]],
+            //     yValues: [viewableArraysRef.current[LAT_COLNAME]![viewIntervalRef.current[1] - 1]],
+            // })
+            .setAreaFillStyle(emptyFill)
+            .setPointFillStyle(new SolidFill({ color: ColorRGBA(0, 200, 200) }))
+            .setPointShape(PointShape.Arrow)
+            .setPointSize(15);
 
         chart.forEachAxis((a) => {
             a.setIntervalRestrictions(undefined);
@@ -164,22 +183,51 @@ export default function GPSInternal({
             });
         });
         const unsub2 = subscribeViewInterval(([left, right]) => {
+            console.log("1", performance.now());
             // We reset and regenerate the fillStyle lookupValues each time
             // viewInterval changes. This seems to be a fairly fast operation
             visibleSeries.fill({ lookupValue: 0 });
+            console.log("2", performance.now());
             // We need +1 as left and right from dataProvider are both inclusive
             const length = right - left + 1;
             // Generates a list of values of length `length` that are evenly
-            // distributed from 0 to 1
-            const gradient = Array.from({ length }, (_, i) => 0 + i / (length - 1));
+            // distributed from 0.3 to 1 (0 through 0.3 is very hard to see)
+            const gradient = Array.from(
+                { length },
+                (_, i) => 0.3 + (i / (length - 1)) * (1 - 0.3),
+            );
+            console.log("3", performance.now());
             // Insert the above gradient array into the lookupValues dataset
             // channel starting at the correct index
             visibleSeries.alterSamples(left, {
                 // todo: this doesn't work with data cleaning
                 lookupValues: gradient,
             });
+            console.log("4", performance.now());
         });
-        const unsub3 = subscribeReset(() => {
+        const unsub3 = subscribeCursorRow((cursorRow) => {
+            // Always update carSeries to point to where the cursor is hovering,
+            // and rotate it correctly according to GPS course. If no cursor row
+            // exists, use the right-most row of viewableArrays
+            const lng =
+                cursorRow?.[LNG_COLNAME] ??
+                dataArraysRef.current[LNG_COLNAME]?.[viewIntervalRef.current[1]] ??
+                NaN;
+            const lat =
+                cursorRow?.[LAT_COLNAME] ??
+                dataArraysRef.current[LAT_COLNAME]?.[viewIntervalRef.current[1]] ??
+                NaN;
+            carSeries.setSamples({
+                xValues: [lng],
+                yValues: [lat],
+            });
+            const trueCourse =
+                cursorRow?.VDM_GPS_TRUE_COURSE ??
+                dataArraysRef.current.VDM_GPS_TRUE_COURSE?.[viewIntervalRef.current[1]] ??
+                0;
+            carSeries.setPointRotation(trueCourse);
+        });
+        const unsub4 = subscribeReset(() => {
             bgSeries.clear();
             visibleSeries.clear();
         });
@@ -188,6 +236,7 @@ export default function GPSInternal({
             unsub1();
             unsub2();
             unsub3();
+            unsub4();
             // unsub4();
             chart.dispose();
             // @ts-ignore: for GC
@@ -198,6 +247,9 @@ export default function GPSInternal({
             visibleSeries.dispose();
             // @ts-ignore: for GC
             visibleSeries = undefined;
+            carSeries.dispose();
+            // @ts-ignore: for GC
+            carSeries = undefined;
         };
     }, [lc]);
 

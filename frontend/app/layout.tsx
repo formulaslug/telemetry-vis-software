@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { DataMethodsProvider } from "./data-processing/DataMethodsProvider";
 import { LightningChartsProvider } from "./components/visualizations/lightning-charts/GlobalContext";
+import { FlexLayoutProvider } from "./FlexLayoutProvider";
 const theme = createTheme({
     defaultRadius: "md",
 
@@ -109,7 +110,9 @@ export default function RootLayout({
             <body className={className}>
                 <MantineProvider forceColorScheme={"dark"} theme={theme}>
                     <DataMethodsProvider>
-                        <LightningChartsProvider>{children}</LightningChartsProvider>
+                        <FlexLayoutProvider>
+                            <LightningChartsProvider>{children}</LightningChartsProvider>
+                        </FlexLayoutProvider>
                     </DataMethodsProvider>
                 </MantineProvider>
             </body>

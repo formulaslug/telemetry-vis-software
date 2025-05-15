@@ -9,78 +9,28 @@ interface handler {
     toggle: () => void;
 }
 
-const exampleConfig = {
-    type: "tab",
-    name: "Stacked Line Chart",
-    component: "stacked-line-chart",
-    children: [
-        {
-            type: "tab",
-            name: "Stacked Line Chart",
-            component: "stacked-line-chart",
-            config: {
-                yAxesInfo: [
+const exampleModel = Model.fromJson({
+    global: {},
+    borders: [],
+    layout: {
+        type: "row",
+        id: "root",
+        weight: 100,
+        children: [
+            {
+                type: "tabset",
+                weight: 50,
+                children: [
                     {
-                        columnNames: [
-                            "Seg0_VOLT_0",
-                            "Seg0_VOLT_1",
-                            "Seg0_VOLT_2",
-                            "Seg0_VOLT_3",
-                            "Seg0_VOLT_4",
-                            "Seg0_VOLT_5",
-                            "Seg0_VOLT_6",
-                        ],
-                        label: "Seg0 Temps",
-                        units: "V",
-                    },
-                    {
-                        columnNames: [
-                            "Seg0_TEMP_0",
-                            "Seg0_TEMP_1",
-                            "Seg0_TEMP_2",
-                            "Seg0_TEMP_3",
-                            "Seg0_TEMP_4",
-                            "Seg0_TEMP_5",
-                            "Seg0_TEMP_6",
-                        ],
-                        label: "Seg0 Voltages",
-                        units: "°C",
+                        type: "tab",
+                        name: "Lap Counter",
+                        component: "lap-counter",
                     },
                 ],
-            },
-        },
-    ],
-    config: {
-        yAxesInfo: [
-            {
-                columnNames: [
-                    "Seg0_VOLT_0",
-                    "Seg0_VOLT_1",
-                    "Seg0_VOLT_2",
-                    "Seg0_VOLT_3",
-                    "Seg0_VOLT_4",
-                    "Seg0_VOLT_5",
-                    "Seg0_VOLT_6",
-                ],
-                label: "Seg0 Temps",
-                units: "V",
-            },
-            {
-                columnNames: [
-                    "Seg0_TEMP_0",
-                    "Seg0_TEMP_1",
-                    "Seg0_TEMP_2",
-                    "Seg0_TEMP_3",
-                    "Seg0_TEMP_4",
-                    "Seg0_TEMP_5",
-                    "Seg0_TEMP_6",
-                ],
-                label: "Seg0 Voltages",
-                units: "°C",
             },
         ],
     },
-};
+});
 
 export default function BurgerMenu({
     opened,
@@ -122,8 +72,11 @@ export default function BurgerMenu({
                     <Grid>
                         <Grid.Col span={4}>
                             <ConfigButton
+                                onClick={() => {
+                                    handler.close();
+                                }}
                                 text="Jack's Config"
-                                config={{ team: "telemetry", config: exampleConfig }}
+                                config={{ team: "telemetry", model: exampleModel }}
                             />
                         </Grid.Col>
                         <Grid.Col span={4}>2</Grid.Col>

@@ -22,6 +22,7 @@ import { availableRecordings } from "../data-processing/http";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import AutocompleteSearchbar from "./Autocomplete";
 import { File } from "@phosphor-icons/react/dist/ssr";
+import BurgerMenu from "./BurgerMenu";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {
@@ -69,6 +70,7 @@ export default function Navbar() {
     const [loading, setLoading] = useState(false);
     const [live, setLive] = useState(false);
     const [opened, { open, close }] = useDisclosure(false);
+    const [burgerOpened, burgerHandler] = useDisclosure(false);
     const [fileName, setFileName] = useState("No File Selected");
     const [recordings, setRecordings] = useState<string[] | null>(null);
     const [isProduction, setIsProduction] = useState<boolean>(true);
@@ -80,6 +82,7 @@ export default function Navbar() {
         return subscribeNumRows((numRows: number) => {
             if (myRowsPRef.current) {
                 myRowsPRef.current.innerText = numRows.toString();
+                console.log(numRows.toString());
             }
         });
     }, []);
@@ -267,8 +270,12 @@ export default function Navbar() {
             <div className="bg-neutral-900 flex flex-row items-center justify-between">
                 {/* Left Side */}
                 <div className="flex flex-row items-center">
+                    {/* Burger Menu */}
+                    <div className="px-3">
+                        <BurgerMenu opened={burgerOpened} handler={burgerHandler} />
+                    </div>
                     {/* Logo */}
-                    <div className="m-3">
+                    <div className="mx-3 my-1">
                         <Image
                             src="/fs_logo.png"
                             alt="fs-logo"
@@ -278,12 +285,6 @@ export default function Navbar() {
                             priority={true}
                         />
                     </div>
-                    <AutocompleteSearchbar />
-                    {/* Modal */}
-                    <div className="m-3">
-                        <SystemSelector />
-                    </div>
-                    <p ref={myRowsPRef}>?</p>
                 </div>
                 {/* Right Side */}
                 <div className="m-3">

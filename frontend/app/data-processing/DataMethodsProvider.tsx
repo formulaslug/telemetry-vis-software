@@ -67,7 +67,7 @@ type DataControllers = {
     reset: () => void;
 
     switchToLiveData: (setIsConnected?: Dispatch<SetStateAction<boolean>>) => void;
-    switchToRecording: (filename: string | File) => void;
+    switchToRecording: (filename: string | File, isProduction: boolean) => void;
 };
 type DataRefs = {
     dataArraysRef: RefObject<DataArraysTyped>;
@@ -206,6 +206,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         closeWebSocketConnection();
 
         subscriptionsReset.current.forEach((s) => s());
+        subscriptionsDataSource.current.forEach((s) => s(DataSourceType.NONE));
     };
 
     const switchToLiveData = (setIsConnected?: Dispatch<SetStateAction<boolean>>) => {
@@ -288,29 +289,40 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         subscriptionsDataSource.current.forEach((s) => s(DataSourceType.LIVE));
         setIsTimelineSynced(true, "dataProvider");
     };
-    const switchToRecording = async (file: string | File) => {
+    const switchToRecording = async (file: string | File, isProduction: boolean) => {
         reset();
-        const table = await getRecording(file);
-        if (!table) return;
+        const table = await getRecording(file, isProduction);
+        if (!table) {
+            console.log("WARN: couldn't load recording!");
+            return;
+        };
+
         let arraysTyped = {} as DataArraysTyped;
         // TODO: Make this actually use the schema of the incoming
-        // websocket stream!!! This assumes all columns are present
+        // parquet recording!!! This assumes all columns are present
         // (non-present should be null)
         for (const key of columnNames) {
             const vector = table.getChild(key);
             if (vector) {
-                const arr = vector.toArray();
+                let arr = vector.toArray();
+
+                // Hack since lcjs/chartjs don't support 64bit ints
+                if (arr instanceof BigInt64Array || arr instanceof BigUint64Array) {
+                    arr = convertToInt32Array(arr);
+                }
+
+                // Store extracted TypedArray in final dictionary
                 arraysTyped[key] = arr;
             }
         }
         // some basic manual data processing. TODO: make somthing extremely
         // generic / extensible for arbitrary data processing
-        arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude!.map((n) =>
+        arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude?.map((n) =>
             n == 0.0 ? NaN : n,
-        );
-        arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude!.map((n) =>
+        ) ?? null;
+        arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude?.map((n) =>
             n == 0.0 ? NaN : n,
-        );
+        ) ?? null;
 
         numRowsRef.current = table.numRows;
         subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
@@ -362,11 +374,6 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         };
     }, []);
 
-    // const methods: DataMethods = useMemo(
-    //     () => (),
-    //     [],
-    // );
-
     return (
         <DataMethodsContext.Provider value={methods}>{children}</DataMethodsContext.Provider>
     );
@@ -378,4 +385,18 @@ export function useDataMethods() {
         throw new Error("useDataMethods must be used within a DataSubscriptionProvider!");
     }
     return context;
+}
+
+
+// Used for recordings that have some i64 columns (Thanks claude)
+function convertToInt32Array(bigIntArray: BigInt64Array | BigUint64Array) {
+    const int32Array = new Int32Array(bigIntArray.length);
+    const INT32_MIN = -2147483648;
+    const INT32_MAX = 2147483647;
+
+    for (let i = 0; i < bigIntArray.length; i++) {
+        const num = Number(bigIntArray[i]);
+        int32Array[i] = Math.max(INT32_MIN, Math.min(INT32_MAX, num));
+    }
+    return int32Array;
 }

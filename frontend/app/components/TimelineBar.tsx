@@ -1,5 +1,5 @@
-import { Box, Button, RangeSlider, RangeSliderValue } from "@mantine/core";
-import { ArrowFatLinesRight, CaretDoubleRight, Pause, Play } from "@phosphor-icons/react";
+import { Box, RangeSlider, RangeSliderValue } from "@mantine/core";
+import { CaretDoubleRight, Pause, Play } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import DataSourceType from "@/models/DataSourceType";
@@ -8,7 +8,6 @@ import { timeColumnName } from "../data-processing/datatypes";
 
 export default function TimelineBar() {
     const [paused, setPaused] = useState(true);
-    const { switchToRecording } = useDataMethods();
 
     return (
         <>
@@ -25,11 +24,6 @@ export default function TimelineBar() {
                     <MainSlider />
                 </div>
                 <SyncButton />
-                <Button
-                    onClick={() =>
-                        switchToRecording("fs-data/FS-2/2025-03-06-BrakingTests1.parquet")
-                    }
-                />
             </div>
         </>
     );

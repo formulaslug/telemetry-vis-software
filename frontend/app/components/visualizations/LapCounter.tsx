@@ -3,7 +3,6 @@
 import { useContext, useEffect, useId, useRef } from "react";
 import { LightningChartsContext } from "./lightning-charts/GlobalContext";
 import globalTheme from "./lightning-charts/GlobalTheme";
-import { VisualizationProps } from "../FlexLayoutComponent";
 import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
 
 // data is represented in row, column (y, x)
@@ -34,7 +33,6 @@ export function LapCounter() {
 
             if (!lapArray || !lapTimeArray) return;
 
-            console.log("hi");
             lapTimes = [];
 
             let previous = lapArray[0];
@@ -71,8 +69,6 @@ export function LapCounter() {
             for (let i = 0; i < lap + 1; i++) {
                 dataGrid.setRowContent(i + 1, [i + 1, lapTimes[i]]);
             }
-
-            console.log(lapTime);
 
             dataGrid.setRowContent(dataGrid.getRowMax(), [dataGrid.getRowMax(), lapTime]);
         });

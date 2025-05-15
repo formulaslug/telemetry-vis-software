@@ -17,9 +17,7 @@ def check_subdir(d):
         elif f.endswith(".pq") or f.endswith(".parquet"):
             parquet_files.add(os.path.relpath(path, data_dir))
 
-
 check_subdir(data_dir)
-
 
 routes = web.RouteTableDef()
 

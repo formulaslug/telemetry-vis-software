@@ -22,6 +22,7 @@ import { availableRecordings, getDBCForRecording } from "../data-processing/http
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import AutocompleteSearchbar from "./Autocomplete";
 import { File } from "@phosphor-icons/react/dist/ssr";
+import { log } from "console";
 
 //takes in the list of files as an array and outputs it in mantine tree format
 function createFileTree(paths: string[] | undefined) {
@@ -62,7 +63,7 @@ function createFileTree(paths: string[] | undefined) {
             currentLevel = existingNode.children;
         }
     }
-    return tree.children[0];
+    return tree.children;
 }
 
 export default function Navbar() {
@@ -74,7 +75,7 @@ export default function Navbar() {
     const [isProduction, setIsProduction] = useState<boolean>(true);
     const displayedName = fileName.split("/")[fileName.split("/").length - 1];
 
-    const { switchToRecording, switchToLiveData, subscribeNumRows } = useDataMethods();
+    const { switchToRecording, switchToLiveData, subscribeNumRows, reset } = useDataMethods();
     const myRowsPRef = useRef<HTMLParagraphElement | null>(null);
     useEffect(() => {
         return subscribeNumRows((numRows: number) => {
@@ -125,14 +126,12 @@ export default function Navbar() {
     function DataSourcePicker() {
         function onPickerChanged(value: string) {
             if (value === "recording") {
-                //TODO Make an actual function to stop the live view
-                switchToRecording("");
+                reset();
                 setLive(false);
             } else {
                 setLive(true);
                 switchToLiveData();
             }
-            // setLive(value === "live");
         }
 
         function FileTree() {
@@ -140,7 +139,7 @@ export default function Navbar() {
                 return <span>Loading...</span>;
             }
 
-            const data = [createFileTree(recordings)];
+            const data = createFileTree(recordings);
 
             return (
                 <>
@@ -164,10 +163,10 @@ export default function Navbar() {
 
                                 <span
                                     onClick={async () => {
-                                        if (tree.hoveredNode?.includes("/")) {
+                                        if (!hasChildren && tree.hoveredNode) {
                                             setFileName(tree.hoveredNode);
                                             setLoading(true);
-                                            switchToRecording(tree.hoveredNode);
+                                            switchToRecording(tree.hoveredNode, isProduction);
                                             setLoading(false);
                                             close();
 
@@ -233,7 +232,7 @@ export default function Navbar() {
                                 const file = files[0];
                                 setFileName(file.name);
                                 setLoading(true);
-                                switchToRecording(file);
+                                switchToRecording(file, isProduction);
                                 setLoading(false);
                                 close();
                             }}

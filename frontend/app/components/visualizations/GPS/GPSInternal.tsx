@@ -183,11 +183,14 @@ export default function GPSInternal({
             });
         });
         const unsub2 = subscribeViewInterval(([left, right]) => {
-            console.log("1", performance.now());
+            // console.log("1", performance.now());
+
             // We reset and regenerate the fillStyle lookupValues each time
             // viewInterval changes. This seems to be a fairly fast operation
             visibleSeries.fill({ lookupValue: 0 });
-            console.log("2", performance.now());
+
+            // console.log("2", performance.now());
+
             // We need +1 as left and right from dataProvider are both inclusive
             const length = right - left + 1;
             // Generates a list of values of length `length` that are evenly
@@ -196,14 +199,17 @@ export default function GPSInternal({
                 { length },
                 (_, i) => 0.3 + (i / (length - 1)) * (1 - 0.3),
             );
-            console.log("3", performance.now());
+
+            // console.log("3", performance.now());
+
             // Insert the above gradient array into the lookupValues dataset
             // channel starting at the correct index
             visibleSeries.alterSamples(left, {
                 // todo: this doesn't work with data cleaning
                 lookupValues: gradient,
             });
-            console.log("4", performance.now());
+
+            // console.log("4", performance.now());
         });
         const unsub3 = subscribeCursorRow((cursorRow) => {
             // Always update carSeries to point to where the cursor is hovering,
@@ -230,6 +236,7 @@ export default function GPSInternal({
         const unsub4 = subscribeReset(() => {
             bgSeries.clear();
             visibleSeries.clear();
+            carSeries.clear();
         });
 
         return () => {

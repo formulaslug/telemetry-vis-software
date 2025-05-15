@@ -2,35 +2,14 @@ import { Burger, Divider, Drawer, Grid, Table, Text } from "@mantine/core";
 import AutocompleteSearchbar from "./Autocomplete";
 import ConfigButton from "./ConfigButton";
 import { Model } from "flexlayout-react";
+import { layouts } from "@/constants/layouts";
+import { text } from "stream/consumers";
 
 interface handler {
     open: () => void;
     close: () => void;
     toggle: () => void;
 }
-
-const exampleModel = Model.fromJson({
-    global: {},
-    borders: [],
-    layout: {
-        type: "row",
-        id: "root",
-        weight: 100,
-        children: [
-            {
-                type: "tabset",
-                weight: 50,
-                children: [
-                    {
-                        type: "tab",
-                        name: "Lap Counter",
-                        component: "lap-counter",
-                    },
-                ],
-            },
-        ],
-    },
-});
 
 export default function BurgerMenu({
     opened,
@@ -70,17 +49,17 @@ export default function BurgerMenu({
                         Configs
                     </Text>
                     <Grid>
-                        <Grid.Col span={4}>
-                            <ConfigButton
-                                onClick={() => {
-                                    handler.close();
-                                }}
-                                text="Jack's Config"
-                                config={{ team: "telemetry", model: exampleModel }}
-                            />
-                        </Grid.Col>
-                        <Grid.Col span={4}>2</Grid.Col>
-                        <Grid.Col span={4}>3</Grid.Col>
+                        {layouts.map((layout, index) => (
+                            <Grid.Col span={4} key={index}>
+                                <ConfigButton
+                                    onClick={() => {
+                                        handler.close();
+                                    }}
+                                    text={layout.name}
+                                    config={layout.config}
+                                />
+                            </Grid.Col>
+                        ))}
                     </Grid>
                 </div>
             </Drawer>

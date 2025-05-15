@@ -1,5 +1,5 @@
 import { Button, Text } from "@mantine/core";
-import { Gear, TreeStructure } from "@phosphor-icons/react";
+import { Gear, QuestionMark, Question, TreeStructure } from "@phosphor-icons/react";
 import { Actions, DockLocation, Model } from "flexlayout-react";
 import { useFlexLayout } from "../FlexLayoutProvider";
 
@@ -9,8 +9,8 @@ const teamToIcon = {
 };
 
 interface configInterface {
-    team: "telemetry";
-    model: Model;
+    team: string;
+    model: any;
 }
 
 export default function ConfigButton({
@@ -33,7 +33,9 @@ export default function ConfigButton({
         >
             <div className="flex flex-col justify-center items-center">
                 <Text size="xl">{text}</Text>
-                {teamToIcon[config.team]}
+                {teamToIcon[config.team as keyof typeof teamToIcon] ?? (
+                    <QuestionMark size={20} />
+                )}
             </div>
         </button>
     );

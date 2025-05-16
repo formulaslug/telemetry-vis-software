@@ -215,22 +215,13 @@ export default function GPSInternal({
             // Always update carSeries to point to where the cursor is hovering,
             // and rotate it correctly according to GPS course. If no cursor row
             // exists, use the right-most row of viewableArrays
-            const lng =
-                cursorRow?.[LNG_COLNAME] ??
-                dataArraysRef.current[LNG_COLNAME]?.[viewIntervalRef.current[1]] ??
-                NaN;
-            const lat =
-                cursorRow?.[LAT_COLNAME] ??
-                dataArraysRef.current[LAT_COLNAME]?.[viewIntervalRef.current[1]] ??
-                NaN;
+            const lng = cursorRow?.[LNG_COLNAME] ?? NaN;
+            const lat = cursorRow?.[LAT_COLNAME] ?? NaN;
             carSeries.setSamples({
                 xValues: [lng],
                 yValues: [lat],
             });
-            const trueCourse =
-                cursorRow?.VDM_GPS_TRUE_COURSE ??
-                dataArraysRef.current.VDM_GPS_TRUE_COURSE?.[viewIntervalRef.current[1]] ??
-                0;
+            const trueCourse = cursorRow?.VDM_GPS_TRUE_COURSE ?? 0;
             carSeries.setPointRotation(trueCourse);
         });
         const unsub4 = subscribeReset(() => {

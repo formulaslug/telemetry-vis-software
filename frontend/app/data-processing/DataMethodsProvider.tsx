@@ -92,17 +92,19 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     // eg. 1000*10ms = 10s range
     const viewIntervalRef = useRef<[left: number, right: number]>([0, 1000]); // only visible data
     const dataIntervalRef = useRef<[left: number, right: number]>([0, 1000]); // all data
-    // Index into data of the current cursor position (or null if no
-    // lightningcharts are currently open)
+    // Index into data of the current cursor position. Null if no chart/widget
+    // is currently controlling the cursor; in this case, cursorRow will still
+    // be set to the most recent data.
     const cursorIndexRef = useRef<number | null>(null); // to be set by a lcjs chart
-    // The row of data at the current cursor index (or null if no
-    // lightningcharts are currently open)
+    // The row of data at the current cursor index (or the most recent row if no
+    // chart is currently controlling the cursor). Null if no data is loaded.
     const cursorRowRef = useRef<DataValues | null>(null);
     // The currently highlighted data column (i.e. series in lcjs or acc
-    // segment), used solely for visual emphasis (todo)
+    // segment), used solely for visual emphasis (TODO: use!)
     const highlightedColumnRef = useRef<ColumnName | null>(null);
-    // true means that new data pushes viewEdges over so it stays on the right.
-    // Any interaction with the timeline or lcjs zooming should set it to false.
+    // True (synced) means that any new incoming data pushes viewEdges over so
+    // that it stays on the right. Any interaction with the timeline or lcjs
+    // zooming should set it to false.
     const isTimelineSyncedRef = useRef<boolean>(false);
 
     const dataSourceRef = useRef<DataSourceType>(DataSourceType.NONE);
@@ -151,12 +153,23 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
     const subscribeDataSource = makeSubscriber(subscriptionsDataSource, dataSourceRef);
     const subscribeIsTimelineSynced = makeSubscriber(subscriptionsIsTimelineSynced, isTimelineSyncedRef); // prettier-ignore
 
+    // Sets the position (index) of the cursor. The flag onlySetCursorRow exists
+    // so that DataMethodsProvider can set the cursor position when new live
+    // data batches come in or when setting viewInterval, if no other component
+    // is dictating where the cursor should be. cursorIndex tells whether a
+    // chart/widget is controlling the cursor and is null if not. However, the
+    // cursorRow will still be set to the most recent data (if it's available)
+    // even if cursorIndex is null.
     const setCursor = (sampleIndex: number | null, onlySetCursorRow?: boolean) => {
+        // In this case, a chart is dictating where the cursor should be, so we
+        // set the cursorIndex as well as the cursorRow
         if (!onlySetCursorRow) {
             cursorIndexRef.current = sampleIndex;
             subscriptionsCursorIndex.current.forEach((s) => s(cursorIndexRef.current));
         }
 
+        // If sampleIndex is not null, that means a chart is controlling the
+        // cursor position. Use that row index
         if (sampleIndex) {
             let newCursorRow = {} as DataValues;
             for (const [name, arr] of Object.entries(dataArraysRef.current)) {
@@ -165,8 +178,14 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
             cursorRowRef.current = newCursorRow;
             subscriptionsCursorRow.current.forEach((s) => s(newCursorRow));
+            // Otherwise, create a cursorRow using the right-most viewable data.
         } else {
-            cursorRowRef.current = null;
+            let cursorRowLatest = {} as DataValues;
+            for (const column of columnNames) {
+                cursorRowLatest[column] =
+                    dataArraysRef.current[column]?.[viewIntervalRef.current[1] - 1] ?? null;
+            }
+            cursorRowRef.current = cursorRowLatest;
             subscriptionsCursorRow.current.forEach((s) => s(cursorRowRef.current));
         }
     };
@@ -187,6 +206,10 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
 
         viewIntervalRef.current = newViewInterval;
         subscriptionsViewInterval.current.forEach((s) => s(newViewInterval, setterID));
+
+        if (!cursorIndexRef.current) {
+            setCursor(right, true);
+        }
     };
     const setIsTimelineSynced = (isTimelineSynced: boolean, setterID: string) => {
         // isTimelineSynced only relevant in Live data mode. Default to false otherwise
@@ -295,7 +318,7 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         if (!table) {
             console.log("WARN: couldn't load recording!");
             return;
-        };
+        }
 
         let arraysTyped = {} as DataArraysTyped;
         // TODO: Make this actually use the schema of the incoming
@@ -317,12 +340,10 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         }
         // some basic manual data processing. TODO: make somthing extremely
         // generic / extensible for arbitrary data processing
-        arraysTyped.VDM_GPS_Latitude = arraysTyped.VDM_GPS_Latitude?.map((n) =>
-            n == 0.0 ? NaN : n,
-        ) ?? null;
-        arraysTyped.VDM_GPS_Longitude = arraysTyped.VDM_GPS_Longitude?.map((n) =>
-            n == 0.0 ? NaN : n,
-        ) ?? null;
+        arraysTyped.VDM_GPS_Latitude =
+            arraysTyped.VDM_GPS_Latitude?.map((n) => (n == 0.0 ? NaN : n)) ?? null;
+        arraysTyped.VDM_GPS_Longitude =
+            arraysTyped.VDM_GPS_Longitude?.map((n) => (n == 0.0 ? NaN : n)) ?? null;
 
         numRowsRef.current = table.numRows;
         subscriptionsNumRows.current.forEach((s) => s(numRowsRef.current));
@@ -386,7 +407,6 @@ export function useDataMethods() {
     }
     return context;
 }
-
 
 // Used for recordings that have some i64 columns (Thanks claude)
 function convertToInt32Array(bigIntArray: BigInt64Array | BigUint64Array) {

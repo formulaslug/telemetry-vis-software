@@ -168,7 +168,10 @@ export default function Navbar() {
                                         if (!hasChildren && tree.hoveredNode) {
                                             setFileName(tree.hoveredNode);
                                             setLoading(true);
-                                            switchToRecording(tree.hoveredNode, isProduction);
+                                            await switchToRecording(
+                                                tree.hoveredNode,
+                                                isProduction
+                                            );
                                             setLoading(false);
                                             close();
 

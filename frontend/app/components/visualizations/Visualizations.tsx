@@ -7,6 +7,7 @@ import SuspensionGauge from "./SuspensionGauge";
 import { VisualizationProps } from "../FlexLayoutComponent";
 import { JSX } from "react";
 import { LapCounter } from "./LapCounter";
+import AccumulatorTemperature from "./AccumulatorTemperature";
 
 export const visualizations: Record<string, (props: VisualizationProps<any>) => JSX.Element> =
     {
@@ -17,6 +18,7 @@ export const visualizations: Record<string, (props: VisualizationProps<any>) => 
         "g-force-gauge": GForceGauge,
         "timings-box": LapsTable,
         "lap-counter": LapCounter,
+        "accumulator-temp": AccumulatorTemperature,
 
         skeleton: () => <div className="w-full h-full bg-neutral-500"></div>,
     };

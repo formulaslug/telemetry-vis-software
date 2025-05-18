@@ -49,7 +49,9 @@ export default function DraggableRangeSlider({
         const rangeWidth = max; // Assuming the slider goes from 0 to 10
         const scaleFactor = rangeWidth / sliderWidth; // Converts pixels to value change
 
-        const deltaValue = deltaX; // Smooth movement
+        console.log(scaleFactor);
+
+        const deltaValue = deltaX * scaleFactor * 2.4; // Smooth movement
 
         const [start, end] = range;
 
@@ -62,11 +64,11 @@ export default function DraggableRangeSlider({
             newEnd = end - start; // Maintain width
         }
         if (newEnd > max) {
-            newEnd = 100;
+            newEnd = max;
             newStart = newEnd - (end - start); // Maintain width
         }
 
-        setRange([newStart, newEnd]);
+        setRange([Math.round(newStart), Math.round(newEnd)]);
     };
 
     useEffect(() => {
@@ -76,7 +78,7 @@ export default function DraggableRangeSlider({
             document.removeEventListener("mousemove", handleMouseMove);
             document.removeEventListener("mouseup", handleMouseUp);
         };
-    }, [max]);
+    }, [max, range]);
 
     return (
         <div className="relative w-full">
@@ -90,6 +92,7 @@ export default function DraggableRangeSlider({
                     track: { cursor: "pointer" },
                     bar: { cursor: "pointer" },
                 }}
+                style={{ zIndex: 999 }}
                 {...props}
             />
             {/* Invisible overlay to detect middle drag */}
@@ -97,14 +100,12 @@ export default function DraggableRangeSlider({
                 className="absolute top-0 left-0 h-full bg-red-300"
                 style={{
                     cursor: "grab",
-                    width: `${((range[1] - range[0]) / max) * 100}%`,
-                    left: `${(range[0] / max) * 100}%`,
+                    width: `${((range[1] - range[0]) / max) * 100 - 1}%`,
+                    left: `${(range[0] / max) * 100 + 0.5}%`,
                     height: "20px", // Make it easy to grab
-                    // backgroundColor: "transparent",
-                    zIndex: 10,
-                    top:
-                        -(20 - (sliderRef.current ? sliderRef.current.offsetHeight : 0)) / 2 +
-                        20,
+                    backgroundColor: "transparent",
+                    zIndex: 1000,
+                    top: -(20 - (sliderRef.current ? sliderRef.current.offsetHeight : 0)) / 2,
                 }}
                 onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
                     handleMouseDown(e as unknown as MouseEvent)

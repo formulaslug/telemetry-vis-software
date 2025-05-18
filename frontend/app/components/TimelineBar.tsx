@@ -164,8 +164,6 @@ function MainSlider() {
                 value={value}
                 styles={sliderStyles}
                 label={formatLabel}
-                thumbSize={6}
-                size={8}
             />
             {/* <DraggableRangeSlider */}
             {/*     value={sliderRange} */}

@@ -24,6 +24,7 @@
     "apache-arrow": "^17.0.0",
     "arrow-js-ffi": "^0.4.2",
     "flexlayout-react": "^0.8.2",
+    "fuse.js": "^7.1.0",
     "leaflet": "^1.9.4",
     "next": ">=15.2.3",
     "parquet-wasm": "^0.6.1",

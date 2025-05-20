@@ -4,6 +4,7 @@ import { Gear, Plus } from "@phosphor-icons/react";
 import { VisualizationProps } from "../../FlexLayoutComponent";
 import { ColumnName, columnNames, timeColumnName } from "@/app/data-processing/datatypes";
 import { useState } from "react";
+import { ColumnSelector } from "../../ColumnSelector";
 
 type YAxisInfo = {
     columnNames: ColumnName[];
@@ -118,7 +119,13 @@ export function StackedLineChart({
                     />
                 </Menu.Dropdown>
             </Menu>
-            <StackedLineChartInternal {...{ title, showLegend, yAxesInfo, xAxisInfo }} />
+            {/* <StackedLineChartInternal {...{ title, showLegend, yAxesInfo, xAxisInfo }} /> */}
+            <ColumnSelector
+                allColumns={columnNames}
+                onChange={(cols) => {
+                    console.log("Selected columns:", cols);
+                }}
+            />
         </>
     );
 }

@@ -67,7 +67,7 @@ type DataControllers = {
     reset: () => void;
 
     switchToLiveData: (setIsConnected?: Dispatch<SetStateAction<boolean>>) => void;
-    switchToRecording: (filename: string | File, isProduction: boolean) => void;
+    switchToRecording: (filename: string | File, isProduction: boolean) => Promise<void>;
 };
 type DataRefs = {
     dataArraysRef: RefObject<DataArraysTyped>;

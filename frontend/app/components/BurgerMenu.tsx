@@ -1,15 +1,24 @@
 import { Burger, Divider, Drawer, Grid, Table, Text } from "@mantine/core";
 import AutocompleteSearchbar from "./Autocomplete";
 import ConfigButton from "./ConfigButton";
-import { Model } from "flexlayout-react";
+import { IJsonModel, Model } from "flexlayout-react";
 import { layouts } from "@/constants/layouts";
 import { text } from "stream/consumers";
+import { availableConfigs } from "../data-processing/http";
 
 interface handler {
     open: () => void;
     close: () => void;
     toggle: () => void;
 }
+
+interface configInterface {
+    name: string,
+    team: string,
+    fileName: string
+}
+
+const configs = await availableConfigs(false)
 
 export default function BurgerMenu({
     opened,
@@ -49,14 +58,15 @@ export default function BurgerMenu({
                         Configs
                     </Text>
                     <Grid>
-                        {layouts.map((layout, index) => (
+                        {configs.map((config: configInterface, index: number) => (
                             <Grid.Col span={4} key={index}>
                                 <ConfigButton
                                     onClick={() => {
                                         handler.close();
                                     }}
-                                    text={layout.name}
-                                    config={layout.config}
+                                    team={config.team}
+                                    text={config.name}
+                                    fileName={config.fileName}
                                 />
                             </Grid.Col>
                         ))}

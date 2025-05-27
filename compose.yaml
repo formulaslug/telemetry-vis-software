@@ -33,26 +33,24 @@ services:
             - "8000"
             - "9000"
         environment:
-            # Directory where http server will look for parquet files (recursively)
+            # Directories where the api server will look for recording/layout files
             DATA_DIR: /data_dir
+            LAYOUTS_DIR: /layouts_dir
         volumes:
             # ./fs-data is a git submodule, optional
             - ./fs-data:/data_dir
+            - ./layouts:/layouts_dir
 
     # Tabular database which serves parquet recordings via SQL queries
     clickhouse:
         image: clickhouse/clickhouse-server
         restart: always
-        #user: "101:101"
         volumes:
             #- /mnt/pny1/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
             #- /mnt/pny1/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
             - ./clickhouse_config/config.d:/etc/clickhouse-server/config.d
             - ./clickhouse_config/users.d:/etc/clickhouse-server/users.d
             - ./fs-data:/var/lib/clickhouse/user_files/fs-data
-        #ports:
-        #    - "127.0.0.1:8123:8123"
-        #    - "127.0.0.1:9000:9000"
         expose:
             - "8123" # We ignore the TCP port 9000 for RPC, only use HTTP port 8123
 

@@ -1,30 +1,57 @@
 import os
 import io
+import json
 from aiohttp import web
 import aiohttp_cors
 import cantools
-import pyarrow.parquet as pq
 import polars as pl
 
 data_dir = os.environ.get("DATA_DIR", "")
-parquet_files = set()
-if not os.path.isdir(data_dir):
-    raise ValueError("Invalid data dir: ", data_dir)
+layouts_dir = os.environ.get("LAYOUTS_DIR", "")
 
 VALID_TIME_COLUMN = "Time_ms"
 
-def check_subdir(d):
+parquet_files = set()
+layout_files = set()
+if not os.path.isdir(data_dir):
+    raise ValueError("Invalid data dir: ", data_dir)
+if not os.path.isdir(layouts_dir):
+    raise ValueError("Invalid layouts dir: ", layouts_dir)
+
+def find_config_files(config_dir):
+    for f in os.listdir(config_dir):
+        if f.endswith(".json"):
+            try:
+                with open(os.path.join(config_dir, f), 'r') as f:
+                    data = json.load(f)
+                    returnData = {
+                        "name": data.get("name", ""),
+                        "team": data.get("team", ""),
+                        "fileName": f
+                    }
+                    layout_files.add(returnData)
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Error reading config file {f}: {e}")
+
+find_config_files(layouts_dir)
+
+def find_data_files_recursively(d):
     for f in os.listdir(d):
         path = os.path.join(d, f)
         if os.path.isdir(path):
-            check_subdir(path)
+            find_data_files_recursively(path)
         elif f.endswith(".pq") or f.endswith(".parquet"):
             relpath = os.path.relpath(path, data_dir)
             df = pl.scan_parquet(path)
             if df.collect_schema().get(VALID_TIME_COLUMN) is not None:
                 parquet_files.add(relpath)
 
-check_subdir(data_dir)
+find_data_files_recursively(data_dir)
+
+print(f"config_files: {layout_files}")
+print(f"data_dir: {data_dir}")
+print(f"config_dir: {layouts_dir}")
+
 
 routes = web.RouteTableDef()
 
@@ -33,6 +60,10 @@ routes = web.RouteTableDef()
 async def available_recordings(request):
     return web.json_response(list(parquet_files))
 
+
+@routes.get("/api/available-configs")
+async def available_configs(request):
+    return web.json_response(list(layout_files))
 
 # This serves the parquet data directly as static files
 @routes.get("/api/get-recording/{recording:.*}")
@@ -54,6 +85,8 @@ async def get_recording(request):
     
     return web.HTTPOk(body=buffer.getvalue(), content_type="application/octet-stream")
 # routes.static("/api/get-recording", data_dir, show_index=True)
+
+routes.static("/api/get-config", layouts_dir, show_index=True)
 
 
 # The fs-data repo is structured such that differen't Parquet recordings are

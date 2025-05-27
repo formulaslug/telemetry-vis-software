@@ -1,13 +1,39 @@
 import os
+import json
 from aiohttp import web
 import aiohttp_cors
 import cantools
 
 data_dir = os.environ.get("DATA_DIR", "")
+config_dir = os.environ.get("CONFIG_DIR", "")
+
 parquet_files = set()
 if not os.path.isdir(data_dir):
     raise ValueError("Invalid data dir: ", data_dir)
 
+config_files = []
+
+def check_config_file(config_dir):
+    for filename in os.listdir(config_dir):
+        if filename.endswith(".json"):
+            try:
+                with open(os.path.join(config_dir, filename), 'r') as f:
+                    data = json.load(f)
+                    returnData = {
+                        "name": data.get("name", ""),
+                        "team": data.get("team", ""),
+                        "fileName": filename
+                    }
+                    config_files.append(returnData)
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Error reading config file {filename}: {e}")
+
+check_config_file(config_dir)
+
+print(f"config_files: {config_files}")
+
+print(f"data_dir: {data_dir}")
+print(f"config_dir: {config_dir}")
 
 def check_subdir(d):
     for f in os.listdir(d):
@@ -27,8 +53,14 @@ async def available_recordings(request):
     return web.json_response(list(parquet_files))
 
 
+@routes.get("/api/available-configs")
+async def get_config(request):
+    return web.json_response(list(config_files))
+
 # This serves the parquet data directly as static files
 routes.static("/api/get-recording", data_dir, show_index=True)
+
+routes.static("/api/get-config", config_dir, show_index=True)
 
 
 # The fs-data repo is structured such that differen't Parquet recordings are

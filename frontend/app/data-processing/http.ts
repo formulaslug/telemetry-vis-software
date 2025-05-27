@@ -78,3 +78,13 @@ export async function availableRecordings(isProduction: boolean) {
     const resp = await tryFetch(`/api/available-recordings`, isProduction);
     return resp?.json();
 }
+
+export async function availableConfigs(isProduction: boolean){
+    const resp = await tryFetch(`/api/available-configs`, isProduction);
+    return resp?.json()
+}
+
+export async function getConfig(file: string, isProduction: boolean){
+    const resp = await tryFetch(`/api/get-config/${file}`, isProduction)
+    return resp?.json()
+}

@@ -1,42 +1,44 @@
 name: telemetry-vis-software
 
 services:
-  # Reverse proxy in front of everything
-  caddy:
-    image: caddy:2.8.4
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
-      - ./Caddyfile:/etc/caddy/Caddyfile
+    # Reverse proxy in front of everything
+    caddy:
+        image: caddy:2.8.4
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+        volumes:
+            - caddy_data:/data
+            - caddy_config:/config
+            - ./Caddyfile:/etc/caddy/Caddyfile
 
-  # Nodejs process hosts react frontend
-  nodejs:
-    image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
-    # NOTE: in order for the build to produce a working output, .env.production
-    # needs to be present in the build context dir with lcjs license information.
-    build: ./frontend
-    expose:
-      - "3000"
+    # Nodejs process hosts react frontend
+    nodejs:
+        image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
+        # NOTE: in order for the build to produce a working output, .env.production
+        # needs to be present in the build context dir with lcjs license information.
+        build: ./frontend
+        ports:
+            - "3000:3000"
 
-  # Python process runs websocket and http servers (backend)
-  python:
-    image: "${REGISTRY_URL:-}telemetry-vis-software/backend:latest"
-    build: ./backend
-    expose:
-      - "8000"
-      - "9000"
-    environment:
-      # Directory where http server will look for parquet files (recursively)
-      DATA_DIR: /data_dir
-    volumes:
-      # ./fs-data is a git submodule, optional
-      - ./fs-data/FS-2/Parquet:/data_dir/FS-2
+    # Python process runs websocket and http servers (backend)
+    python:
+        image: "${REGISTRY_URL:-}telemetry-vis-software/backend:latest"
+        build: ./backend
+        ports:
+            - "8000:8000"
+            - "9000:9000"
+        environment:
+            # Directory where http server will look for parquet files (recursively)
+            DATA_DIR: /data_dir
+            CONFIG_DIR: /config_dir
+        volumes:
+            # ./fs-data is a git submodule, optional
+            - ./fs-data/FS-2/Parquet:/data_dir/FS-2
+            - ./fs-config:/config_dir
 
 volumes:
-  caddy_data:
-  caddy_config:
+    caddy_data:
+    caddy_config:

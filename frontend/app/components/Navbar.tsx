@@ -290,6 +290,13 @@ export default function Navbar() {
                             priority={true}
                         />
                     </div>
+                    <button onClick={() => {
+                        fetch("http://localhost:8000/api/config")
+                            .then((res) => res.json())
+                            .then((data) => console.log(data));
+                    }}
+                    >
+                        Hello</button>
                 </div>
                 {/* Right Side */}
                 <div className="m-3">

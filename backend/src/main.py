@@ -1,14 +1,16 @@
 import asyncio
-from http_server import http_main
+# from http_server import http_main
 from websocket_server import ws_main
+from websocket_radio import radio_main
 
 
 async def main():
     # We take the asyncio coroutines for the websocket server and the http
     # server and combine then together to run in one asyncio event loop.
     await asyncio.gather(
-        http_main(port=9000),
+        # http_main(port=9000),
         ws_main(port=8000),
+        radio_main(port=8001)
     )
 
 

@@ -2,10 +2,9 @@ import asyncio
 import io
 from websockets import ConnectionClosed
 import websockets.asyncio.server as ws
-import polars as pl
 import pyarrow as pa
 import random
-
+import websockets as wss
 import util.sim as sim
 
 # List of WebSocket connections with their corresponding Arrow Stream (IPC)
@@ -14,6 +13,27 @@ connections: list[
     tuple[ws.ServerConnection, pa.RecordBatchStreamWriter, io.BytesIO]
 ] = []
 
+
+async def get_server_data():
+    uri = "ws://localhost:8001"
+    async with wss.connect(uri) as websocket:
+
+        # Receive a response from the server
+        buffer = await websocket.recv()
+
+        new_buffer = io.BytesIO(buffer)
+
+        # Open the IPC stream for reading
+        reader = pa.ipc.open_stream(new_buffer)
+
+        # Read all record batches and reconstruct a table
+        response = reader.read_all()
+
+        print(f"Received from server: {response}")
+
+        # Here you would typically handle the received data
+        # For example, if the server sends Arrow data, you would process it accordingly
+        return response
 
 # Todo: this will come from the radio module eventually!
 def get_arrow_data():
@@ -37,7 +57,11 @@ def clean_connection(idx: int):
 # The main loop that sends Arrow record batches to all connected clients
 async def ws_main_loop(freq_hertz: int):
     while True:
-        arrow_data = get_arrow_data()
+        arrow_data = await get_server_data()
+        if arrow_data is None:
+            print("No data received from server, skipping iteration.")
+            await asyncio.sleep(1 / freq_hertz)
+            continue
 
         disconnected_idxs = []
         for idx, (ws_connection, rb_writer, buffer) in enumerate(connections):

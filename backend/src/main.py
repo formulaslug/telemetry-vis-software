@@ -9,7 +9,7 @@ async def main():
     # server and combine then together to run in one asyncio event loop.
     await asyncio.gather(
         http_main(port=9000),
-        ws_main(port=8000),
+        ws_main(port=8000, reciever_port=8001),
         radio_main(port=8001)
     )
 

@@ -4,7 +4,7 @@ from websockets import ConnectionClosed
 import websockets.asyncio.server as ws
 import pyarrow as pa
 import random
-import websockets as wss
+import websockets
 import util.sim as sim
 
 # List of WebSocket connections with their corresponding Arrow Stream (IPC)
@@ -13,27 +13,26 @@ connections: list[
     tuple[ws.ServerConnection, pa.RecordBatchStreamWriter, io.BytesIO]
 ] = []
 
+server_data: pa.Table | None = None
 
-async def get_server_data():
-    uri = "ws://localhost:8001"
-    async with wss.connect(uri) as websocket:
+async def get_server_data(port: int):
+    uri = f"ws://localhost:{port}"
+    
+    global server_data
+    async with websockets.connect(uri) as websocket:
+        try:
+            while True:
+                message = await websocket.recv()
+                new_buffer = io.BytesIO(message)
 
-        # Receive a response from the server
-        buffer = await websocket.recv()
+                reader = pa.ipc.open_stream(new_buffer)
 
-        new_buffer = io.BytesIO(buffer)
-
-        # Open the IPC stream for reading
-        reader = pa.ipc.open_stream(new_buffer)
-
-        # Read all record batches and reconstruct a table
-        response = reader.read_all()
-
-        print(f"Received from server: {response}")
-
-        # Here you would typically handle the received data
-        # For example, if the server sends Arrow data, you would process it accordingly
-        return response
+                server_data = reader.read_all()
+                print(f"Received data from server: {server_data}")
+        except websockets.ConnectionClosed:
+            print("Client disconnected")
+        except Exception as e:
+            print(f"Error: {e}")
 
 # Todo: this will come from the radio module eventually!
 def get_arrow_data():
@@ -56,9 +55,10 @@ def clean_connection(idx: int):
 
 # The main loop that sends Arrow record batches to all connected clients
 async def ws_main_loop(freq_hertz: int):
+    global server_data
+
     while True:
-        arrow_data = await get_server_data()
-        if arrow_data is None:
+        if server_data is None:
             print("No data received from server, skipping iteration.")
             await asyncio.sleep(1 / freq_hertz)
             continue
@@ -66,7 +66,7 @@ async def ws_main_loop(freq_hertz: int):
         disconnected_idxs = []
         for idx, (ws_connection, rb_writer, buffer) in enumerate(connections):
             try:
-                rb_writer.write_table(arrow_data)
+                rb_writer.write_table(server_data)
 
                 ipc_data = buffer.getvalue()
                 buffer.seek(0)
@@ -103,10 +103,10 @@ async def websocket_handler(websocket: ws.ServerConnection):
         print(f"Client disconnected. Remaining connections: {len(connections)}")
 
 
-async def ws_main(port: int):
+async def ws_main(port: int = 8000, reciever_port: int = 8001):
     ws_server = await ws.serve(websocket_handler, "0.0.0.0", port)
 
-    await asyncio.gather(ws_main_loop(100), ws_server.serve_forever())
+    await asyncio.gather(ws_main_loop(100), ws_server.serve_forever(), get_server_data(reciever_port))
 
 
 # asyncio.run(ws_main()) # handled by main.py now

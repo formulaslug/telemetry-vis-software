@@ -1,10 +1,11 @@
 import { Box, RangeSlider, RangeSliderValue } from "@mantine/core";
 import { CaretDoubleRight, Pause, Play } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
 import DataSourceType from "@/models/DataSourceType";
 import useDebounceCallbackGreedy from "../utils/useGreedyDebounce";
 import { timeColumnName } from "../data-processing/datatypes";
+import DraggableRangeSlider from "./DraggableRangeSlider";
 
 export default function TimelineBar() {
     const [paused, setPaused] = useState(true);
@@ -138,7 +139,7 @@ function MainSlider() {
                 width: "calc(var(--slider-bar-width) + var(--slider-size))",
             },
         }),
-        [],
+        []
     );
 
     const formatLabel = (idx: number) => {
@@ -150,8 +151,8 @@ function MainSlider() {
 
     return (
         <>
-            <RangeSlider
-                ref={ref}
+            <DraggableRangeSlider
+                // ref={ref as RefObject<HTMLDivElement>}
                 step={1} // timeline _only_ refers to indexes into data arrays, so must be integers only
                 disabled={disabled}
                 onChange={onChange}

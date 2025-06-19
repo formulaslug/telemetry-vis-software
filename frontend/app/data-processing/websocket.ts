@@ -5,78 +5,12 @@ import { AsyncQueue } from "apache-arrow/io/interfaces";
 
 let socket: WebSocket | null;
 let messageQueue = new AsyncQueue<ArrayBuffer>();
-// let recordBatches: RecordBatch[] = []; // not needed atm
-
-async function processData_OLD(
-    data: RefObject<DataArrays>,
-    dataTrimmed: RefObject<DataArrays>,
-    setNumRows: Dispatch<SetStateAction<number>>,
-    viewLength: number
-) {
-    const byteStream = new AsyncByteStream(messageQueue);
-    // TODO: this .from() shouldn't have the <DataRow> type param because it's not enforced
-    // that all websocket streams will have data for every key in the default schema.
-    const recordBatchReader = await AsyncRecordBatchStreamReader.from<DataRow>(byteStream);
-
-    // Completely reset data, so keys unused by the arrow stream are left as null
-    data.current = nullDataArrays();
-    dataTrimmed.current = nullDataArrays();
-
-    // For each key found in the stream, initialize its empty array
-    //for (const k of recordBatchReader.schema.names) {
-    for (const k of columnNames) {
-        if (columnNames.includes(k)) {
-            data.current[k as ColumnName] = [];
-            dataTrimmed.current[k as ColumnName] = [];
-        } else {
-            console.warn("Unknown keyname found while parsing live data stream: ", k);
-        }
-    }
-
-    // This async loop essentially awaits for each websocket message to arrive
-    for await (const batch of recordBatchReader) {
-        // recordBatches.push(batch);
-        // console.log(batch.getChild(":Time")?.toArray());
-
-        for (const [i, key] of columnNames.entries()) {
-            data.current[key]?.push(...batch.getChildAt(i)?.toArray());
-            dataTrimmed.current[key]?.push(...batch.getChildAt(i)?.toArray());
-
-            dataTrimmed.current[key]?.splice(
-                0,
-                Math.max(0, dataTrimmed.current[key].length - viewLength)
-            );
-        }
-
-        setNumRows((prev) => prev + batch.numRows);
-
-        // console.log(dataColArrays.current);
-        // console.log(batch.numRows);
-
-        // const start1 = performance.now();
-        // const tbl = new Table(recordBatches);
-        // const end1 = performance.now();
-        // console.log(`const tbl = new Table(rbs): ${end1 - start1}ms`);
-
-        // const start1_5 = performance.now();
-        // const end1_5 = performance.now();
-        // console.log(`: ${end1_5 - start1_5}ms`);
-
-        // const start2 = performance.now();
-        // const arr = tbl.getChild("Timestamp(s)")!.toArray();
-        // const end2 = performance.now();
-        // console.log(`tbl.getChild(): ${end2 - start2}ms, len: ${arr.length}`);
-    }
-}
 
 export function initWebSocketConnection(
+    // Main callback for processing batches
     onRecordBatch: (batch: RecordBatch) => void,
 
     setIsConnected?: Dispatch<SetStateAction<boolean>>
-    // data: RefObject<DataArrays>,
-    // dataTrimmed: RefObject<DataArrays>,
-    // setNumRows: Dispatch<SetStateAction<number>>,
-    // viewLength: number,
 ) {
     const hostname = window.location.hostname;
     // TODO: In the future user's should be shown a list of sources and which

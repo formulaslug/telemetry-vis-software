@@ -59,7 +59,7 @@ function SuspensionCanvas({ s1, s2, s3, s4 }: SuspensionInfo) {
                     (canvas.width / 4) * i,
                     canvas.height,
                     canvas.width / 4,
-                    (Math.abs(value) * -scaleFactor),
+                    Math.abs(value) * -scaleFactor,
                 );
             });
         },
@@ -136,10 +136,10 @@ export default function SuspensionGauge() {
     useEffect(() => {
         return subscribeCursorRow((cursorRow) => {
             setValues({
-                s1: cursorRow?.TELEM_BL_SUSTRAVEL ?? 0,
-                s2: cursorRow?.TELEM_BR_SUSTRAVEL ?? 0,
-                s3: cursorRow?.TELEM_FL_SUSTRAVEL ?? 0,
-                s4: cursorRow?.TELEM_FR_SUSTRAVEL ?? 0,
+                s1: cursorRow?.TPERIPH_FR_DATA_SUSTRAVEL ?? 0,
+                s2: cursorRow?.TPERIPH_FL_DATA_SUSTRAVEL ?? 0,
+                s3: cursorRow?.TPERIPH_BR_DATA_SUSTRAVEL ?? 0,
+                s4: cursorRow?.TPERIPH_BL_DATA_SUSTRAVEL ?? 0,
             });
         });
     }, []);
@@ -162,7 +162,12 @@ export default function SuspensionGauge() {
                 </div>
                 <div className="flex flex-col justify-center items-center w-full h-full">
                     <div className="w-[90%] h-[90%] rounded-[4%] overflow-hidden">
-                        <SuspensionCanvas s1={values.s1} s2={values.s2} s3={values.s3} s4={values.s4} />
+                        <SuspensionCanvas
+                            s1={values.s1}
+                            s2={values.s2}
+                            s3={values.s3}
+                            s4={values.s4}
+                        />
                     </div>
                     <div
                         className="w-[90%] h-[5%] flex flex-row justify-evenly"

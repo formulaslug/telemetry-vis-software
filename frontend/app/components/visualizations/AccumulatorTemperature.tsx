@@ -19,12 +19,14 @@ export default function AccumulatorTemperature() {
             let tempArray = Array(4)
                 .fill(null)
                 .map(() => Array(7).fill(0));
-            for (let i = 0; i < 28; i++) {
-                let segment = Math.floor(i / 7); // 7 sensors per segment
-                let numInSegment = i % 7;
+            for (let i = 0; i < 30; i++) {
+                let segment = Math.floor(i / 6);
+                let numInSegment = i % 6;
 
                 if (cursorRow) {
-                    const key = `Seg${segment}_TEMP_${numInSegment}` as keyof typeof cursorRow;
+                    // const key = `Seg${segment}_TEMP_${numInSegment}` as keyof typeof cursorRow; // fs-2
+                    const key =
+                        `ACC_SEG${segment}_VOLTS_CELL${numInSegment}` as keyof typeof cursorRow;
                     tempArray[segment][numInSegment] = cursorRow[key] || 0;
                     const fillRed = new SolidFill({
                         color: ColorRGBA((cursorRow[key] || 0) * 10, 0, 0),

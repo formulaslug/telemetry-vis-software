@@ -6,7 +6,7 @@ import CarWireframe from "./CarWireframe";
 import SuspensionGauge from "./SuspensionGauge";
 import { VisualizationProps } from "../FlexLayoutComponent";
 import { JSX } from "react";
-import { LapCounter } from "./LapCounter";
+// import { LapCounter } from "./LapCounter";
 import AccumulatorTemperature from "./AccumulatorTemperature";
 
 export const visualizations: Record<string, (props: VisualizationProps<any>) => JSX.Element> =
@@ -16,8 +16,8 @@ export const visualizations: Record<string, (props: VisualizationProps<any>) => 
         "suspension-gauge": SuspensionGauge,
         "car-wireframe": CarWireframe,
         "g-force-gauge": GForceGauge,
-        "timings-box": LapsTable,
-        "lap-counter": LapCounter,
+        // "timings-box": LapsTable,
+        // "lap-counter": LapCounter, // doesn't work without AEMdash lap calculations (not on fs-3)
         "accumulator-temp": AccumulatorTemperature,
 
         skeleton: () => <div className="w-full h-full bg-neutral-500"></div>,

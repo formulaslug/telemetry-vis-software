@@ -34,34 +34,7 @@ export function StackedLineChart({
         label: "Time",
         units: "s",
     });
-    const [yAxesInfo, setYAxesInfo] = useSavedState("yAxesInfo", [
-        {
-            columnNames: [
-                "Seg0_TEMP_0",
-                "Seg0_TEMP_1",
-                "Seg0_TEMP_2",
-                "Seg0_TEMP_3",
-                "Seg0_TEMP_4",
-                "Seg0_TEMP_5",
-                "Seg0_TEMP_6",
-            ],
-            label: "Seg0 Temps",
-            units: "°C",
-        },
-        {
-            columnNames: [
-                "Seg0_VOLT_0",
-                "Seg0_VOLT_1",
-                "Seg0_VOLT_2",
-                "Seg0_VOLT_3",
-                "Seg0_VOLT_4",
-                "Seg0_VOLT_5",
-                "Seg0_VOLT_6",
-            ],
-            label: "Seg0 Voltages",
-            units: "V",
-        },
-    ]);
+    const [yAxesInfo, setYAxesInfo] = useSavedState("yAxesInfo", []);
 
     const [search, setSearch] = useState("");
 

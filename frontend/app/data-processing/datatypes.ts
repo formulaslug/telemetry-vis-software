@@ -1,105 +1,17 @@
 import { Field, Precision, Schema } from "apache-arrow";
 import { Float, Float32, Int64, Timestamp, Utf8 } from "apache-arrow/type";
-import { fs3dataSchema } from "./schema";
+import { fs2dataSchema, fs3dataSchema } from "./schema";
 import { DataSetXY } from "@lightningchart/lcjs";
 
 // (just a shorter alias)
 // const float32 = new Float(Precision.SINGLE);
 
 const columnDataTypes = fs3dataSchema;
-// const columnDataTypes = {
-//   "Acc Temp 1(Cel)": float32,
-//   "Acc Temp 2(Cel)": float32,
-//   "Acc Temp 3(Cel)": float32,
-//   "Acc Temp 4(Cel)": float32,
-//   "Acc Temp 5(Cel)": float32,
-//   "Acc Temp 6(Cel)": float32,
-//   "Acc Temp 7(Cel)": float32,
-//   "Acc Temp 8(Cel)": float32,
-//   "Acc Temp 9(Cel)": float32,
-//   "Acc Temp 10(Cel)": float32,
-//   "Acc Temp 11(Cel)": float32,
-//   "Acc Temp 12(Cel)": float32,
-//   "Acc Temp 13(Cel)": float32,
-//   "Acc Temp 14(Cel)": float32,
-//   "Acc Temp 15(Cel)": float32,
-//   "Acc Temp 16(Cel)": float32,
-//   "Acc Temp 17(Cel)": float32,
-//   "Acc Temp 18(Cel)": float32,
-//   "Acc Temp 19(Cel)": float32,
-//   "Acc Temp 20(Cel)": float32,
-//   "Acc Temp 21(Cel)": float32,
-//   "Acc Temp 22(Cel)": float32,
-//   "Acc Temp 23(Cel)": float32,
-//   "Acc Temp 24(Cel)": float32,
-//   "Acc Temp 25(Cel)": float32,
-//   "Acc Temp 26(Cel)": float32,
-//   "Acc Temp 27(Cel)": float32,
-//   "Acc Temp 28(Cel)": float32,
-//   "Acc Voltage 1(V)": float32,
-//   "Acc Voltage 2(V)": float32,
-//   "Acc Voltage 3(V)": float32,
-//   "Acc Voltage 4(V)": float32,
-//   "Acc Voltage 5(V)": float32,
-//   "Acc Voltage 6(V)": float32,
-//   "Acc Voltage 7(V)": float32,
-//   "Acc Voltage 8(V)": float32,
-//   "Acc Voltage 9(V)": float32,
-//   "Acc Voltage 10(V)": float32,
-//   "Acc Voltage 11(V)": float32,
-//   "Acc Voltage 12(V)": float32,
-//   "Acc Voltage 13(V)": float32,
-//   "Acc Voltage 14(V)": float32,
-//   "Acc Voltage 15(V)": float32,
-//   "Acc Voltage 16(V)": float32,
-//   "Acc Voltage 17(V)": float32,
-//   "Acc Voltage 18(V)": float32,
-//   "Acc Voltage 19(V)": float32,
-//   "Acc Voltage 20(V)": float32,
-//   "Acc Voltage 21(V)": float32,
-//   "Acc Voltage 22(V)": float32,
-//   "Acc Voltage 23(V)": float32,
-//   "Acc Voltage 24(V)": float32,
-//   "Acc Voltage 25(V)": float32,
-//   "Acc Voltage 26(V)": float32,
-//   "Acc Voltage 27(V)": float32,
-//   "Acc Voltage 28(V)": float32,
-//   "Brake Pressure Front(PSI)": float32,
-//   "Brake Pressure Rear(PSI)": float32,
-//   "Current to Acc(A)": float32,
-//   "Hall Effect Sensor - FL(Hz)": float32,
-//   "Hall Effect Sensor - FR(Hz)": float32,
-//   "Hall Effect Sensor - RL(Hz)": float32,
-//   "Hall Effect Sensor - RR(Hz)": float32,
-//   "Altitude(ft)": float32,
-//   "Latitude(ft)": float32,
-//   "Longitude(ft)": float32,
-//   "Speed(mph)": float32,
-//   "x acceleration(m/s^2)": float32,
-//   "y acceleration(m/s^2)": float32,
-//   "z acceleration(m/s^2)": float32,
-//   "x gyro(deg)": float32,
-//   "y gyro(deg)": float32,
-//   "z gyro(deg)": float32,
-//   "Suspension Travel - FL(V)": float32,
-//   "Suspension Travel - FR(V)": float32,
-//   "Suspension Travel - RL(V)": float32,
-//   "Suspension Travel - RR(V)": float32,
-//   "Suspension Force - FL(Oh)": float32,
-//   "Suspension Force - FR(Oh)": float32,
-//   "Suspension Force - RL(Oh)": float32,
-//   "Suspension Force - RR(Oh)": float32,
-//   "Acc Air Intake Temp(C)": float32,
-//   "Acc Air Exhaust Temp(C)": float32,
-//   "Steering(Deg)": float32,
-//   "Acc Air Intake Pressure(PSI)": float32,
-//   "Acc Intake Air Flow Rate(m^3/sec)": float32,
-//   "Timestamp(s)": float32,
-// };
+
 export const columnNames = Object.keys(fs3dataSchema) as ColumnName[];
 
 // TODO: This needs to not be hardcoded (along with the rest of the schema!)
-export const timeColumnName: ColumnName = ":Time";
+export const timeColumnName: ColumnName = "timestamp";
 
 // columnDataTypes and columnNames are for use at runtime; everything with a
 // PascalCase name is purely for type-checking at compile time

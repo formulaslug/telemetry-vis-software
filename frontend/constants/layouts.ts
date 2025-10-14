@@ -19,39 +19,12 @@ export const layouts = [
                             children: [
                                 {
                                     type: "tabset",
-                                    weight: 50,
-                                    children: [
-                                        {
-                                            type: "tab",
-                                            name: "Lap Counter",
-                                            component: "lap-counter",
-                                        },
-                                    ],
-                                },
-                                {
-                                    type: "tabset",
-                                    weight: 50,
+                                    weight: 100,
                                     children: [
                                         {
                                             type: "tab",
                                             name: "GPS",
                                             component: "gps",
-                                        },
-                                    ],
-                                },
-                                {
-                                    type: "tabset",
-                                    weight: 30,
-                                    children: [
-                                        {
-                                            type: "tab",
-                                            name: "CarWireframe",
-                                            component: "car-wireframe",
-                                        },
-                                        {
-                                            type: "tab",
-                                            name: "G-Force Gauge",
-                                            component: "g-force-gauge",
                                         },
                                     ],
                                 },

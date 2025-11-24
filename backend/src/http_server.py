@@ -1,7 +1,10 @@
 import os
+import io
 from aiohttp import web
 import aiohttp_cors
 import cantools
+import pyarrow.parquet as pq
+import polars as pl
 
 data_dir = os.environ.get("DATA_DIR", "")
 parquet_files = set()
@@ -28,7 +31,25 @@ async def available_recordings(request):
 
 
 # This serves the parquet data directly as static files
-routes.static("/api/get-recording", data_dir, show_index=True)
+@routes.get("/api/get-recording/{recording:.*}")
+async def get_recording(request):
+    recording = request.match_info.get("recording")
+    if not recording:
+        return web.HTTPBadRequest(reason="Invalid recording parameter!")
+
+    # Load the parquet into memory, replace nulls with near values, and write
+    # back out into buffer which is the HTTP response body
+    parquet = os.path.join(data_dir, recording)
+    df = pl.read_parquet(parquet)
+    df_filled = df.select(pl.all().forward_fill().backward_fill())
+    buffer = io.BytesIO()
+    df_filled.write_parquet(buffer)
+    # TODO: Instead of doing that ^, we could just refactor the visualization
+    # frontend to handle null rows better (do manual null filtering for each column),
+    # and store each column with its own timestamp (use DataSet API for each).
+    
+    return web.HTTPOk(body=buffer.getvalue(), content_type="application/octet-stream")
+# routes.static("/api/get-recording", data_dir, show_index=True)
 
 
 # The fs-data repo is structured such that differen't Parquet recordings are

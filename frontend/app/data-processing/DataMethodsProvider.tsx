@@ -331,6 +331,11 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
             const vector = table.getChild(key);
             if (vector) {
                 let arr = vector.toArray();
+                // TODO: figure out why parquet-wasm to arrow-js
+                // Vector.getChildAt() is returning some non-typedarrays.
+                if (Array.isArray(arr)) {
+                    arr = new Float32Array(arr);
+                }
 
                 // Hack since lcjs/chartjs don't support 64bit ints
                 if (arr instanceof BigInt64Array || arr instanceof BigUint64Array) {

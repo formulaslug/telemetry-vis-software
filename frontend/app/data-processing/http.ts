@@ -1,4 +1,4 @@
-import wasmInit, { readParquet, readSchema, wasmMemory } from "parquet-wasm/esm";
+import wasmInit, { readParquet, wasmMemory } from "parquet-wasm/esm";
 
 // Enables zero-copy transer of Arrow data from wasm memory to JS
 import * as arrowJSFFI from "arrow-js-ffi";

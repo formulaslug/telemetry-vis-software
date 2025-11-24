@@ -198,6 +198,9 @@ export function DataMethodsProvider({ children }: PropsWithChildren) {
         if (left == viewIntervalRef.current[0] && right == viewIntervalRef.current[1]) return;
 
         for (const [name, arr] of Object.entries(dataArraysRef.current)) {
+            // NOTE: this will crash if any of the arrow table rows have nulls,
+            // since columns become non-typedarrays so they can store null,
+            // which do not have a subarray method!
             if (arr) {
                 viewableArraysRef.current[name as ColumnName] = arr.subarray(left, right + 1);
             }

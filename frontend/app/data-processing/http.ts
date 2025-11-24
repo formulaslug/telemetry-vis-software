@@ -1,4 +1,4 @@
-import wasmInit, { readParquet, wasmMemory } from "parquet-wasm/esm";
+import wasmInit, { readParquet, readSchema, wasmMemory } from "parquet-wasm/esm";
 
 // Enables zero-copy transer of Arrow data from wasm memory to JS
 import * as arrowJSFFI from "arrow-js-ffi";
@@ -42,10 +42,12 @@ export async function getRecording(file: string | File, isProduction: boolean) {
 
     // If `file` is a string, fetch it from the server. If it's a File, extract
     // the arraybuffer data from that directly
-    if (typeof file == "string") { // string (pathname)
-        const resp = await tryFetch(`/api/get-recording/${file}`, isProduction)
+    if (typeof file == "string") {
+        // string (pathname)
+        const resp = await tryFetch(`/api/get-recording/${file}`, isProduction);
         arrayBuffer = await resp?.arrayBuffer();
-    } else { // File object
+    } else {
+        // File object
         arrayBuffer = await file.arrayBuffer();
     }
 

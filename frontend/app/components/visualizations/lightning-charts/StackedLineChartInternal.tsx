@@ -14,6 +14,7 @@ import {
     Axis,
     emptyLine,
     LegendBox,
+    FontSettings,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
@@ -73,8 +74,12 @@ export default function StackedLineChartInternal({
         let yAxisSeriesMapList: {
             axis: Axis;
             seriesMap: Record<ColumnName, PointLineAreaSeries>;
+            units: string;
+            label: string;
         }[] = [];
         for (const [i, axisInfo] of yAxesInfo.entries()) {
+            if (axisInfo.columnNames.length == 0) continue;
+
             const axisY = chart
                 .addAxisY({ iStack: i })
                 .setMargins(i > 0 ? 15 : 0, i < yAxesInfo.length - 1 ? 15 : 0);
@@ -102,7 +107,14 @@ export default function StackedLineChartInternal({
                 },
                 {} as Record<ColumnName, PointLineAreaSeries>,
             );
-            yAxisSeriesMapList.push({ axis: axisY, seriesMap: lineSeriesMap });
+            yAxisSeriesMapList.push({
+                axis: axisY,
+                seriesMap: lineSeriesMap,
+                units: axisInfo.units ?? "",
+                label:
+                    axisInfo.label ??
+                    (axisInfo.columnNames.length > 1 ? `Chart ${i}` : axisInfo.columnNames[0]),
+            });
         }
 
         // Adds a legend that always stays in the top left corner but is also draggable
@@ -131,10 +143,10 @@ export default function StackedLineChartInternal({
             .getDefaultAxisX()
             .setUnits(xAxisInfo.units)
             .setTitle(xAxisInfo.label ?? xAxisInfo.columnName[0]);
-        yAxesInfo.forEach((aInfo, i) =>
+        yAxisSeriesMapList.forEach((ax, i) =>
             yAxisSeriesMapList[i].axis
-                .setUnits(aInfo.units)
-                .setTitle(aInfo.label ?? aInfo.columnNames.join(", "))
+                .setUnits(ax.units)
+                // .setTitle(ax.label)
                 .setScrollStrategy(AxisScrollStrategies.fitting),
         );
 
@@ -177,6 +189,8 @@ export default function StackedLineChartInternal({
         // chart.setAnimationsEnabled(false); // do we like animations?
 
         chart.getDefaultAxisX().addEventListener("intervalchange", ({ start, end }) => {
+            if (yAxisSeriesMapList.length == 0) return;
+
             // start/end are "axis coordinates" but chart.solveNearest() expects
             // "client coordinates". So first we translate between them.
             const xAxisCoordToClientCoord = (c: number) =>

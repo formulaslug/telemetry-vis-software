@@ -1,9 +1,20 @@
-import { ActionIcon, Autocomplete, Checkbox, Menu } from "@mantine/core";
+import {
+    ActionIcon,
+    Autocomplete,
+    AutocompleteProps,
+    Checkbox,
+    Divider,
+    Flex,
+    List,
+    Menu,
+} from "@mantine/core";
 import StackedLineChartInternal from "./StackedLineChartInternal";
-import { Gear, Plus } from "@phosphor-icons/react";
+import { Gear, Plus, X } from "@phosphor-icons/react";
 import { VisualizationProps } from "../../FlexLayoutComponent";
 import { ColumnName, columnNames, timeColumnName } from "@/app/data-processing/datatypes";
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import { useDataMethods } from "@/app/data-processing/DataMethodsProvider";
+import React from "react";
 
 type YAxisInfo = {
     columnNames: ColumnName[];
@@ -38,19 +49,55 @@ export function StackedLineChart({
 
     const [search, setSearch] = useState("");
 
-    // this is just a basic, not-thought-through example of how to modify the
-    // state to add new columns
+    // const { dataArraysRef } = useDataMethods();
+
+    // const tryAddColumns = (keys: string[]) => {
+    //     // setSearch(key);
+    //     if (!keys.every((k) => (k as ColumnName) in dataArraysRef.current)) return;
+    //     setYAxesInfo([
+    //         {
+    //             columnNames: keys as ColumnName[],
+    //             // TODO: add units and label from DBC
+    //         },
+    //         ...yAxesInfo,
+    //     ]);
+    // };
+
     const tryAddColumn = (key: string) => {
         setSearch(key);
         if ((columnNames as string[]).includes(key)) {
             setYAxesInfo([
                 {
                     columnNames: [key as ColumnName],
+                    // TODO: add units and label from DBC
                 },
                 ...yAxesInfo,
             ]);
         }
     };
+
+    const removeColumn = (yAxisIdx: number, colIdx: number) => {
+        setYAxesInfo([
+            ...yAxesInfo.slice(0, yAxisIdx),
+            {
+                columnNames: [
+                    ...yAxesInfo[yAxisIdx].columnNames.slice(0, colIdx),
+                    ...yAxesInfo[yAxisIdx].columnNames.slice(colIdx + 1),
+                ],
+                label: yAxesInfo[yAxisIdx].label,
+                units: yAxesInfo[yAxisIdx].units,
+                // TODO: add units and label from DBC
+            },
+            ...yAxesInfo.slice(yAxisIdx + 1),
+        ]);
+    };
+
+    // const renderAutocompleteOption: AutocompleteProps["renderOption"] = ({ option }) => (
+    //     <Flex>
+    //         <Checkbox />
+    //         <p>{option.value}</p>
+    //     </Flex>
+    // );
 
     return (
         <>
@@ -84,11 +131,28 @@ export function StackedLineChart({
                 <Menu.Dropdown>
                     <Autocomplete
                         label="Add Columns"
-                        placeholder="Seg0_VOLT_0"
+                        placeholder="ACC_SEG2_VOLTS_CELL2"
                         data={columnNames}
                         value={search}
+                        // renderOption={renderAutocompleteOption}
                         onChange={tryAddColumn}
                     />
+                    {yAxesInfo.map((yAxis, i) => (
+                        <Fragment key={i}>
+                            <List key={`${i}F`} type="ordered">
+                                {yAxis.columnNames.map((col, j) => (
+                                    <List.Item
+                                        key={`${i}_${j}`}
+                                        icon={<X onClick={() => removeColumn(i, j)} />}
+                                    >
+                                        {col}
+                                    </List.Item>
+                                ))}
+                                <br />
+                            </List>
+                            <Divider key={`${i}D`} />
+                        </Fragment>
+                    ))}
                 </Menu.Dropdown>
             </Menu>
             <StackedLineChartInternal {...{ title, showLegend, yAxesInfo, xAxisInfo }} />

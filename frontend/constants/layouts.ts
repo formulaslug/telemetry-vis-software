@@ -15,24 +15,7 @@ export const layouts = [
                     children: [
                         {
                             type: "row",
-                            weight: 30,
-                            children: [
-                                {
-                                    type: "tabset",
-                                    weight: 100,
-                                    children: [
-                                        {
-                                            type: "tab",
-                                            name: "GPS",
-                                            component: "gps",
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                        {
-                            type: "row",
-                            weight: 70,
+                            weight: 100,
                             children: [
                                 {
                                     type: "tabset",
@@ -41,68 +24,7 @@ export const layouts = [
                                             type: "tab",
                                             name: "Stacked Line Chart",
                                             component: "stacked-line-chart",
-                                            config: {
-                                                yAxesInfo: [
-                                                    {
-                                                        columnNames: [
-                                                            "TPERIPH_FR_DATA_WHEELSPEED",
-                                                            "TPERIPH_FL_DATA_WHEELSPEED",
-                                                            "TPERIPH_BR_DATA_WHEELSPEED",
-                                                            "TPERIPH_BL_DATA_WHEELSPEED",
-                                                        ],
-                                                        label: "Wheel Speed",
-                                                        units: "",
-                                                    },
-                                                    {
-                                                        columnNames: [
-                                                            "TPERIPH_FR_DATA_SUSTRAVEL",
-                                                            "TPERIPH_FL_DATA_SUSTRAVEL",
-                                                            "TPERIPH_BR_DATA_SUSTRAVEL",
-                                                            "TPERIPH_BL_DATA_SUSTRAVEL",
-                                                        ],
-                                                        label: "Suspension Travel",
-                                                        units: "mm",
-                                                    },
-                                                    {
-                                                        columnNames: [
-                                                            "TPERIPH_FL_TIRETEMP_1",
-                                                            "TPERIPH_FL_TIRETEMP_2",
-                                                            "TPERIPH_FL_TIRETEMP_3",
-                                                            "TPERIPH_FL_TIRETEMP_4",
-                                                            "TPERIPH_FL_TIRETEMP_5",
-                                                            "TPERIPH_FL_TIRETEMP_6",
-                                                            "TPERIPH_FL_TIRETEMP_7",
-                                                            "TPERIPH_FL_TIRETEMP_8",
-                                                            // "TPERIPH_FR_TIRETEMP_1",
-                                                            // "TPERIPH_FR_TIRETEMP_2",
-                                                            // "TPERIPH_FR_TIRETEMP_3",
-                                                            // "TPERIPH_FR_TIRETEMP_4",
-                                                            // "TPERIPH_FR_TIRETEMP_5",
-                                                            // "TPERIPH_FR_TIRETEMP_6",
-                                                            // "TPERIPH_FR_TIRETEMP_7",
-                                                            // "TPERIPH_FR_TIRETEMP_8",
-                                                            "TPERIPH_BL_TIRETEMP_1",
-                                                            "TPERIPH_BL_TIRETEMP_2",
-                                                            "TPERIPH_BL_TIRETEMP_3",
-                                                            "TPERIPH_BL_TIRETEMP_4",
-                                                            "TPERIPH_BL_TIRETEMP_5",
-                                                            "TPERIPH_BL_TIRETEMP_6",
-                                                            "TPERIPH_BL_TIRETEMP_7",
-                                                            "TPERIPH_BL_TIRETEMP_8",
-                                                            // "TPERIPH_BR_TIRETEMP_1",
-                                                            // "TPERIPH_BR_TIRETEMP_2",
-                                                            // "TPERIPH_BR_TIRETEMP_3",
-                                                            // "TPERIPH_BR_TIRETEMP_4",
-                                                            // "TPERIPH_BR_TIRETEMP_5",
-                                                            // "TPERIPH_BR_TIRETEMP_6",
-                                                            // "TPERIPH_BR_TIRETEMP_7",
-                                                            // "TPERIPH_BR_TIRETEMP_8",
-                                                        ],
-                                                        label: "Tire Temps",
-                                                        units: "C",
-                                                    },
-                                                ],
-                                            },
+                                            config: {},
                                         },
                                     ],
                                 },

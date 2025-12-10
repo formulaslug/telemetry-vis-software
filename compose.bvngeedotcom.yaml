@@ -6,11 +6,11 @@ services:
     ports: !override []
     expose:
       - "80"
-      - "443"
-      - "443/udp"
     networks:
       - default
       - bvngeedotcom-host_external
+    environment:
+      CADDY_EXTRA_GLOBAL_OPTIONS: "auto_https off"
 
 networks:
   bvngeedotcom-host_external:

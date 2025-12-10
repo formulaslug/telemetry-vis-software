@@ -4,7 +4,7 @@ services:
     # Reverse proxy in front of everything
     caddy:
         image: caddy:2.8.4
-        restart: unless-stopped
+        restart: always
         ports:
             - "80:80"
             - "443:443"
@@ -17,6 +17,7 @@ services:
     # Nodejs process hosts react frontend
     nodejs:
         image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
+        restart: always
         # NOTE: in order for the build to produce a working output, .env.production
         # needs to be present in the build context dir with lcjs license information.
         build: ./frontend
@@ -26,6 +27,7 @@ services:
     # Python process runs websocket and http servers (backend)
     python:
         image: "${REGISTRY_URL:-}telemetry-vis-software/backend:latest"
+        restart: always
         build: ./backend
         expose:
             - "8000"
@@ -37,6 +39,42 @@ services:
             # ./fs-data is a git submodule, optional
             - ./fs-data:/data_dir
 
+    # Tabular database which serves parquet recordings via SQL queries
+    clickhouse:
+        image: clickhouse/clickhouse-server
+        restart: always
+        #user: "101:101"
+        container_name: clickhouse
+        hostname: clickhouse
+        volumes:
+            #- /mnt/pny1/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+            #- /mnt/pny1/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+            - ./clickhouse_config/config.d:/etc/clickhouse-server/config.d
+            - ./clickhouse_config/users.d:/etc/clickhouse-server/users.d
+            - ./fs-data:/var/lib/clickhouse/user_files
+        #ports:
+        #    - "127.0.0.1:8123:8123"
+        #    - "127.0.0.1:9000:9000"
+        expose:
+            - "8123" # We ignore the TCP port 9000 for RPC, only use HTTP port 8123
+
+    # Data visualization dashboard which supports SQL queries to create dashboards
+    grafana:
+        image: grafana/grafana
+        restart: always
+        container_name: grafana
+        expose:
+            - "8001"
+        environment:
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+            #- GF_FEATURE_TOGGLES_ENABLE=newInfluxDSConfigPageDesign
+            - GF_SERVER_ROOT_URL=https://graf.telemetry.formulaslug.com
+            - GF_SERVER_HTTP_PORT=8001
+        volumes:
+            - grafana_data:/var/lib/grafana
+
 volumes:
     caddy_data:
     caddy_config:
+    grafana_data:

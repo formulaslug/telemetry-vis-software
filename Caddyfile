@@ -1,22 +1,31 @@
-# Note: containers hostnames come from the docker compose.yaml file (the
+# Note: containers' hostnames come from the docker compose.yaml file (the
 # corresponding keyname in the `services` block)
 
 # When running locally on localhost, Caddy will automatically use self-signed
 # certs for https. Otherwise it will use the Let's Encrypt CA.
-https://, http://, localhost {
-    # root * /srv # not used - website comes from nodejs process
 
-    # Logs all HTTP request headers
-    # log {
-    #        output stderr
-    #        level info
-    #        format json {
-    #            time_key timestamp
-    #            message_key message
-    #            level_key level
-    #        }
-    #    }
+# When hosting telemetry-vis-software under another reverse proxy, http-only is
+# needed, so this env var can be set to "auto_https off".
+{
+    {$CADDY_EXTRA_GLOBAL_OPTIONS:}
+}
 
+http://graf.telemetry.formulaslug.com,
+https://graf.telemetry.formulaslug.com
+{
+    reverse_proxy /* grafana:8001
+}
+
+http://clickhouse.telemetry.formulaslug.com,
+https://clickhouse.telemetry.formulaslug.com
+{
+    reverse_proxy /* clickhouse:8123
+}
+
+https://telemetry.formulaslug.com,
+http://telemetry.formulaslug.com,
+localhost
+{
     # Defines a named matcher for any request where "Upgrade" is _contained_ in
     # the Connection header and the Upgrade header is equal to "websocket".
     # Reverse proxy all matching requests to the websocket server
@@ -33,3 +42,19 @@ https://, http://, localhost {
     # Reverse proxy all other paths to nodejs server (frontend UI)
     reverse_proxy /* nodejs:3000
 }
+
+
+# Useful handler methods we aren't using:
+# root * /srv # not used - website comes from nodejs process
+#
+# Logs all HTTP request headers
+# log {
+#        output stderr
+#        level info
+#        format json {
+#            time_key timestamp
+#            message_key message
+#            level_key level
+#        }
+#    }
+

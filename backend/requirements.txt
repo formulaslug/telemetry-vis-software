@@ -1,8 +1,8 @@
-polars==1.12.0
-numpy==2.1.3
-pyarrow==18.0.0
+polars
+numpy
+pyarrow
 pyarrow-stubs
-websockets==14.0
-aiohttp==3.11.10
-aiohttp_cors==0.7
-cantools>=40.2.1
+websockets
+aiohttp
+aiohttp_cors
+cantools

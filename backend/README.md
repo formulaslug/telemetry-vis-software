@@ -21,8 +21,8 @@ specifically for retrieving past data in the form of Parquet files.
 ```console
 $ python -m venv .venv
 $ source .venv/bin/activate
-$ pip install -r requirements.txt
-$ python main.py
+$ pip install -e .
+$ python src/main.py
 # http and websocket servers are now running, yay!
 ```
 

@@ -1,8 +1,0 @@
-polars
-numpy
-pyarrow
-pyarrow-stubs
-websockets
-aiohttp
-aiohttp_cors
-cantools

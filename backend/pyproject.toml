@@ -1,0 +1,16 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Telemetry Visualization Software Backend"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiohttp>=3.13.2",
+    "aiohttp-cors>=0.8.1",
+    "cantools>=41.0.2",
+    "numpy>=2.3.5",
+    "polars>=1.36.1",
+    "pyarrow>=22.0.0",
+    "pyarrow-stubs>=20.0.0.20251215",
+    "websockets>=15.0.1",
+]

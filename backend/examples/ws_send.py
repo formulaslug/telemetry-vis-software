@@ -1,10 +1,9 @@
 import pyarrow as pa
-import pyarrow.ipc as ipc
 import websockets
 import io
 import asyncio
 
-batch = pa.RecordBatch.from_pydict({"a": [1,2,3], "b": [2,3,4]})
+batch = pa.RecordBatch.from_pydict({"a": [1,2,3], "b": [2,3,4], "f": [0.0, 0.0, 0.0]})
 
 async def main():
     async with websockets.connect("ws://localhost:8000/send") as conn:
@@ -12,7 +11,7 @@ async def main():
 
         writer = pa.RecordBatchStreamWriter(buf, batch.schema)
 
-        while True:
+        for _ in range(5):
             writer.write_batch(batch)
 
             out = buf.getvalue()
@@ -22,6 +21,10 @@ async def main():
             buf.truncate()
 
             await asyncio.sleep(0.5)
+
+        writer.close()
+        out = buf.getvalue()
+        await conn.send(out)
 
         
 if __name__ == "__main__":

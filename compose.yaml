@@ -44,8 +44,6 @@ services:
         image: clickhouse/clickhouse-server
         restart: always
         #user: "101:101"
-        container_name: clickhouse
-        hostname: clickhouse
         volumes:
             #- /mnt/pny1/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
             #- /mnt/pny1/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
@@ -62,7 +60,6 @@ services:
     grafana:
         image: grafana/grafana
         restart: always
-        container_name: grafana
         expose:
             - "8001"
         environment:

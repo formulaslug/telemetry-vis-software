@@ -51,7 +51,7 @@ services:
             #- /mnt/pny1/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
             - ./clickhouse_config/config.d:/etc/clickhouse-server/config.d
             - ./clickhouse_config/users.d:/etc/clickhouse-server/users.d
-            - ./fs-data:/var/lib/clickhouse/user_files
+            - ./fs-data:/var/lib/clickhouse/user_files/fs-data
         #ports:
         #    - "127.0.0.1:8123:8123"
         #    - "127.0.0.1:9000:9000"

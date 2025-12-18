@@ -11,6 +11,7 @@ parquet_files = set()
 if not os.path.isdir(data_dir):
     raise ValueError("Invalid data dir: ", data_dir)
 
+VALID_TIME_COLUMN = "Time_ms"
 
 def check_subdir(d):
     for f in os.listdir(d):
@@ -18,7 +19,10 @@ def check_subdir(d):
         if os.path.isdir(path):
             check_subdir(path)
         elif f.endswith(".pq") or f.endswith(".parquet"):
-            parquet_files.add(os.path.relpath(path, data_dir))
+            relpath = os.path.relpath(path, data_dir)
+            df = pl.scan_parquet(path)
+            if df.collect_schema().get(VALID_TIME_COLUMN) is not None:
+                parquet_files.add(relpath)
 
 check_subdir(data_dir)
 

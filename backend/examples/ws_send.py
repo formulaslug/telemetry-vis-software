@@ -11,17 +11,22 @@ async def main():
 
         writer = pa.RecordBatchStreamWriter(buf, batch.schema)
 
+        # Send record batch 5 times
         for _ in range(5):
+            # Add batch to stream
             writer.write_batch(batch)
 
+            # Get stream output as bytes
             out = buf.getvalue()
+            # Send bytes to websocket
             await conn.send(out)
-            print(len(buf.getbuffer()))
+            # Reset bytes
             buf.seek(0)
             buf.truncate()
 
             await asyncio.sleep(0.5)
 
+        # Finish IPC stream (and send stream footer)
         writer.close()
         out = buf.getvalue()
         await conn.send(out)

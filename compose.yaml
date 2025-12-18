@@ -14,6 +14,21 @@ services:
             - caddy_config:/config
             - ./Caddyfile:/etc/caddy/Caddyfile
 
+    # Intended to only be run once, to initialize the shared telemetry_data volume.
+    populate-telemetry-data:
+        image: busybox
+        restart: no
+        volumes:
+            - telemetry_data:/telemetry_data
+            - ./fs-data:/fs-data
+        command: >
+            sh -c "
+                mkdir /telemetry_data/recordings
+                mkdir /telemetry_data/layouts
+                mkdir /telemetry_data/live
+                cp -r /fs-data /telemetry_data
+            "
+
     # Nodejs process hosts react frontend
     nodejs:
         image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
@@ -34,23 +49,55 @@ services:
             - "9000"
         environment:
             # Directories where the api server will look for recording/layout files
-            DATA_DIR: /data_dir
-            LAYOUTS_DIR: /layouts_dir
+            # DATA_DIR: /data_dir
+            # LAYOUTS_DIR: /layouts_dir
+            DATA_DIR: /telemetry_data/recordings
+            LAYOUTS_DIR: /telemetry_data/layouts
         volumes:
-            # ./fs-data is a git submodule, optional
-            - ./fs-data:/data_dir
-            - ./layouts:/layouts_dir
+            # - ./fs-data:/data_dir
+            # - ./layouts:/layouts_dir
+            - telemetry_data:/telemetry_data
+
+    # File server to store fs-data recordings
+    copyparty:
+        image: copyparty/ac
+        restart: always
+        expose:
+            - "3923"
+        volumes:
+            - telemetry_data:/w/telemetry_data
+
+            - ./copyparty.conf:/cfg/copyparty.conf:ro
+            - copyparty_config:/cfg-rw:rw
+        # Running this as non-root is nearly fucking impossible due to file
+        # permissions with bind/shared volumes. I literally give up
+        # user: "1000:1000" 
+        environment:
+            # Changes the writable config path to a persistent docker volume.
+            XDG_CONFIG_HOME: "/cfg-rw"
+            # Ensures log-messages are not delayed (but can reduce speed a tiny bit)
+            PYTHONUNBUFFERED: "1"
+        healthcheck:
+            test: ["CMD-SHELL", "wget --spider -q 127.0.0.1:3923/?reset=/._"]
+            interval: "1m"
+            timeout: "2s"
+            retries: "5"
+            start_period: "15s"
 
     # Tabular database which serves parquet recordings via SQL queries
     clickhouse:
         image: clickhouse/clickhouse-server
         restart: always
         volumes:
-            #- /mnt/pny1/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
-            #- /mnt/pny1/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
-            - ./clickhouse_config/config.d:/etc/clickhouse-server/config.d
-            - ./clickhouse_config/users.d:/etc/clickhouse-server/users.d
-            - ./fs-data:/var/lib/clickhouse/user_files/fs-data
+            - ./clickhouse-config.xml:/etc/clickhouse-server/config.d/clickhouse-config.xml
+            - ./clickhouse-users.xml:/etc/clickhouse-server/users.d/clickhouse-users.xml
+
+            #- ./fs-data:/var/lib/clickhouse/user_files/fs-data
+            - type: volume
+              source: telemetry_data
+              volume:
+                  subpath: recordings
+              target: /var/lib/clickhouse/user_files
         expose:
             - "8123" # We ignore the TCP port 9000 for RPC, only use HTTP port 8123
 
@@ -73,3 +120,6 @@ volumes:
     caddy_data:
     caddy_config:
     grafana_data:
+    copyparty_config:
+    # Main stateful data volume, which contains layouts, parquet recordings, and live data (TBD)
+    telemetry_data:

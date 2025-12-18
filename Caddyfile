@@ -5,9 +5,18 @@
 # certs for https. Otherwise it will use the Let's Encrypt CA.
 
 # When hosting telemetry-vis-software under another reverse proxy, http-only is
-# needed, so this env var can be set to "auto_https off".
+# needed. Furthermore, the local IP of that proxy should be trusted for headers
 {
-    {$CADDY_EXTRA_GLOBAL_OPTIONS:}
+    auto_https off
+    servers {
+        trusted_proxies static private_ranges
+    }
+}
+
+http://data.telemetry.formulaslug.com,
+https://data.telemetry.formulaslug.com
+{
+    reverse_proxy /* copyparty:3923
 }
 
 http://graf.telemetry.formulaslug.com,

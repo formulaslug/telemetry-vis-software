@@ -9,60 +9,60 @@ import polars as pl
 data_dir = os.environ.get("DATA_DIR", "")
 layouts_dir = os.environ.get("LAYOUTS_DIR", "")
 
+print(f"Got DATA_DIR: {data_dir}")
+print(f"Got LAYOUTS_DIR: {layouts_dir}")
+
 VALID_TIME_COLUMN = "Time_ms"
 
-parquet_files = set()
-layout_files = set()
+parquet_files = []
+layout_files = []
 if not os.path.isdir(data_dir):
     raise ValueError("Invalid data dir: ", data_dir)
 if not os.path.isdir(layouts_dir):
     raise ValueError("Invalid layouts dir: ", layouts_dir)
 
-def find_config_files(config_dir):
-    for f in os.listdir(config_dir):
-        if f.endswith(".json"):
+def find_layout_files(layouts_dir):
+    for filepath in os.listdir(layouts_dir):
+        if filepath.endswith(".json"):
             try:
-                with open(os.path.join(config_dir, f), 'r') as f:
-                    data = json.load(f)
-                    returnData = {
+                with open(os.path.join(layouts_dir, filepath), 'r') as file:
+                    data = json.load(file)
+                    return_data = {
                         "name": data.get("name", ""),
-                        "team": data.get("team", ""),
-                        "fileName": f
+                        "fileName": filepath,
                     }
-                    layout_files.add(returnData)
+                    layout_files.append(return_data)
             except (json.JSONDecodeError, IOError) as e:
-                print(f"Error reading config file {f}: {e}")
+                print(f"Error reading layout file {filepath}: {e}")
 
-find_config_files(layouts_dir)
+find_layout_files(layouts_dir)
 
-def find_data_files_recursively(d):
-    for f in os.listdir(d):
-        path = os.path.join(d, f)
+def find_data_files(data_dir):
+    for filepath in os.listdir(data_dir):
+        path = os.path.join(data_dir, filepath)
         if os.path.isdir(path):
-            find_data_files_recursively(path)
-        elif f.endswith(".pq") or f.endswith(".parquet"):
+            find_data_files(path)
+        elif filepath.endswith(".pq") or filepath.endswith(".parquet"):
             relpath = os.path.relpath(path, data_dir)
             df = pl.scan_parquet(path)
             if df.collect_schema().get(VALID_TIME_COLUMN) is not None:
-                parquet_files.add(relpath)
+                parquet_files.append(relpath)
 
-find_data_files_recursively(data_dir)
+find_data_files(data_dir)
 
-print(f"config_files: {layout_files}")
-print(f"data_dir: {data_dir}")
-print(f"config_dir: {layouts_dir}")
+print(f"Found {len(parquet_files)} parquet files")
+print(f"Found {len(layout_files)} layout files")
 
 
 routes = web.RouteTableDef()
-
 
 @routes.get("/api/available-recordings")
 async def available_recordings(request):
     return web.json_response(list(parquet_files))
 
 
-@routes.get("/api/available-configs")
-async def available_configs(request):
+@routes.get("/api/available-layouts")
+async def available_layouts(request):
     return web.json_response(list(layout_files))
 
 # This serves the parquet data directly as static files
@@ -86,7 +86,7 @@ async def get_recording(request):
     return web.HTTPOk(body=buffer.getvalue(), content_type="application/octet-stream")
 # routes.static("/api/get-recording", data_dir, show_index=True)
 
-routes.static("/api/get-config", layouts_dir, show_index=True)
+routes.static("/api/get-layout", layouts_dir, show_index=True)
 
 
 # The fs-data repo is structured such that differen't Parquet recordings are

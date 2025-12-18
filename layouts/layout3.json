@@ -1,6 +1,5 @@
 {
-    "name": "default config",
-    "team": "telemetry",
+    "name": "Default Layout",
     "model": {
         "global": {},
         "borders": [],

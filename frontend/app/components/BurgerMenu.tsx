@@ -1,10 +1,10 @@
+"use client";
+
 import { Burger, Divider, Drawer, Grid, Table, Text } from "@mantine/core";
 import AutocompleteSearchbar from "./Autocomplete";
 import ConfigButton from "./ConfigButton";
-import { IJsonModel, Model } from "flexlayout-react";
-import { layouts } from "@/constants/layouts";
-import { text } from "stream/consumers";
 import { availableConfigs } from "../data-processing/http";
+import { useEffect, useState } from "react";
 
 interface handler {
     open: () => void;
@@ -13,20 +13,24 @@ interface handler {
 }
 
 interface configInterface {
-    name: string,
-    team: string,
-    fileName: string
+    name: string;
+    team: string;
+    fileName: string;
 }
 
-const configs = await availableConfigs(false)
-
-export default function BurgerMenu({
+export default async function BurgerMenu({
     opened,
     handler,
 }: {
     opened: boolean;
     handler: handler;
 }) {
+    const [configs, setConfigs] = useState<any[]>([]);
+
+    useEffect(() => {
+        availableConfigs(false).then(setConfigs);
+    }, []);
+
     return (
         <>
             <div className="w-full h-full">

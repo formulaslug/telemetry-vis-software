@@ -21,11 +21,11 @@ if not os.path.isdir(data_dir):
 if not os.path.isdir(layouts_dir):
     raise ValueError("Invalid layouts dir: ", layouts_dir)
 
-def find_layout_files(layouts_dir):
-    for filepath in os.listdir(layouts_dir):
+def find_layout_files(dir):
+    for filepath in os.listdir(dir):
         if filepath.endswith(".json"):
             try:
-                with open(os.path.join(layouts_dir, filepath), 'r') as file:
+                with open(os.path.join(dir, filepath), 'r') as file:
                     data = json.load(file)
                     return_data = {
                         "name": data.get("name", ""),
@@ -37,9 +37,9 @@ def find_layout_files(layouts_dir):
 
 find_layout_files(layouts_dir)
 
-def find_data_files(data_dir):
-    for filepath in os.listdir(data_dir):
-        path = os.path.join(data_dir, filepath)
+def find_data_files(dir):
+    for filepath in os.listdir(dir):
+        path = os.path.join(dir, filepath)
         if os.path.isdir(path):
             find_data_files(path)
         elif filepath.endswith(".pq") or filepath.endswith(".parquet"):

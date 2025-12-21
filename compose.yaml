@@ -113,6 +113,13 @@ services:
             #- GF_FEATURE_TOGGLES_ENABLE=newInfluxDSConfigPageDesign
             - GF_SERVER_ROOT_URL=https://graf.telemetry.formulaslug.com
             - GF_SERVER_HTTP_PORT=8001
+            - GF_DATE_FORMATS_FULL_DATE=H:mm:ss.SSS
+            - GF_DATE_FORMATS_INTERVAL_SECOND=H:mm:ss.SSS
+            - GF_DATE_FORMATS_INTERVAL_MINUTE=H:mm:ss.SSS
+            - GF_DATE_FORMATS_INTERVAL_HOUR=H:mm:ss.SSS
+            - GF_DATE_FORMATS_INTERVAL_DAY=H:mm:ss.SSS
+            - GF_DATE_FORMATS_INTERVAL_MONTH=H:mm:ss.SSS
+            - GF_DATE_FORMATS_INTERVAL_YEAR=H:mm:ss.SSS
         volumes:
             - grafana_data:/var/lib/grafana
 

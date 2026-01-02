@@ -2,47 +2,37 @@
 
 import { Burger, Divider, Drawer, Grid, Table, Text } from "@mantine/core";
 import AutocompleteSearchbar from "./Autocomplete";
-import ConfigButton from "./ConfigButton";
-import { availableConfigs } from "../data-processing/http";
+import { availableLayouts, getLayout } from "../data-processing/http";
 import { useEffect, useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { Model } from "flexlayout-react";
+import { useFlexLayout } from "../FlexLayoutProvider";
 
-interface handler {
-    open: () => void;
-    close: () => void;
-    toggle: () => void;
-}
-
-interface configInterface {
+interface Layout {
     name: string;
-    team: string;
     fileName: string;
 }
 
-export default async function BurgerMenu({
-    opened,
-    handler,
-}: {
-    opened: boolean;
-    handler: handler;
-}) {
-    const [configs, setConfigs] = useState<any[]>([]);
+export default function BurgerMenu() {
+    const [_, setLayoutModel] = useFlexLayout();
+    const [layouts, setLayouts] = useState<Layout[]>([]);
+    const [opened, { open, close }] = useDisclosure();
 
     useEffect(() => {
-        availableConfigs(false).then(setConfigs);
+        availableLayouts(false).then(setLayouts);
     }, []);
 
     return (
         <>
-            <div className="w-full h-full">
-                <Burger size={"md"} opened={opened} onClick={() => handler.toggle()} />
-            </div>
+            <Burger opened={opened} onClick={open} />
+
             <Drawer
                 title="Options"
                 offset={8}
                 radius={"md"}
                 transitionProps={{ duration: 300 }}
                 opened={opened}
-                onClose={() => handler.close()}
+                onClose={close}
             >
                 <Divider mb={"md"} />
 
@@ -62,16 +52,17 @@ export default async function BurgerMenu({
                         Configs
                     </Text>
                     <Grid>
-                        {configs.map((config: configInterface, index: number) => (
-                            <Grid.Col span={4} key={index}>
-                                <ConfigButton
-                                    onClick={() => {
-                                        handler.close();
+                        {layouts.map((layout: Layout, idx: number) => (
+                            <Grid.Col span={4} key={idx}>
+                                <button
+                                    className="w-full aspect-square bg-neutral-600 rounded-md"
+                                    onClick={async (_) => {
+                                        close();
+                                        const config = await getLayout(layout.fileName, false);
+                                        console.log(`Switching to config: ${layout.name}`);
+                                        setLayoutModel(Model.fromJson(config.model));
                                     }}
-                                    team={config.team}
-                                    text={config.name}
-                                    fileName={config.fileName}
-                                />
+                                ></button>
                             </Grid.Col>
                         ))}
                     </Grid>

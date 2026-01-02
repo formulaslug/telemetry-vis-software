@@ -1,8 +1,6 @@
 import { StackedLineChart } from "./lightning-charts/StackedLineChart";
 import { GPS } from "./GPS/GPS";
 import LapsTable from "./LapsTable";
-import GForceGauge from "./GForceGauge";
-import CarWireframe from "./CarWireframe";
 import SuspensionGauge from "./SuspensionGauge";
 import { VisualizationProps } from "../FlexLayoutComponent";
 import { JSX } from "react";
@@ -14,8 +12,6 @@ export const visualizations: Record<string, (props: VisualizationProps<any>) => 
         "stacked-line-chart": StackedLineChart,
         gps: GPS,
         "suspension-gauge": SuspensionGauge,
-        "car-wireframe": CarWireframe,
-        "g-force-gauge": GForceGauge,
         // "timings-box": LapsTable,
         // "lap-counter": LapCounter, // doesn't work without AEMdash lap calculations (not on fs-3)
         "accumulator-temp": AccumulatorTemperature,

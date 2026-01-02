@@ -8,13 +8,12 @@ import {
     AxisTickStrategies,
     SolidFill,
     PointLineAreaSeries,
-    LegendBoxBuilders,
     UIDraggingModes,
     UIOrigins,
     Axis,
     emptyLine,
-    LegendBox,
     FontSettings,
+    LegendPosition,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
@@ -51,8 +50,8 @@ export default function StackedLineChartInternal({
     } = useDataMethods();
     const containerRef = useRef(null);
     const lc = useContext(LightningChartsContext);
-
-    const legendRef = useRef<LegendBox>(null);
+    //
+    // const legendRef = useRef<LegendBox>(null);
 
     useEffect(() => {
         if (!containerRef.current || !lc) return;
@@ -64,6 +63,7 @@ export default function StackedLineChartInternal({
             theme: globalTheme,
             // highPrecision is necessary for high zoom at large timestamps
             defaultAxisX: { type: "linear-highPrecision" },
+            legend: { position: LegendPosition.LeftTop },
         });
         // Remove the default y axis (we add ours below)
         chart.yAxis.dispose();
@@ -88,9 +88,11 @@ export default function StackedLineChartInternal({
                 (acc, colName) => {
                     acc[colName] = chart
                         .addPointLineAreaSeries({
-                            dataPattern: "ProgressiveX",
-                            dataStorage: Float32Array,
-                            // allowInputModification: false
+                            schema: {
+                                [timeColumnName]: { pattern: "progressive" },
+                            },
+                            legend: { show: true },
+                            strictMode: true,
                             axisY,
                         })
                         .setName(colName)
@@ -117,22 +119,22 @@ export default function StackedLineChartInternal({
             });
         }
 
-        // Adds a legend that always stays in the top left corner but is also draggable
-        let legend = chart
-            .addLegendBox(LegendBoxBuilders.VerticalLegendBox, chart.coordsRelative)
-            .setOrigin(UIOrigins.LeftTop)
-            .setMargin(10)
-            .setDraggingMode(UIDraggingModes.draggable)
-            .setVisible(showLegend ?? false)
-            // adds everything from the chart that supports it to the legend
-            .add(chart);
-        legendRef.current = legend;
-        chart.addEventListener("layoutchange", (event) => {
-            legend.setPosition({
-                x: event.margins.left,
-                y: event.chartHeight - event.margins.top,
-            });
-        });
+        // // Adds a legend that always stays in the top left corner but is also draggable
+        // let legend = chart
+        //     .addLegendBox(LegendBoxBuilders.VerticalLegendBox, chart.coordsRelative)
+        //     .setOrigin(UIOrigins.LeftTop)
+        //     .setMargin(10)
+        //     .setDraggingMode(UIDraggingModes.draggable)
+        //     .setVisible(showLegend ?? false)
+        //     // adds everything from the chart that supports it to the legend
+        //     .add(chart);
+        // legendRef.current = legend;
+        // chart.addEventListener("layoutchange", (event) => {
+        //     legend.setPosition({
+        //         x: event.margins.left,
+        //         y: event.chartHeight - event.margins.top,
+        //     });
+        // });
 
         chart.setTitle(title ?? "");
         chart.setCursor((cursor) =>
@@ -154,7 +156,7 @@ export default function StackedLineChartInternal({
             .getDefaultAxisX()
             .setScrollStrategy(
                 isTimelineSyncedRef.current
-                    ? AxisScrollStrategies.progressive
+                    ? AxisScrollStrategies.scrolling
                     : AxisScrollStrategies.fitting,
             )
             .setDefaultInterval((state) => ({
@@ -308,7 +310,7 @@ export default function StackedLineChartInternal({
                 if (dataSource == DataSourceType.LIVE) {
                     chart
                         .getDefaultAxisX()
-                        .setScrollStrategy(AxisScrollStrategies.progressive);
+                        .setScrollStrategy(AxisScrollStrategies.scrolling);
                 }
             }
         });
@@ -343,9 +345,9 @@ export default function StackedLineChartInternal({
         };
     }, [lc, xAxisInfo, yAxesInfo]);
 
-    useEffect(() => {
-        legendRef.current?.setVisible(showLegend ?? false);
-    }, [showLegend]);
+    // useEffect(() => {
+    //
+    // }, [showLegend]);
 
     return <div id={id} ref={containerRef} className="w-[100%] h-[100%]"></div>;
 }

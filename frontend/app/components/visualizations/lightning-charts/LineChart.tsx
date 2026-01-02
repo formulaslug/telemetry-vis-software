@@ -11,9 +11,9 @@ import {
     SolidFill,
     FontSettings,
     PointLineAreaSeries,
-    LegendBoxBuilders,
     UIDraggingModes,
     UIOrigins,
+    LegendPosition,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "./GlobalContext";
 import globalTheme from "./GlobalTheme";
@@ -70,14 +70,18 @@ export default function LineChart({
     useEffect(() => {
         if (!containerRef.current || !lc) return;
 
-        let chart = lc.ChartXY({ container: containerRef.current, theme: globalTheme });
+        let chart = lc.ChartXY({
+            container: containerRef.current,
+            theme: globalTheme,
+            legend: { position: LegendPosition.LeftTop },
+        });
         let lineSeriesMap = yAxisColumnNames.reduce(
             (acc, colName) => {
                 acc[colName] = chart
                     .addPointLineAreaSeries({
-                        dataPattern: "ProgressiveX",
-                        dataStorage: Float32Array,
-                        // allowInputModification: false
+                        schema: {
+                            [timeColumnName]: { pattern: "progressive" },
+                        },
                     })
                     .setName(colName)
                     .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
@@ -94,20 +98,6 @@ export default function LineChart({
             {} as Record<ColumnName, PointLineAreaSeries>,
         );
 
-        // Adds a legend that always stays in the top left corner but is also draggable
-        let legend = chart
-            .addLegendBox(LegendBoxBuilders.VerticalLegendBox, chart.coordsRelative)
-            .setOrigin(UIOrigins.LeftTop)
-            .setMargin(10)
-            .setDraggingMode(UIDraggingModes.draggable)
-            .add(chart);
-        chart.addEventListener("layoutchange", (event) => {
-            legend.setPosition({
-                x: event.margins.left,
-                y: event.chartHeight - event.margins.top,
-            });
-        });
-
         chart.setTitle(title);
 
         if (xAxisUnits) chart.getDefaultAxisX().setUnits(xAxisUnits);
@@ -118,7 +108,7 @@ export default function LineChart({
             .setTitle(xAxisTitle)
             .setScrollStrategy(
                 isTimelineSyncedRef.current
-                    ? AxisScrollStrategies.progressive
+                    ? AxisScrollStrategies.scrolling
                     : AxisScrollStrategies.fitting,
             )
             .setDefaultInterval((state) => ({
@@ -278,7 +268,7 @@ export default function LineChart({
                 if (dataSource == DataSourceType.LIVE) {
                     chart
                         .getDefaultAxisX()
-                        .setScrollStrategy(AxisScrollStrategies.progressive);
+                        .setScrollStrategy(AxisScrollStrategies.scrolling);
                 }
             }
         });

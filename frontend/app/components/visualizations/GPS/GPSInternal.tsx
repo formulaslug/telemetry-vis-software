@@ -15,6 +15,7 @@ import {
     ChartXY,
     PointLineAreaSeries,
     PointShape,
+    LegendPosition,
 } from "@lightningchart/lcjs";
 import { LightningChartsContext } from "../lightning-charts/GlobalContext";
 import globalTheme from "../lightning-charts/GlobalTheme";
@@ -74,6 +75,8 @@ export default function GPSInternal({
                 // highPrecision is necessary for latitude/longitude with high zoom
                 defaultAxisX: { type: "linear-highPrecision" },
                 defaultAxisY: { type: "linear-highPrecision" },
+
+                legend: { visible: false },
             })
             // afaik you can't easily share pointer events between two overlapping divs
             .setCursorMode(showLeaflet ? undefined : "show-pointed")
@@ -87,9 +90,9 @@ export default function GPSInternal({
         // The data series for the green car line
         let visibleSeries = chart
             .addPointLineAreaSeries({
-                dataPattern: null,
-                dataStorage: Float32Array,
-                lookupValues: true,
+                schema: {
+                    [timeColumnName]: { pattern: "progressive" },
+                },
                 // todo: enable an LUT for color based on lap #???
             })
             .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
@@ -125,8 +128,9 @@ export default function GPSInternal({
         // The data series for the low-accuracy thick gray background track
         let bgSeries = chart
             .addPointLineAreaSeries({
-                dataPattern: null,
-                dataStorage: Float32Array,
+                schema: {
+                    [timeColumnName]: { pattern: "progressive" },
+                },
             })
             .setMaxSampleCount({ max: MAX_DATA_ROWS, mode: "auto" })
             .setDrawOrder({ seriesDrawOrderIndex: 1 })
@@ -140,8 +144,9 @@ export default function GPSInternal({
 
         let carSeries = chart
             .addPointLineAreaSeries({
-                dataPattern: null,
-                dataStorage: Float32Array,
+                schema: {
+                    [timeColumnName]: { pattern: "progressive" },
+                },
             })
             .setMaxSampleCount(1)
             .setDrawOrder({ seriesDrawOrderIndex: 2 })
@@ -204,7 +209,7 @@ export default function GPSInternal({
 
             // Insert the above gradient array into the lookupValues dataset
             // channel starting at the correct index
-            visibleSeries.alterSamples(left, {
+            visibleSeries.alterSamplesStartingFrom(left, {
                 // todo: this doesn't work with data cleaning
                 lookupValues: gradient,
             });

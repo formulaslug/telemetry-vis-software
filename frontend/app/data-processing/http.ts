@@ -81,12 +81,12 @@ export async function availableRecordings(isProduction: boolean) {
     return resp?.json();
 }
 
-export async function availableConfigs(isProduction: boolean): Promise<any[]> {
-    const resp = await tryFetch(`/api/available-configs`, isProduction);
+export async function availableLayouts(isProduction: boolean): Promise<any[]> {
+    const resp = await tryFetch(`/api/available-layouts`, isProduction);
     return resp?.json()
 }
 
-export async function getConfig(file: string, isProduction: boolean){
-    const resp = await tryFetch(`/api/get-config/${file}`, isProduction)
+export async function getLayout(file: string, isProduction: boolean){
+    const resp = await tryFetch(`/api/get-layout/${file}`, isProduction)
     return resp?.json()
 }

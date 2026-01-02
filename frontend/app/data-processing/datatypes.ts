@@ -75,7 +75,7 @@ export function nullDataValues(): DataValues {
     }, {} as DataValues);
 }
 
-export const MAX_DATA_ROWS = 3_000_000;
+export const MAX_DATA_ROWS = 3_000;
 
 // list of Field objects for Table's Schema (basically just (keyname,type) pairs)
 const fields = columnNames.map((key) =>

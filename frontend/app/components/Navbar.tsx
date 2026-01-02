@@ -20,8 +20,6 @@ import { useEffect, useRef, useState } from "react";
 const subsystems = ["accumulator", "suspension", "imu-data", "faults", "3d-tests"];
 import { availableRecordings, getDBCForRecording } from "../data-processing/http";
 import { useDataMethods } from "../data-processing/DataMethodsProvider";
-import AutocompleteSearchbar from "./Autocomplete";
-import { File } from "@phosphor-icons/react/dist/ssr";
 import BurgerMenu from "./BurgerMenu";
 
 //takes in the list of files as an array and outputs it in mantine tree format
@@ -70,7 +68,6 @@ export default function Navbar() {
     const [loading, setLoading] = useState(false);
     const [live, setLive] = useState(false);
     const [opened, { open, close }] = useDisclosure(false);
-    const [burgerOpened, burgerHandler] = useDisclosure(false);
     const [fileName, setFileName] = useState("No File Selected");
     const [recordings, setRecordings] = useState<string[] | null>(null);
     const [isProduction, setIsProduction] = useState<boolean>(true);
@@ -90,29 +87,6 @@ export default function Navbar() {
     useEffect(() => {
         availableRecordings(isProduction).then((r) => setRecordings(r));
     }, [isProduction]);
-
-    function SystemSelector() {
-        const [opened, { open, close }] = useDisclosure(false);
-
-        return (
-            <>
-                <Modal opened={opened} onClose={close} title="Select Subsystem" centered>
-                    {subsystems.map((system) => {
-                        return (
-                            <div className="m-3 " key={system}>
-                                <Link href={`/${system}`}>
-                                    <Button variant="filled" fullWidth>
-                                        {system.toUpperCase()}
-                                    </Button>
-                                </Link>
-                            </div>
-                        );
-                    })}
-                </Modal>
-                <Button onClick={open}>Open System</Button>
-            </>
-        );
-    }
 
     function ServerToggle() {
         return (
@@ -168,8 +142,10 @@ export default function Navbar() {
                                         if (!hasChildren && tree.hoveredNode) {
                                             setFileName(tree.hoveredNode);
                                             setLoading(true);
+                                            console.log("a")
                                             await switchToRecording(tree.hoveredNode, isProduction);
                                             setLoading(false);
+                                            console.log("b")
                                             close();
 
                                             console.log(
@@ -265,7 +241,7 @@ export default function Navbar() {
 
     return (
         <>
-            <div className="w-[100vw] h-[100vh] absolute">
+            <div className={`absolute ${loading ? "w-[100vw] h-[100vh]" : "w-0 h-0"}`}>
                 <LoadingOverlay
                     visible={loading}
                     zIndex={10000}
@@ -277,7 +253,7 @@ export default function Navbar() {
                 <div className="flex flex-row items-center">
                     {/* Burger Menu */}
                     <div className="px-3">
-                        <BurgerMenu opened={burgerOpened} handler={burgerHandler} />
+                        <BurgerMenu />
                     </div>
                     {/* Logo */}
                     <div className="mx-3 my-1">
@@ -290,13 +266,6 @@ export default function Navbar() {
                             priority={true}
                         />
                     </div>
-                    <button onClick={() => {
-                        fetch("http://localhost:8000/api/config")
-                            .then((res) => res.json())
-                            .then((data) => console.log(data));
-                    }}
-                    >
-                        Hello</button>
                 </div>
                 {/* Right Side */}
                 <div className="m-3">

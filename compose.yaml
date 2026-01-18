@@ -23,9 +23,9 @@ services:
             - ./fs-data:/fs-data
         command: >
             sh -c "
-                mkdir /telemetry_data/recordings
-                mkdir /telemetry_data/layouts
-                mkdir /telemetry_data/live
+                mkdir -p /telemetry_data/recordings
+                mkdir -p /telemetry_data/layouts
+                mkdir -p /telemetry_data/live
                 rm -rf /telemetry_data/fs-data
                 cp -r /fs-data /telemetry_data
             "

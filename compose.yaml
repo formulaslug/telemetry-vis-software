@@ -26,6 +26,7 @@ services:
                 mkdir /telemetry_data/recordings
                 mkdir /telemetry_data/layouts
                 mkdir /telemetry_data/live
+                rm -rf /telemetry_data/fs-data
                 cp -r /fs-data /telemetry_data
             "
 

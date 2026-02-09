@@ -111,6 +111,8 @@ services:
         environment:
             - GF_SECURITY_ADMIN_USER=admin
             - GF_SECURITY_ADMIN_PASSWORD=admin
+            - GF_AUTH_ANONYMOUS_ENABLED=true
+            - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
             #- GF_FEATURE_TOGGLES_ENABLE=newInfluxDSConfigPageDesign
             - GF_SERVER_ROOT_URL=https://graf.telemetry.formulaslug.com
             - GF_SERVER_HTTP_PORT=8001

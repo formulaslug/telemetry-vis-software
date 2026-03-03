@@ -93,6 +93,7 @@ services:
             - ./clickhouse-config.xml:/etc/clickhouse-server/config.d/clickhouse-config.xml
             - ./clickhouse-users.xml:/etc/clickhouse-server/users.d/clickhouse-users.xml
 
+            - clickhouse_data:/var/lib/clickhouse
             #- ./fs-data:/var/lib/clickhouse/user_files/fs-data
             - type: volume
               source: telemetry_data
@@ -130,6 +131,7 @@ volumes:
     caddy_data:
     caddy_config:
     grafana_data:
+    clickhouse_data:
     copyparty_config:
     # Main stateful data volume, which contains layouts, parquet recordings, and live data (TBD)
     telemetry_data:

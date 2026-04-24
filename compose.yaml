@@ -30,15 +30,16 @@ services:
                 cp -r /fs-data /telemetry_data
             "
 
-    # Nodejs process hosts react frontend
-    nodejs:
-        image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
-        restart: always
-        # NOTE: in order for the build to produce a working output, .env.production
-        # needs to be present in the build context dir with lcjs license information.
-        build: ./frontend
-        expose:
-            - "3000"
+    # Disabled, because it's not used, and for some reason causes insanely high CPU usage
+    # # Nodejs process hosts react frontend
+    # nodejs:
+    #     image: "${REGISTRY_URL:-}telemetry-vis-software/frontend:latest"
+    #     restart: always
+    #     # NOTE: in order for the build to produce a working output, .env.production
+    #     # needs to be present in the build context dir with lcjs license information.
+    #     build: ./frontend
+    #     expose:
+    #         - "3000"
 
     # Python process runs websocket and http servers (backend)
     python:

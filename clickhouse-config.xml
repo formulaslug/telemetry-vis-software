@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <clickhouse replace="true">
     <logger>
-        <level>debug</level>
+        <level>warning</level>
         <log>/var/log/clickhouse-server/clickhouse-server.log</log>
         <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
         <size>100M</size>
@@ -19,4 +19,16 @@
             <path>/var/lib/clickhouse/access/</path>
         </local_directory>
     </user_directories>
+
+    <!-- This should get rid of the huge timestamp_ns.bin files in
+    the telemetry-vis-software_clickhouse_data volume -->
+    <asynchronous_metric_log remove="1"/>
+    <metric_log remove="1"/>
+    <query_thread_log remove="1" />
+    <query_log remove="1" />
+    <query_views_log remove="1" />
+    <part_log remove="1"/>
+    <session_log remove="1"/>
+    <text_log remove="1" />
+    <trace_log remove="1"/>
 </clickhouse>
